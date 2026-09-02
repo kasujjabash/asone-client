@@ -1,0 +1,157 @@
+/**
+ * Placeholder tokens.
+ *
+ * Neutral on purpose: the ERA 92 theme has not landed yet, so nothing here
+ * commits to a brand. Every colour, radius and font in the app reads from
+ * these variables, so swapping in the real palette is a change to this file
+ * and nothing else.
+ */
+
+:root {
+  --bg: #f7f7f8;
+  --surface: #ffffff;
+  --border: #e3e3e7;
+  --text: #1f2025;
+  --text-muted: #6b6f7a;
+  --accent: #3a3d46;
+  --accent-text: #ffffff;
+  --danger: #b3261e;
+  --danger-bg: #fdeceb;
+  --ok: #1b5e20;
+  --ok-bg: #eaf4ea;
+
+  --radius: 8px;
+  --gap: 16px;
+
+  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font: 15px/1.5 var(--sans);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+input {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button {
+  font: inherit;
+  font-weight: 500;
+  padding: 10px 16px;
+  color: var(--accent-text);
+  background: var(--accent);
+  border: 0;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.notice {
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+
+.notice--error {
+  color: var(--danger);
+  background: var(--danger-bg);
+}
+
+.grid-kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 20px;
+  font-size: 14px;
+}
+
+.grid-kv dt {
+  color: var(--text-muted);
+}
+
+.grid-kv dd {
+  margin: 0;
+  font-weight: 500;
+}
+
+.flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.flag {
+  font: 12px/1 var(--mono);
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.flag--on {
+  color: var(--ok);
+  background: var(--ok-bg);
+  border-color: transparent;
+}

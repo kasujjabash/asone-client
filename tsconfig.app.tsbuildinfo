@@ -1,0 +1,1 @@
+{"root":["./src/main.tsx","./src/api/auth.ts","./src/api/errors.ts","./src/api/http.ts","./src/api/schema.d.ts","./src/api/tokens.ts","./src/api/types.ts","./src/domain/access.ts","./src/features/auth/hooks/usesignin.ts","./src/features/auth/screens/signinscreen.tsx"],"version":"6.0.3"}

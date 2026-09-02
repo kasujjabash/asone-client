@@ -1,0 +1,180 @@
+/**
+ * Named aliases over the generated schema.
+ *
+ * Screens import from here, never from `schema.d.ts` directly, so that
+ * `components["schemas"]["..."]` noise stays in one file and a rename on the
+ * server surfaces as one compile error here instead of fifty in features.
+ *
+ * Everything below is an alias except the four marked SCHEMA GAP, where the
+ * generated types are wrong or too loose to use. Each says what to ask the
+ * backend for so it can be deleted.
+ */
+
+import type { components } from './schema.d.ts'
+
+type S = components['schemas']
+
+// ---------------------------------------------------------------------------
+// Pagination
+// ---------------------------------------------------------------------------
+
+/** DRF's list envelope. 50 rows per page. */
+export interface Page<T> {
+  count: number
+  next: string | null
+  previous: string | null
+  results: T[]
+}
+
+// ---------------------------------------------------------------------------
+// Money
+// ---------------------------------------------------------------------------
+
+/**
+ * UGX, as the server sends it: a decimal string like "25000.00".
+ *
+ * Deliberately not `number`. Floating point cannot hold 0.1 exactly, and a
+ * rounding error on a price becomes a wrong invoice. Format it with
+ * `domain/money`; never do arithmetic on it.
+ */
+export type Money = string
+
+/** `YYYY-MM-DD`. */
+export type IsoDate = string
+
+/** ISO 8601 with a time. */
+export type IsoDateTime = string
+
+// ---------------------------------------------------------------------------
+// Accounts
+// ---------------------------------------------------------------------------
+
+export type Role = S['RoleEnum']
+export type RoleInfo = S['Role']
+export type Scope = S['ScopeEnum']
+export type WarehouseSummary = S['WarehouseSummary']
+export type SchoolSummary = S['SchoolSummary']
+export type UserAdmin = S['UserAdmin']
+export type UserCreate = S['UserCreate']
+export type LoginAttempt = S['LoginAttempt']
+
+/**
+ * The seven columns of AsOne's access matrix, as returned by `/auth/roles/`
+ * and embedded in every user.
+ *
+ * SCHEMA GAP — the server serialises `User.access` and `Role.functions` as
+ * open objects, so the generated types are `{[key: string]: unknown}` and
+ * `{[key: string]: boolean}`. This is the field the whole navigation is
+ * drawn from, so it needs real keys. Ask for `@extend_schema_field` on both
+ * serializer fields and delete this type.
+ */
+export type AccessFunction =
+  | 'table_updates'
+  | 'production_orders'
+  | 'warehouse_receiving_and_shipping'
+  | 'inventory_adjustments'
+  | 'school_orders'
+  | 'backorder_transfers'
+  | 'financial_reports'
+
+export type AccessFunctions = Record<AccessFunction, boolean>
+
+export interface Access {
+  scope: Scope
+  functions: AccessFunctions
+}
+
+/**
+ * The signed-in user.
+ *
+ * SCHEMA GAP — two corrections to the generated `User`:
+ *
+ *   `access`             typed as an open object upstream (see above).
+ *   `warehouse`/`school` declared non-nullable, but both come back `null`
+ *                        for Program Lead, Operations Manager and Finance.
+ *                        Verified against live logins for all five roles.
+ *                        Without this, `user.warehouse.name` type-checks
+ *                        and then crashes for three of the five roles.
+ *
+ * Ask for `allow_null=True` on those two serializer fields and drop the
+ * override.
+ */
+export type CurrentUser = Omit<S['User'], 'access' | 'warehouse' | 'school'> & {
+  access: Access
+  warehouse: WarehouseSummary | null
+  school: SchoolSummary | null
+}
+
+export interface Credentials {
+  email: string
+  password: string
+}
+
+/**
+ * What `POST /auth/login/` actually returns.
+ *
+ * SCHEMA GAP — the endpoint declares its 200 response as `Login`, the
+ * *request* body, so the generated types claim a sign-in returns
+ * `{email, password}`. Ask for `@extend_schema(responses=...)` on the login
+ * view and replace this with the alias.
+ */
+export interface Session {
+  access: string
+  refresh: string
+  user: CurrentUser
+}
+
+// ---------------------------------------------------------------------------
+// Catalog
+// ---------------------------------------------------------------------------
+
+export type Garment = S['Garment']
+export type GarmentPrice = S['GarmentPrice']
+export type Sku = S['Sku']
+export type Size = S['Size']
+export type Kit = S['Kit']
+export type KitItem = S['KitItem']
+export type School = S['School']
+export type Warehouse = S['Warehouse']
+export type TailoringCenter = S['TailoringCenter']
+export type MinimumStockLevel = S['MinimumStockLevel']
+export type PriceListRow = S['PriceListRow']
+export type SchoolLevel = S['SchoolLevelEnum']
+export type GarmentSchoolLevel = S['GarmentSchoolLevelEnum']
+
+// ---------------------------------------------------------------------------
+// Inventory
+// ---------------------------------------------------------------------------
+
+export type StockLevel = S['StockLevel']
+export type StockMovement = S['StockMovement']
+export type MovementType = S['MovementTypeEnum']
+export type StockStatus = S['StockStatusEnum']
+export type ReasonCode = S['ReasonCode']
+export type ReasonDirection = S['DirectionEnum']
+export type InventoryAdjustment = S['InventoryAdjustment']
+export type WarehouseTransfer = S['WarehouseTransfer']
+export type ReorderAlert = S['ReorderAlert']
+
+// ---------------------------------------------------------------------------
+// Procurement
+// ---------------------------------------------------------------------------
+
+export type GroupOrder = S['GroupOrder']
+export type ProductionOrder = S['ProductionOrder']
+export type Receipt = S['Receipt']
+export type ProcurementStatus = S['ProcurementOrderStatusEnum']
+export type OutstandingRow = S['OutstandingRow']
+export type ReconciliationRow = S['ReconciliationRow']
+
+// ---------------------------------------------------------------------------
+// Orders
+// ---------------------------------------------------------------------------
+
+export type SchoolOrder = S['SchoolOrder']
+export type SchoolOrderLine = S['SchoolOrderLine']
+export type SchoolOrderStatus = S['SchoolOrderStatusEnum']
+export type Invoice = S['Invoice']
+export type OrderAvailabilityRow = S['OrderAvailabilityRow']
+export type OrderDemandRow = S['OrderDemandRow']
+export type OrderOnHold = S['OrderOnHold']
