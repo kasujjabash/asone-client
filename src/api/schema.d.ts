@@ -14,8 +14,14 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Sign in
-         * @description Exchange an email address and password for an access token, a refresh token and the signed-in user's record, including role, site and access summary.
+         * Sign in — step 1 of 2, password
+         * @description Check an email address and password, then **email a one-time code**. No tokens are returned here — post the code to `/api/auth/login/verify/` to finish.
+         *
+         *     **403 means the address is not a user of this system**, or has been deactivated. Only people Central Office has added can sign in, and this says so plainly rather than leaving somebody retyping a password that was never going to work.
+         *
+         *     **401 means the password is wrong** for an address that does exist.
+         *
+         *     Both are rate limited per address and per site, and every attempt is recorded.
          */
         post: operations["auth_login_create"];
         delete?: never;
@@ -62,6 +68,28 @@ export interface paths {
         get: operations["auth_login_attempts_retrieve"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/login/verify/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in — step 2 of 2, the emailed code
+         * @description Exchange the challenge and the emailed code for an access token, a refresh token and the signed-in user's record.
+         *
+         *     A code is good **once**, for a few minutes, with a limited number of tries. Anything else — expired, already used, too many wrong attempts — is a 400 telling you to sign in again, deliberately without saying which of those it was.
+         */
+        post: operations["auth_login_verify_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -307,6 +335,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/users/{id}/resend-verification/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send the confirmation code again
+         * @description Emails a **new** confirmation code and retires the old one.
+         *
+         *     Needed more often than it sounds: a code lasts seven days, mail goes astray, and people start a new job a fortnight after being added. Without this the only fix is a developer.
+         *
+         *     Refused for somebody whose address is already confirmed — there is nothing left to prove. If they cannot get in, use **set password** instead.
+         */
+        post: operations["auth_users_resend_verification_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/users/{id}/set-password/": {
         parameters: {
             query?: never;
@@ -365,6 +417,32 @@ export interface paths {
          * @description Check whether a token is still valid. Returns 200 or 401.
          */
         post: operations["auth_verify_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/verify-email/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm your email address
+         * @description A new member of staff confirms the address their account was created against, using the code emailed to it.
+         *
+         *     **Until this is done, signing in is refused.** An account is created with a password the lead knows and an address nobody has proven; this is what proves it. A mistyped address must not become a working account.
+         *
+         *     The password is not part of this step and is never emailed — it reaches the person through their lead, by a different route. That separation is the whole point of the code.
+         *
+         *     Wrong codes count against a limit, and the code expires.
+         */
+        post: operations["auth_verify_email_create"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1324,6 +1402,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inventory/reports/adjustments-costed/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Adjustments, costed
+         * @description F58 — what adjustments did to the value of stock, by reason code.
+         *
+         *     Counted from the **ledger**, not from adjustment documents: an adjustment created and never posted has moved nothing and is correctly absent. Value is signed the way the ledger is, so the rows sum to the net effect on the value of stock.
+         *
+         *     **Open question Q6.** AsOne's p.6 marks the financial treatment of damaged stock "To be determined", so every row's `treatment` currently reads "not yet classified". The operational figures — units and value — are complete and do not depend on that answer. See `FINANCIAL_TREATMENT` in `inventory/reports.py`.
+         */
+        get: operations["inventory_reports_adjustments_costed_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/inventory/stock-levels/": {
         parameters: {
             query?: never;
@@ -1460,6 +1562,172 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/backorders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description What schools are still owed, and who is filling it — F44, F45, F46.
+         *
+         *     **The one place a warehouse user reaches past their own site.** Decision
+         *     D5 gives Warehouse Staff the Backorder Transfers column, and a transfer
+         *     is meaningless if the clerk sending it cannot see the receiving
+         *     warehouse. So the scoping here is deliberately wider than everywhere
+         *     else, and deliberately narrow about *what* it widens:
+         *
+         *         a clerk sees backorders their own warehouse could not supply
+         *         and backorders another warehouse has assigned to them
+         *
+         *     They do not see a third warehouse's outstanding queue. The leads and
+         *     Finance see all of them.
+         *
+         *     Read-only as a resource. The two things that change a backorder are
+         *     `assign/` and `fill/`, because both do more than set a field.
+         */
+        get: operations["orders_backorders_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/backorders/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description What schools are still owed, and who is filling it — F44, F45, F46.
+         *
+         *     **The one place a warehouse user reaches past their own site.** Decision
+         *     D5 gives Warehouse Staff the Backorder Transfers column, and a transfer
+         *     is meaningless if the clerk sending it cannot see the receiving
+         *     warehouse. So the scoping here is deliberately wider than everywhere
+         *     else, and deliberately narrow about *what* it widens:
+         *
+         *         a clerk sees backorders their own warehouse could not supply
+         *         and backorders another warehouse has assigned to them
+         *
+         *     They do not see a third warehouse's outstanding queue. The leads and
+         *     Finance see all of them.
+         *
+         *     Read-only as a resource. The two things that change a backorder are
+         *     `assign/` and `fill/`, because both do more than set a field.
+         */
+        get: operations["orders_backorders_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/backorders/{id}/assign/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Assign to a warehouse with stock
+         * @description F45 — hand the backorder to a warehouse that has the stock.
+         *
+         *     **Nothing moves in the ledger.** The receiving warehouse still holds its stock and will ship it in the ordinary way; what changes is who owes the school.
+         *
+         *     Refused if that warehouse does not hold enough, or if it is the warehouse that ran short in the first place.
+         */
+        post: operations["orders_backorders_assign_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/backorders/{id}/candidates/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Warehouses that could fill this
+         * @description F45's shortlist — warehouses holding enough to fill this backorder, excluding the one that ran short.
+         *
+         *     Exists because a clerk cannot see another site's shelves. Without it, assigning a backorder is guesswork, and a backorder sent to an empty warehouse is a queue nobody can clear.
+         */
+        get: operations["orders_backorders_candidates_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/backorders/{id}/fill/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ship it direct to the school
+         * @description F46 — the assigned warehouse ships straight to the school.
+         *
+         *     This is the half of decision D2 that overrides the definitions page: the stock does **not** route back through the school's own warehouse. It goes from the shelf that had it to the school.
+         *
+         *     Reserves and ships in one step — the warehouse already committed when it accepted the backorder, so there is nothing in between for it to decide.
+         */
+        post: operations["orders_backorders_fill_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/reports/backorders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Backorders outstanding
+         * @description F49 — what schools are still owed, and what each is waiting on.
+         *
+         *     The status is the "waiting on": OPEN needs somebody to find stock,
+         *     ASSIGNED needs somebody to put it on a van. Different problems, and a
+         *     report that merged them would hide the one that is stuck.
+         *
+         *     The checklist gives this to the leads, Finance, a warehouse for its own
+         *     site and a school for its own orders — the widest audience of the four
+         *     fulfilment reports, because everybody is waiting on it.
+         */
+        get: operations["orders_reports_backorders_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/reports/on-hold/": {
         parameters: {
             query?: never;
@@ -1476,6 +1744,52 @@ export interface paths {
          *     Oldest first, because that is the order they should be chased in.
          */
         get: operations["orders_reports_on_hold_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/reports/part-processed/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Orders picked but not despatched
+         * @description F52 and F54 — orders with a pick list and no packing list.
+         *
+         *     Stock is off the shelf, committed to a named student, and still in the building. It is also where stock quietly sits when somebody picks an order and forgets it.
+         *
+         *     **Interpretation worth checking with AsOne.** A packing list comes into existence with a shipment (F40), so an order picked but not yet shipped is what this reports. If AsOne means a separate step between picking and despatch, this report and F40 both change — see `orders/reports.py`.
+         */
+        get: operations["orders_reports_part_processed_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/reports/shipments-costed/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shipments to schools, costed
+         * @description F57 — what went to each school and what it was worth.
+         *
+         *     Valued at **what the school was charged**, snapshotted when the order was placed — deliberately a different number from the costed adjustments report, which values stock at what the warehouse carries it at. A shipment's value to Finance is what the school owes; a write-off's value is what the stock cost.
+         */
+        get: operations["orders_reports_shipments_costed_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1622,6 +1936,47 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/school-orders/{id}/backorders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Backorders raised on this order
+         * @description A student's uniform order — F30, F31, F32, F33.
+         *
+         *     **School staff only.** AsOne's matrix leaves the School Orders Entry
+         *     column blank for both leads, and the Role Access sheet omits the point of
+         *     sale from their screens — see `CanEnterSchoolOrders`, and open question
+         *     Q7, which asks whether schools have the computers to do this at all.
+         *
+         *     Scoped to the clerk's own school in both directions: they see their
+         *     school's orders, and an order they create belongs to that school
+         *     whatever the request body says.
+         *
+         *     **Orders are never deleted.** A school hands the number to a parent as
+         *     an invoice, so the document has to survive. Cancelling (F36) is the way
+         *     out, and only while the order is unpaid.
+         *
+         *     Finance may **read** an order and its invoice — F34 gives them a view —
+         *     but may not place or cancel one. See orders/permissions.py.
+         *
+         *     `availability`, `pick_list` and `pick` (F37, F38, F39) are the warehouse
+         *     fulfilment actions on the same order — gated by `CanReceiveAndShip`
+         *     instead, via `get_permissions()`, since they are a different matrix
+         *     column from everything else on this viewset.
+         */
+        get: operations["orders_school_orders_backorders_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/school-orders/{id}/cancel/": {
         parameters: {
             query?: never;
@@ -1692,6 +2047,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/school-orders/{id}/packing-lists/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Packing lists for this order
+         * @description F40 — the document that travels with the goods. One per shipment, because a backorder filled elsewhere travels separately.
+         *
+         *     Carries the **invoice number and the student's name together**, which is how AsOne's definitions page says a school hands the right uniform to the right child. Either alone is not enough: two children can share a name, and a number means nothing to the person handing out parcels.
+         *
+         *     Returns data, not a PDF — rendering it is the frontend's job.
+         */
+        get: operations["orders_school_orders_packing_lists_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/school-orders/{id}/pick/": {
         parameters: {
             query?: never;
@@ -1714,6 +2093,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/school-orders/{id}/pick-available/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pick what is available, backorder the rest
+         * @description F43 — the partial counterpart to `pick/`, which refuses an order it cannot fill completely.
+         *
+         *     Reserves every unit the warehouse holds and raises a backorder for each shortfall. Both endpoints exist because they answer different questions: *can I fill this?* and *fill what you can, we will chase the rest*.
+         *
+         *     Refused if not one unit is available — that is not a partial pick, and marking the order Picked would be untrue.
+         */
+        post: operations["orders_school_orders_pick_available_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/school-orders/{id}/pick-list/": {
         parameters: {
             query?: never;
@@ -1726,6 +2129,78 @@ export interface paths {
          * @description Same data as `demand/`, in the same description order — printed as the sheet a warehouse works from, reachable by warehouse roles rather than the school that placed the order.
          */
         get: operations["orders_school_orders_pick_list_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/school-orders/{id}/release/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm payment and release to the warehouse
+         * @description F35 — the invoice is paid, so the warehouse may act on the order. Records who confirmed it and when.
+         *
+         *     **Open question Q2.** AsOne's chart says an order waits on Hold until "School Monitor" confirms payment, and nobody has told us what School Monitor is. The transition is built; *who may call it* is the placeholder. It is currently Finance, which is our reading and not AsOne's instruction — see `orders/permissions.py::CanConfirmPayment`.
+         *
+         *     Refused unless the order is still on Hold: releasing a cancelled order would resurrect a document the school withdrew, and releasing a picked one would restate history.
+         *
+         *     Note that picking does **not** yet require this — see `REQUIRE_RELEASE_BEFORE_PICK`.
+         */
+        post: operations["orders_school_orders_release_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/school-orders/{id}/ship/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ship a picked order
+         * @description F41 — what was reserved at pick leaves the warehouse. Two ledger rows per line: out of Pick, into Shipped.
+         *
+         *     Ships **what is actually reserved**, read from the ledger, not what the order asked for. Those differ whenever a pick was short.
+         *
+         *     `from_warehouse` defaults to the school's own but may be set: decision D2 lets a backorder ship direct from whichever warehouse filled it.
+         *
+         *     **Open question Q1.** AsOne's chart reads "Shipped ???". We have taken shipped to mean *left the warehouse*, because that is what a clerk can observe. If they decide arrival is what counts, that is an added confirmation field, not a change to when the ledger moves — see `orders/services/shipping.py`.
+         */
+        post: operations["orders_school_orders_ship_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/school-orders/{id}/shipments/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Shipments for this order
+         * @description Every despatch against this order. More than one is normal: a backorder filled by another warehouse ships separately, direct to the school (D2).
+         */
+        get: operations["orders_school_orders_shipments_list"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2056,6 +2531,43 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description Handing a backorder to a warehouse that has the stock — F45. */
+        AssignBackorder: {
+            /** @description A warehouse holding enough to fill it — never the one that ran short. */
+            warehouse: number;
+        };
+        /** @description What a school is still owed — F44. */
+        Backorder: {
+            readonly id: number;
+            readonly order: number;
+            readonly order_number: string;
+            readonly school_name: string;
+            readonly student_name: string;
+            readonly sku: number;
+            readonly sku_number: string;
+            readonly sku_description: string;
+            readonly quantity: number;
+            readonly status: components["schemas"]["BackorderStatusEnum"];
+            readonly status_display: string;
+            /** @description The warehouse that ran short. */
+            readonly origin_warehouse_name: string;
+            /** @description The warehouse that took this on. Not the school's own — that is the one that ran short. */
+            readonly filled_by_warehouse: number | null;
+            readonly filled_by_warehouse_name: string;
+            /** Format: date-time */
+            readonly assigned_at: string | null;
+            /** Format: date-time */
+            readonly created_at: string;
+            readonly notes: string;
+        };
+        /**
+         * @description * `OPEN` - Outstanding — no warehouse assigned
+         *     * `ASSIGNED` - Assigned to a warehouse with stock
+         *     * `FILLED` - Shipped to the school
+         *     * `CANCELLED` - Cancelled
+         * @enum {string}
+         */
+        BackorderStatusEnum: "OPEN" | "ASSIGNED" | "FILLED" | "CANCELLED";
         /** @description Withdrawing an unpaid invoice — F36. */
         CancelOrder: {
             /**
@@ -2063,6 +2575,36 @@ export interface components {
              * @default
              */
             reason: string;
+        };
+        /**
+         * @description One reason code's effect on the value of stock — F58.
+         *
+         *     `value` is signed the way the ledger is: negative where stock left,
+         *     positive where it came back, so the rows sum to the net effect.
+         */
+        CostedAdjustment: {
+            reason_code: string;
+            reason_name: string;
+            /** @description How many adjustments were posted. */
+            adjustments: number;
+            /** @description Net units, signed. */
+            units: number;
+            /** Format: decimal */
+            value: string;
+            /** @description How this is treated financially. Unanswered until AsOne settles question Q6. */
+            treatment: string;
+        };
+        /** @description What went to a school and what it was worth — F57. */
+        CostedShipment: {
+            school_id: number;
+            school_name: string;
+            shipments: number;
+            units: number;
+            /**
+             * Format: decimal
+             * @description Valued at what the school was charged, snapshotted when the order was placed.
+             */
+            value: string;
         };
         /**
          * @description Input for F24: what was actually counted, nothing else.
@@ -2090,6 +2632,24 @@ export interface components {
          * @enum {string}
          */
         DirectionEnum: "INCREASE" | "DECREASE";
+        /** @description Confirming a new account's address with the emailed code. */
+        EmailVerification: {
+            /** Format: email */
+            email: string;
+            code: string;
+        };
+        /** @description The assigned warehouse shipping direct to the school — F46. */
+        FillBackorder: {
+            /**
+             * Format: date
+             * @description Defaults to today.
+             */
+            shipped_on?: string;
+            /** @default  */
+            waybill_number: string;
+            /** @default  */
+            notes: string;
+        };
         Garment: {
             readonly id: number;
             /** @description For example "White Shirt". */
@@ -2386,6 +2946,19 @@ export interface components {
             /** Format: date-time */
             readonly at: string;
         };
+        /** @description What the password step returns now: a challenge, not tokens. */
+        LoginChallengeIssued: {
+            /**
+             * Format: uuid
+             * @description Send this back with the code to finish signing in.
+             */
+            challenge: string;
+            /** Format: date-time */
+            expires_at: string;
+            detail: string;
+            /** @description Where the code went, partly masked — "j••••s@asone.test". */
+            email_hint: string;
+        };
         /** @description POST /api/auth/logout/ — the refresh token to blacklist. */
         Logout: {
             refresh: string;
@@ -2483,6 +3056,43 @@ export interface components {
             ordered: number;
             received: number;
             outstanding: number;
+        };
+        /** @description The document that travels with the goods — F40. */
+        PackingList: {
+            shipment_number: string;
+            /** Format: date */
+            shipped_on: string;
+            waybill_number: string;
+            from_warehouse: string;
+            /** @description The order number. Used with the student's name to hand over the parcel. */
+            invoice_number: string;
+            student_name: string;
+            school: string;
+            school_address: string;
+            /** @description True for a backorder filled elsewhere and shipped direct (D2). */
+            is_direct_from_another_warehouse: boolean;
+            lines: components["schemas"]["PackingListLine"][];
+            total_units: number;
+        };
+        PackingListLine: {
+            sku_number: string;
+            description: string;
+            quantity: number;
+        };
+        PaginatedBackorderList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Backorder"][];
         };
         PaginatedGarmentList: {
             /** @example 123 */
@@ -2649,6 +3259,36 @@ export interface components {
             previous?: string | null;
             results: components["schemas"]["OrderOnHold"][];
         };
+        PaginatedPackingListList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["PackingList"][];
+        };
+        PaginatedPartProcessedOrderList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["PartProcessedOrder"][];
+        };
         PaginatedProductionOrderList: {
             /** @example 123 */
             count: number;
@@ -2738,6 +3378,21 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["SchoolOrder"][];
+        };
+        PaginatedShipmentList: {
+            /** @example 123 */
+            count: number;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=4
+             */
+            next?: string | null;
+            /**
+             * Format: uri
+             * @example http://api.example.org/accounts/?page=2
+             */
+            previous?: string | null;
+            results: components["schemas"]["Shipment"][];
         };
         PaginatedSizeList: {
             /** @example 123 */
@@ -2843,6 +3498,25 @@ export interface components {
              */
             previous?: string | null;
             results: components["schemas"]["WarehouseTransfer"][];
+        };
+        /** @description An order picked but not yet despatched — F52, F54. */
+        PartProcessedOrder: {
+            readonly id: number;
+            /** @description System assigned. Also the invoice number. Never reused. */
+            readonly number: string;
+            readonly school: number;
+            readonly school_name: string;
+            readonly warehouse_name: string;
+            /** @description The student this uniform is for. Free text — students have no accounts. */
+            readonly student_name: string;
+            /**
+             * Format: date
+             * @description The date the school placed it.
+             */
+            readonly order_date: string;
+            readonly status: components["schemas"]["SchoolOrderStatusEnum"];
+            /** Format: decimal */
+            readonly total: string;
         };
         /**
          * @description POST /api/auth/password/change/.
@@ -3114,6 +3788,10 @@ export interface components {
             readonly cancelled_at?: string | null;
             /** @description Why the school cancelled. Optional, but useful when a parent asks. */
             readonly cancellation_reason?: string;
+            /** Format: date-time */
+            readonly released_at?: string | null;
+            /** @description Whatever identifies the payment — a receipt number, a mobile money reference. Free text until AsOne says what School Monitor is. */
+            readonly payment_reference?: string;
             readonly lines?: components["schemas"]["SchoolOrderLine"][];
         };
         PatchedSize: {
@@ -3418,6 +4096,19 @@ export interface components {
             /** @description Ordered minus requested. Negative means the TCs were asked for less. */
             difference: number;
         };
+        /**
+         * @description Confirming payment on an order — F35.
+         *
+         *     `payment_reference` is free text because we do not yet know what the
+         *     real one looks like: what confirms payment is open question Q2.
+         */
+        ReleaseOrder: {
+            /**
+             * @description Receipt number, mobile money reference — whatever identifies the payment.
+             * @default
+             */
+            payment_reference: string;
+        };
         /** @description A SKU at or below its reorder floor — F50. */
         ReorderAlert: {
             sku_number: string;
@@ -3524,6 +4215,10 @@ export interface components {
             readonly cancelled_at: string | null;
             /** @description Why the school cancelled. Optional, but useful when a parent asks. */
             readonly cancellation_reason: string;
+            /** Format: date-time */
+            readonly released_at: string | null;
+            /** @description Whatever identifies the payment — a receipt number, a mobile money reference. Free text until AsOne says what School Monitor is. */
+            readonly payment_reference: string;
             readonly lines: components["schemas"]["SchoolOrderLine"][];
         };
         /** @description One line as the warehouse and the invoice see it — always a SKU. */
@@ -3601,6 +4296,55 @@ export interface components {
              * @default true
              */
             must_change_password: boolean;
+        };
+        /**
+         * @description Sending a picked order out — F41.
+         *
+         *     `from_warehouse` is optional and defaults to the order's own. It exists
+         *     because decision D2 lets a backorder ship direct from whichever
+         *     warehouse actually filled it.
+         */
+        ShipOrder: {
+            /** @description Defaults to the school's own warehouse. Set for a backorder filled elsewhere. */
+            from_warehouse?: number | null;
+            /**
+             * Format: date
+             * @description Defaults to today.
+             */
+            shipped_on?: string;
+            /** @default  */
+            waybill_number: string;
+            /** @default  */
+            notes: string;
+        };
+        /** @description What left a warehouse — F41. */
+        Shipment: {
+            readonly id: number;
+            /** @description System assigned. Never reused. */
+            readonly number: string;
+            readonly order: number;
+            readonly order_number: string;
+            /** @description Where this actually left from, which is not always the school's own warehouse. */
+            readonly from_warehouse: number;
+            readonly from_warehouse_name: string;
+            /**
+             * Format: date
+             * @description The day it left the warehouse.
+             */
+            readonly shipped_on: string;
+            readonly shipped_by: number;
+            readonly shipped_by_name: string;
+            /** @description The carrier's reference, if there is one. */
+            readonly waybill_number: string;
+            readonly notes: string;
+            readonly lines: components["schemas"]["ShipmentLine"][];
+        };
+        ShipmentLine: {
+            readonly id: number;
+            sku: number;
+            readonly sku_number: string;
+            readonly sku_description: string;
+            quantity: number;
         };
         Size: {
             readonly id: number;
@@ -3785,12 +4529,15 @@ export interface components {
             readonly date_joined: string;
         };
         /**
-         * @description Creating an account: first name, last name, email, role, password.
+         * @description Creating an account: first name, last name, email, role.
          *
-         *     The lead types the password and passes it to the person. Because two
-         *     people then know it, `must_change_password` defaults to True so it stops
-         *     being a shared password at the owner's first sign-in. A lead who has a
-         *     reason to skip that can send `must_change_password: false`.
+         *     The password is generated unless one is typed, and shown to the lead
+         *     **once** so they can pass it on. It is never emailed — the confirmation
+         *     code is, and keeping the two on separate routes is what makes the code
+         *     worth anything.
+         *
+         *     `must_change_password` stays on, because until the owner replaces it two
+         *     people know that password.
          */
         UserCreate: {
             readonly id: number;
@@ -3805,13 +4552,20 @@ export interface components {
             role: components["schemas"]["RoleEnum"];
             warehouse?: number | null;
             school?: number | null;
-            /** @description Checked against Django's password validators. */
-            password: string;
+            /** @description Leave this out and one is generated for you, shown once. Type one only if you have a reason to. Either way you pass it to the person yourself — it is never emailed. */
+            password?: string;
             /**
              * @description Require the user to choose their own password at first sign-in. Leave on unless you have a reason not to — until they do, you know their password too.
              * @default true
              */
             must_change_password: boolean;
+        };
+        /** @description POST /api/auth/login/verify/ — the second factor. */
+        VerifyLoginCode: {
+            /** Format: uuid */
+            challenge: string;
+            /** @description The code from the email. */
+            code: string;
         };
         Warehouse: {
             readonly id: number;
@@ -3912,7 +4666,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Login"];
+                    "application/json": components["schemas"]["LoginChallengeIssued"];
                 };
             };
         };
@@ -3960,6 +4714,31 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LoginAttempt"];
+                };
+            };
+        };
+    };
+    auth_login_verify_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyLoginCode"];
+                "application/x-www-form-urlencoded": components["schemas"]["VerifyLoginCode"];
+                "multipart/form-data": components["schemas"]["VerifyLoginCode"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Login"];
                 };
             };
         };
@@ -4265,6 +5044,27 @@ export interface operations {
             };
         };
     };
+    auth_users_resend_verification_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this user. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description A fresh code was emailed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     auth_users_set_password_create: {
         parameters: {
             query?: never;
@@ -4335,6 +5135,30 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["TokenVerify"];
                 };
+            };
+        };
+    };
+    auth_verify_email_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EmailVerification"];
+                "application/x-www-form-urlencoded": components["schemas"]["EmailVerification"];
+                "multipart/form-data": components["schemas"]["EmailVerification"];
+            };
+        };
+        responses: {
+            /** @description The address is confirmed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
@@ -6240,6 +7064,32 @@ export interface operations {
             };
         };
     };
+    inventory_reports_adjustments_costed_list: {
+        parameters: {
+            query?: {
+                /** @description Inclusive start date, YYYY-MM-DD. */
+                from?: string;
+                /** @description Inclusive end date, YYYY-MM-DD. */
+                to?: string;
+                /** @description Limit to one warehouse. */
+                warehouse?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CostedAdjustment"][];
+                };
+            };
+        };
+    };
     inventory_stock_levels_list: {
         parameters: {
             query?: {
@@ -6388,6 +7238,160 @@ export interface operations {
             };
         };
     };
+    orders_backorders_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                sku?: number;
+                /**
+                 * @description * `OPEN` - Outstanding — no warehouse assigned
+                 *     * `ASSIGNED` - Assigned to a warehouse with stock
+                 *     * `FILLED` - Shipped to the school
+                 *     * `CANCELLED` - Cancelled
+                 */
+                status?: "ASSIGNED" | "CANCELLED" | "FILLED" | "OPEN";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedBackorderList"];
+                };
+            };
+        };
+    };
+    orders_backorders_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this backorder. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Backorder"];
+                };
+            };
+        };
+    };
+    orders_backorders_assign_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this backorder. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignBackorder"];
+                "application/x-www-form-urlencoded": components["schemas"]["AssignBackorder"];
+                "multipart/form-data": components["schemas"]["AssignBackorder"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Backorder"];
+                };
+            };
+        };
+    };
+    orders_backorders_candidates_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this backorder. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    orders_backorders_fill_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this backorder. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["FillBackorder"];
+                "application/x-www-form-urlencoded": components["schemas"]["FillBackorder"];
+                "multipart/form-data": components["schemas"]["FillBackorder"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Shipment"];
+                };
+            };
+        };
+    };
+    orders_reports_backorders_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedBackorderList"];
+                };
+            };
+        };
+    };
     orders_reports_on_hold_list: {
         parameters: {
             query?: {
@@ -6406,6 +7410,52 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaginatedOrderOnHoldList"];
+                };
+            };
+        };
+    };
+    orders_reports_part_processed_list: {
+        parameters: {
+            query?: {
+                /** @description A page number within the paginated result set. */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedPartProcessedOrderList"];
+                };
+            };
+        };
+    };
+    orders_reports_shipments_costed_list: {
+        parameters: {
+            query?: {
+                /** @description Inclusive start date, YYYY-MM-DD. */
+                from?: string;
+                /** @description Inclusive end date, YYYY-MM-DD. */
+                to?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CostedShipment"][];
                 };
             };
         };
@@ -6550,6 +7600,40 @@ export interface operations {
             };
         };
     };
+    orders_school_orders_backorders_list: {
+        parameters: {
+            query?: {
+                order_date?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /**
+                 * @description * `HOLD` - On hold — awaiting payment
+                 *     * `RELEASED` - Released to the warehouse
+                 *     * `PICKED` - Picked
+                 *     * `SHIPPED` - Shipped
+                 *     * `CANCELLED` - Cancelled
+                 */
+                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+            };
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this school order. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedBackorderList"];
+                };
+            };
+        };
+    };
     orders_school_orders_cancel_create: {
         parameters: {
             query?: never;
@@ -6634,6 +7718,40 @@ export interface operations {
             };
         };
     };
+    orders_school_orders_packing_lists_list: {
+        parameters: {
+            query?: {
+                order_date?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /**
+                 * @description * `HOLD` - On hold — awaiting payment
+                 *     * `RELEASED` - Released to the warehouse
+                 *     * `PICKED` - Picked
+                 *     * `SHIPPED` - Shipped
+                 *     * `CANCELLED` - Cancelled
+                 */
+                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+            };
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this school order. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedPackingListList"];
+                };
+            };
+        };
+    };
     orders_school_orders_pick_create: {
         parameters: {
             query?: never;
@@ -6652,6 +7770,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SchoolOrder"];
+                };
+            };
+        };
+    };
+    orders_school_orders_pick_available_create: {
+        parameters: {
+            query?: {
+                order_date?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /**
+                 * @description * `HOLD` - On hold — awaiting payment
+                 *     * `RELEASED` - Released to the warehouse
+                 *     * `PICKED` - Picked
+                 *     * `SHIPPED` - Shipped
+                 *     * `CANCELLED` - Cancelled
+                 */
+                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+            };
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this school order. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SchoolOrder"];
+                "application/x-www-form-urlencoded": components["schemas"]["SchoolOrder"];
+                "multipart/form-data": components["schemas"]["SchoolOrder"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedBackorderList"];
                 };
             };
         };
@@ -6686,6 +7844,96 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaginatedOrderDemandRowList"];
+                };
+            };
+        };
+    };
+    orders_school_orders_release_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this school order. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ReleaseOrder"];
+                "application/x-www-form-urlencoded": components["schemas"]["ReleaseOrder"];
+                "multipart/form-data": components["schemas"]["ReleaseOrder"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolOrder"];
+                };
+            };
+        };
+    };
+    orders_school_orders_ship_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this school order. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ShipOrder"];
+                "application/x-www-form-urlencoded": components["schemas"]["ShipOrder"];
+                "multipart/form-data": components["schemas"]["ShipOrder"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Shipment"];
+                };
+            };
+        };
+    };
+    orders_school_orders_shipments_list: {
+        parameters: {
+            query?: {
+                order_date?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /**
+                 * @description * `HOLD` - On hold — awaiting payment
+                 *     * `RELEASED` - Released to the warehouse
+                 *     * `PICKED` - Picked
+                 *     * `SHIPPED` - Shipped
+                 *     * `CANCELLED` - Cancelled
+                 */
+                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+            };
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this school order. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedShipmentList"];
                 };
             };
         };

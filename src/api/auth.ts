@@ -1,31 +1,80 @@
 /**
- * Authentication and the signed-in user.
+ * Authentication.
  *
- * Thin by design: each function is one request and one type. No React, no
- * storage decisions beyond handing tokens to `tokens`, no navigation.
+ * Signing in is two steps, and neither is optional:
+ *
+ *   1. `requestLoginCode`  email + password. Emails a one-time code and
+ *                          returns a challenge. **No tokens.**
+ *   2. `verifyLoginCode`   challenge + code. Returns the token pair and the
+ *                          user.
+ *
+ * A password alone is enough to read every school's orders and every
+ * warehouse's stock, which is why the server stopped issuing tokens for one.
+ *
+ * Thin by design: one request and one type per function. No React, no
+ * navigation, no storage decisions beyond handing tokens to `tokens`.
  */
 
 import { get, post } from './http'
 import { tokens } from './tokens'
-import type { Credentials, CurrentUser, Page, RoleInfo, Session } from './types'
+import type {
+  Credentials,
+  CurrentUser,
+  EmailVerification,
+  LoginAttempt,
+  LoginChallenge,
+  Page,
+  RoleInfo,
+  Session,
+  VerifyLoginCode,
+} from './types'
 
 /**
- * Sign in. Returns the token pair *and* the whole user, so the app can render
- * without a second round-trip.
+ * Step one. Checks the password, then emails a code.
  *
- * Storing the tokens is this function's job because a caller that forgot
- * would leave the app authenticated in memory only.
+ * The failure codes are meaningfully different here and screens should say so:
+ *
+ *   403  the address is not a user of this system, or has been deactivated,
+ *        or its email was never confirmed. Retyping the password will not
+ *        help, so say that rather than leaving someone guessing.
+ *   401  the address exists; the password is wrong.
+ *   429  rate limited, per address and per site.
  */
-export async function login(credentials: Credentials): Promise<Session> {
-  const session = await post<Session>('/auth/login/', credentials)
+export function requestLoginCode(credentials: Credentials): Promise<LoginChallenge> {
+  return post<LoginChallenge>('/auth/login/', credentials)
+}
+
+/**
+ * Step two. Exchanges the challenge and code for tokens.
+ *
+ * A code is good once, for a few minutes, with a limited number of tries.
+ * Expired, already used and too-many-attempts all come back as the same 400,
+ * deliberately not saying which — so the screen must offer "start again"
+ * rather than "try another code".
+ *
+ * Storing the tokens is this function's job: a caller that forgot would leave
+ * the app authenticated in memory only.
+ */
+export async function verifyLoginCode(input: VerifyLoginCode): Promise<Session> {
+  const session = await post<Session>('/auth/login/verify/', input)
   tokens.set({ access: session.access, refresh: session.refresh })
   return session
 }
 
 /**
- * Sign out. Blacklists the refresh token server-side; the access token stays
- * valid until it expires, which is inherent to stateless tokens and why they
- * are short. Returns 205.
+ * A new member of staff confirming the address their account was created
+ * against. Open — the caller has no account to authenticate with yet, which
+ * is what the code stands in for.
+ *
+ * Until this is done, signing in is refused with a 403.
+ */
+export function verifyEmail(input: EmailVerification): Promise<{ detail: string }> {
+  return post<{ detail: string }>('/auth/verify-email/', input)
+}
+
+/**
+ * Sign out. Blacklists the refresh token; the access token stays valid until
+ * it expires, which is inherent to stateless tokens and why they are short.
  *
  * Clears local tokens even if the request fails — the user asked to be signed
  * out, and leaving a usable token behind because the network hiccuped is the
@@ -40,7 +89,7 @@ export async function logout(): Promise<void> {
   }
 }
 
-/** The signed-in user, same shape as login's `user`. */
+/** The signed-in user. Reachable even while the password gate is up. */
 export function me(): Promise<CurrentUser> {
   return get<CurrentUser>('/auth/me/')
 }
@@ -50,14 +99,13 @@ export function me(): Promise<CurrentUser> {
  *
  * Requires the current password even though you are signed in, so a stolen
  * token alone cannot lock the owner out. Signs out every other session and
- * returns a fresh token pair, which is stored here for the same reason as
- * `login`.
+ * returns a fresh token pair, stored here for the same reason as sign-in.
  */
 export async function changePassword(input: {
   current_password: string
   new_password: string
 }): Promise<void> {
-  const next = await post<{ access?: string; refresh?: string }>('/auth/password/change/', input)
+  const next = await post<Partial<Session>>('/auth/password/change/', input)
   if (next.access && next.refresh) {
     tokens.set({ access: next.access, refresh: next.refresh })
   }
@@ -66,8 +114,8 @@ export async function changePassword(input: {
 /**
  * The five roles and the seven columns of AsOne's access matrix.
  *
- * Note: this is blocked while `must_change_password` is true, so a
- * set-your-password screen cannot depend on it.
+ * Blocked while `must_change_password` is true, so a set-a-password screen
+ * cannot depend on it.
  */
 export function roles(): Promise<RoleInfo[]> {
   return get<RoleInfo[]>('/auth/roles/')
@@ -79,6 +127,6 @@ export function loginAttempts(params?: {
   succeeded?: boolean
   user?: number
   page?: number
-}): Promise<Page<import('./types').LoginAttempt>> {
+}): Promise<Page<LoginAttempt>> {
   return get('/auth/login-attempts/', params)
 }

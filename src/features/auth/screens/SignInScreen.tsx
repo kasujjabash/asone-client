@@ -1,138 +1,58 @@
 /**
- * Sign in.
+ * Sign in — both steps.
  *
- * Renders. It does not fetch — `useSignIn` does that — and it does not
- * decide what a role may do; it reads the seven access-matrix columns the
- * server sent and shows them.
- *
- * The signed-in panel is a proof of life, not the real home screen: it
- * exists to show that a sign-in reaches the API and comes back with a role,
- * a site and an access matrix.
+ * One route, two steps. The design draws them as separate screens, but they
+ * are one sequence: a code screen reachable on its own URL could be landed on
+ * with no challenge to answer, which is a dead end that has to be handled.
+ * Which step shows is decided by the session's status, so that cannot happen.
  */
 
-import { useState, type FormEvent } from 'react'
-import { can, fullName, mustChangePassword, siteLabel } from '@/domain/access'
-import { useSignIn } from '../hooks/useSignIn'
-import type { AccessFunction } from '@/api/types'
-
-/** The columns of AsOne's access matrix, in the order the client lists them. */
-const COLUMNS: readonly AccessFunction[] = [
-  'table_updates',
-  'production_orders',
-  'warehouse_receiving_and_shipping',
-  'inventory_adjustments',
-  'school_orders',
-  'backorder_transfers',
-  'financial_reports',
-]
+import { Navigate } from 'react-router-dom'
+import { BrandMark } from '@/components'
+import { SignInForm } from '../components/SignInForm'
+import { SplitAuthLayout } from '../components/SplitAuthLayout'
+import { VerifyCodeCard } from '../components/VerifyCodeCard'
+import { useAuth } from '../hooks/useAuth'
+import { paths } from '@/routes/paths'
 
 export function SignInScreen() {
-  const { user, error, pending, signIn } = useSignIn()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const { status, challenge, error, pending, requestCode, submitCode, restart } = useAuth()
 
-  function onSubmit(event: FormEvent) {
-    event.preventDefault()
-    void signIn({ email, password })
+  // Still asking the server who this is. Rendering the form now would flash
+  // sign-in at somebody who is already signed in.
+  if (status === 'loading') return null
+
+  if (status === 'signedIn' || status === 'gated') {
+    return <Navigate to={paths.session} replace />
   }
 
-  if (user) {
+  if (status === 'challenged' && challenge) {
     return (
-      <main style={page}>
-        <div className="card stack" style={{ maxWidth: 560 }}>
-          <div>
-            <p className="muted" style={{ margin: 0 }}>Signed in</p>
-            <h1 style={{ fontSize: 22 }}>{fullName(user)}</h1>
-          </div>
-
-          <dl className="grid-kv">
-            <dt>Role</dt>
-            <dd>{user.role_display}</dd>
-            <dt>Scope</dt>
-            <dd>{user.access.scope.replace(/_/g, ' ')}</dd>
-            <dt>Site</dt>
-            {/* Null for an all-locations role. That is a real answer, not
-                missing data, so it says so rather than showing a blank. */}
-            <dd>{siteLabel(user) ?? 'All locations'}</dd>
-            <dt>Email</dt>
-            <dd>{user.email}</dd>
-          </dl>
-
-          <div>
-            <p className="muted" style={{ marginTop: 0 }}>Access matrix</p>
-            <ul className="flags">
-              {COLUMNS.map((column) => (
-                <li key={column} className={`flag ${can(user, column) ? 'flag--on' : ''}`}>
-                  {column.replace(/_/g, ' ')}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {mustChangePassword(user) && (
-            <p className="notice notice--error" style={{ margin: 0 }}>
-              This account must set a new password. Until it does, the server
-              answers 403 on everything except viewing itself, setting a
-              password and signing out.
-            </p>
-          )}
-        </div>
-      </main>
+      <SplitAuthLayout>
+        <VerifyCodeCard
+          challenge={challenge}
+          onSubmit={submitCode}
+          onRestart={restart}
+          pending={pending}
+          error={error}
+        />
+      </SplitAuthLayout>
     )
   }
 
   return (
-    <main style={page}>
-      <form className="card stack" style={{ maxWidth: 380 }} onSubmit={onSubmit}>
-        <div>
-          <h1 style={{ fontSize: 20 }}>AsOne Logistics</h1>
-          <p className="muted" style={{ margin: '4px 0 0' }}>
-            Sign in to continue
-          </p>
-        </div>
+    <SplitAuthLayout>
+      <header className="signin__head">
+        <BrandMark width={80} label="AsOne" />
+        <h1 className="signin__title">AsOne Logistics</h1>
+        <p className="signin__subtitle">Inventory Management</p>
+      </header>
 
-        {error && (
-          <p className="notice notice--error" style={{ margin: 0 }}>
-            {error.message}
-          </p>
-        )}
-
-        <div>
-          {/* Email, not a username — there is no username anywhere in this API. */}
-          <label htmlFor="email">Email address</label>
-          <input
-            id="email"
-            type="email"
-            autoComplete="username"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="password">Password</label>
-          <input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-
-        <button type="submit" disabled={pending}>
-          {pending ? 'Signing in…' : 'Sign in'}
-        </button>
-      </form>
-    </main>
+      <SignInForm
+        onSubmit={({ email, password }) => requestCode(email, password)}
+        pending={pending}
+        error={error}
+      />
+    </SplitAuthLayout>
   )
-}
-
-const page: React.CSSProperties = {
-  minHeight: '100dvh',
-  display: 'grid',
-  placeItems: 'center',
-  padding: 24,
 }

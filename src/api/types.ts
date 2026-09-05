@@ -111,12 +111,27 @@ export interface Credentials {
 }
 
 /**
- * What `POST /auth/login/` actually returns.
+ * What step one of signing in returns.
  *
- * SCHEMA GAP — the endpoint declares its 200 response as `Login`, the
- * *request* body, so the generated types claim a sign-in returns
- * `{email, password}`. Ask for `@extend_schema(responses=...)` on the login
- * view and replace this with the alias.
+ * A password alone is no longer enough: `POST /auth/login/` checks it, emails
+ * a one-time code and hands back this challenge. No tokens are issued here.
+ */
+export type LoginChallenge = S['LoginChallengeIssued']
+
+/** Step two: the challenge id plus the code from the email. */
+export type VerifyLoginCode = S['VerifyLoginCode']
+
+/** A new member of staff confirming the address their account was created against. */
+export type EmailVerification = S['EmailVerification']
+
+/**
+ * What `POST /auth/login/verify/` returns — the tokens and the whole user,
+ * so the app can render without a second round-trip.
+ *
+ * SCHEMA GAP — the endpoint declares its 200 as `Login`, which is the
+ * *request* serializer, so the generated types claim it returns
+ * `{email, password}`. Ask for `@extend_schema(responses=...)` naming a
+ * response serializer and replace this with the alias.
  */
 export interface Session {
   access: string

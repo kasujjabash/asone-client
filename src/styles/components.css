@@ -1,0 +1,962 @@
+/**
+ * Component classes from the design system.
+ *
+ * Section numbers refer to `public/assets/images/design-system.pdf`.
+ * Layout and states are taken from the spec; the specimen copy in that
+ * document belongs to a different AsOne product and is not carried over.
+ */
+
+/* ---------------------------------------------------------------------------
+ * 03 / Buttons
+ * ------------------------------------------------------------------------ */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--btn-pad-md);
+  border: 1px solid transparent;
+  border-radius: var(--btn-radius);
+  font-family: inherit;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+.btn--sm { padding: var(--btn-pad-sm); font-size: var(--text-caption); }
+.btn--lg { padding: var(--btn-pad-lg); font-size: var(--text-h3); }
+
+.btn--primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--btn-primary-bg-hover);
+}
+
+.btn--primary:disabled {
+  background: var(--btn-primary-bg-disabled);
+}
+
+.btn--secondary {
+  background: var(--btn-secondary-bg);
+  border-color: var(--btn-secondary-border);
+  color: var(--btn-secondary-text);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: var(--btn-secondary-bg-hover);
+}
+
+.btn--danger {
+  background: var(--btn-danger-bg);
+  color: var(--btn-danger-text);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--btn-danger-bg-hover);
+}
+
+.btn--danger:disabled {
+  background: var(--btn-danger-bg-disabled);
+}
+
+.btn--ghost {
+  background: var(--btn-ghost-bg);
+  color: var(--btn-ghost-text);
+}
+
+.btn--ghost:hover:not(:disabled) {
+  background: var(--btn-ghost-bg-hover);
+}
+
+/* Inactive is a real state in this system, not an afterthought: a retired
+   SKU, a deactivated user, an action this role may not take. */
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+.btn--secondary:disabled,
+.btn--ghost:disabled {
+  color: var(--text-muted);
+  opacity: var(--disabled-opacity);
+}
+
+/* ---------------------------------------------------------------------------
+ * 04 / Inputs
+ * ------------------------------------------------------------------------ */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.field > label {
+  font-size: var(--text-overline);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.input {
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.input:focus-visible {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--border-focus) 18%, transparent);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.input:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.field-error {
+  font-size: var(--text-caption);
+  color: var(--error);
+}
+
+/* ---------------------------------------------------------------------------
+ * 05 / Status badges
+ * ------------------------------------------------------------------------ */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.badge--success { background: var(--success-bg); color: var(--success); }
+.badge--warning { background: var(--warning-bg); color: var(--warning); }
+.badge--error   { background: var(--error-bg);   color: var(--error); }
+.badge--info    { background: var(--info-bg);    color: var(--info); }
+.badge--neutral { background: var(--surface-sunken); color: var(--text-secondary); }
+
+/* Label/value pairs — a record's detail panel. */
+.grid-kv {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.grid-kv dt {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+.grid-kv dd {
+  margin: 0;
+  font-weight: var(--weight-bold);
+}
+
+/* A row of badges — access flags, order statuses. */
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Surfaces
+ * ------------------------------------------------------------------------ */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ---------------------------------------------------------------------------
+ * 09 / Alerts
+ * ------------------------------------------------------------------------ */
+
+.alert {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--text-body);
+}
+
+.alert--success { background: var(--success-bg); border-color: var(--success); color: var(--text-primary); }
+.alert--warning { background: var(--warning-bg); border-color: var(--warning); color: var(--text-primary); }
+.alert--error   { background: var(--error-bg);   border-color: var(--error);   color: var(--text-primary); }
+.alert--info    { background: var(--info-bg);    border-color: var(--info);    color: var(--text-primary); }
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * 06 / KPI data cards
+ *
+ * A quiet card by default. The emphasis variant takes an accent border —
+ * note the spec uses the brand teal for "needs attention", not the error
+ * red, so an emphasised figure does not read as a failure.
+ * ------------------------------------------------------------------------ */
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.stat--emphasis {
+  border-color: var(--accent);
+}
+
+.stat__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.stat__label {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.stat--emphasis .stat__label {
+  color: var(--accent-hover);
+}
+
+.stat__icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.stat--emphasis .stat__icon {
+  color: var(--accent);
+}
+
+.stat__value {
+  font-size: 28px;
+  font-weight: var(--weight-bold);
+  line-height: 1.1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat__caption {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+/* The inline variant: one fact, no headline figure. */
+.stat--inline {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.stat__badge {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.stat--inline .stat__value {
+  font-size: var(--text-h3);
+}
+
+/* ---------------------------------------------------------------------------
+ * 12 / Empty states
+ *
+ * Used whenever a query returns nothing — which in this system is often a
+ * correct answer rather than a fault. Server-side scoping means a warehouse
+ * clerk's list can legitimately come back empty, so the copy must never
+ * imply something broke.
+ * ------------------------------------------------------------------------ */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-7) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  text-align: center;
+}
+
+.empty__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--accent-subtle);
+  color: var(--text-muted);
+}
+
+.empty__title {
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.empty__body {
+  max-width: 34ch;
+  font-size: var(--text-body);
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.empty__action {
+  margin-top: var(--space-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * Page dots
+ *
+ * The active dot is a stadium, not a bigger circle: 16×8 against 8×8, so the
+ * row keeps an even rhythm and position reads as width.
+ * ------------------------------------------------------------------------ */
+
+.page-dots {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.page-dots__dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--on-overlay-dim);
+  transition: width 200ms ease, background-color 200ms ease;
+}
+
+button.page-dots__dot {
+  cursor: pointer;
+}
+
+.page-dots__dot--active {
+  width: 16px;
+  background: var(--on-overlay);
+}
+
+.page-dots__dot:focus-visible {
+  outline: 2px solid var(--on-overlay);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Brand backdrop — photograph under a brand wash
+ * ------------------------------------------------------------------------ */
+
+.backdrop {
+  position: relative;
+  /* Fills whatever panel it is given — a full screen on mobile, the left
+     half of the split on desktop. */
+  min-height: 100%;
+  height: 100%;
+  /* Shows through while the photograph loads, so white type never lands on
+     bare page. */
+  background: var(--asone-green);
+  isolation: isolate;
+}
+
+.backdrop__layers {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.backdrop__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.backdrop__wash {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-brand);
+}
+
+.backdrop__content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+ * Onboarding
+ *
+ * The design centres the brand block in the frame and pins the footer near
+ * the bottom edge. Grid does both without absolute positioning, so the
+ * layout still holds on a short viewport instead of overlapping.
+ * ------------------------------------------------------------------------ */
+
+.onboarding {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  height: 100%;
+  padding: var(--space-6) var(--space-5) 37px;
+  color: var(--on-overlay);
+  text-align: center;
+}
+
+.onboarding__stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  /* The design's brand-header block. */
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.onboarding__slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.onboarding__title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 24px;
+  font-weight: var(--weight-bold);
+  line-height: normal;
+  color: var(--on-overlay);
+  text-wrap: balance;
+}
+
+.onboarding__body {
+  margin: 0;
+  font-size: 15px;
+  line-height: var(--leading-normal);
+  color: var(--on-overlay);
+  text-wrap: pretty;
+}
+
+.onboarding__footer {
+  font-size: 13px;
+  color: var(--on-overlay);
+}
+
+@media (max-width: 400px) {
+  /* The footer is one line by design; let it wrap rather than overflow on a
+     narrow handset. */
+  .onboarding__footer {
+    font-size: var(--text-caption);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Inverse button — for the brand backdrop
+ *
+ * White fill, brand text. The primary teal cannot be used on a teal wash.
+ * ------------------------------------------------------------------------ */
+
+.btn--inverse {
+  background: var(--on-overlay);
+  color: var(--accent-hover);
+}
+
+.btn--inverse:hover:not(:disabled) {
+  background: var(--tone-frost);
+}
+
+.btn--inverse:disabled {
+  opacity: var(--disabled-opacity);
+}
+
+.onboarding__cta {
+  margin-top: var(--space-3);
+  text-decoration: none;
+}
+
+/* ---------------------------------------------------------------------------
+ * Material 3 outlined text field
+ *
+ * The label is notched into the top border by sitting on it with the panel's
+ * own background behind it — which is why the field must live on a plain
+ * surface, not on the brand wash.
+ * ------------------------------------------------------------------------ */
+
+.textfield {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.textfield__frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.textfield__label {
+  position: absolute;
+  top: 0;
+  left: 12px;
+  transform: translateY(-50%);
+  padding: 0 4px;
+  background: var(--surface);
+  font-size: var(--text-caption);
+  line-height: 1;
+  color: var(--field-label);
+  pointer-events: none;
+}
+
+.textfield__input {
+  width: 100%;
+  height: 56px;
+  padding: 0 var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: var(--text-h3);
+  color: var(--text-primary);
+}
+
+.textfield__input:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.textfield__input:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+/* Room for the adornment so long values do not run under it. */
+.textfield__frame:has(.textfield__trailing) .textfield__input {
+  padding-right: 52px;
+}
+
+.textfield__trailing {
+  position: absolute;
+  right: var(--space-3);
+  display: flex;
+  align-items: center;
+}
+
+.textfield__adornment {
+  display: grid;
+  place-items: center;
+  padding: var(--space-1);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.textfield__adornment:hover {
+  color: var(--text-secondary);
+}
+
+.textfield__adornment:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.textfield--invalid .textfield__input {
+  border-color: var(--error);
+}
+
+.textfield--invalid .textfield__label {
+  color: var(--error);
+}
+
+.textfield__error {
+  margin: 0;
+  padding-left: var(--space-4);
+  font-size: var(--text-caption);
+  color: var(--error);
+}
+
+/* ---------------------------------------------------------------------------
+ * Split auth layout — brand deck beside the form
+ * ------------------------------------------------------------------------ */
+
+.split-auth {
+  display: grid;
+  grid-template-columns: 47.7fr 52.3fr;
+  min-height: 100dvh;
+}
+
+.split-auth__brand {
+  position: relative;
+  overflow: hidden;
+}
+
+.split-auth__form {
+  display: grid;
+  place-items: center;
+  padding: var(--space-6) var(--space-5);
+  background: var(--surface);
+}
+
+.split-auth__column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: 360px;
+}
+
+@media (max-width: 900px) {
+  /* No room for both. The form wins — pushing a sign-in field below the fold
+     to make space for the brand deck is the wrong trade on a phone. */
+  .split-auth {
+    grid-template-columns: 1fr;
+  }
+
+  .split-auth__brand {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Sign in
+ * ------------------------------------------------------------------------ */
+
+.signin__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.signin__title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
+  color: var(--accent);
+}
+
+.signin__subtitle {
+  margin: 0;
+  font-size: var(--text-h3);
+  color: var(--text-secondary);
+}
+
+.signin__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.signin__forgot {
+  display: flex;
+  justify-content: flex-end;
+  /* Sits tight under the password field rather than a full gap below it. */
+  margin-top: calc(var(--space-4) * -1);
+}
+
+.link-danger {
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--link-danger);
+  text-decoration: none;
+}
+
+.link-danger:hover {
+  text-decoration: underline;
+}
+
+.signin__actions {
+  display: flex;
+  justify-content: center;
+}
+
+.signin__request {
+  margin: 0;
+  text-align: center;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.signin__request a {
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.signin__request a:hover {
+  text-decoration: underline;
+}
+
+/* The signed-in summary stands in for the dashboard until routing lands. */
+.auth__summary {
+  width: 100%;
+}
+
+/* ---------------------------------------------------------------------------
+ * Auth card — the panel the two-factor step sits in
+ *
+ * Softer and wider than the plain `.card`: the code entry is a moment of
+ * its own, lifted off the page rather than sitting flat in the column.
+ * ------------------------------------------------------------------------ */
+
+.auth-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  max-width: 452px;
+  padding: var(--space-7) var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md);
+  text-align: center;
+}
+
+.auth-card__halo {
+  display: grid;
+  place-items: center;
+  width: 70px;
+  height: 70px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-halo);
+  color: var(--accent);
+}
+
+.auth-card__title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: var(--weight-bold);
+  line-height: 1.2;
+  color: var(--accent);
+  text-wrap: balance;
+}
+
+.auth-card__body {
+  margin: 0;
+  max-width: 36ch;
+  font-size: 15px;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.auth-card__links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* ---------------------------------------------------------------------------
+ * One-time code
+ *
+ * Six boxes, one character each. A completed box takes a tinted fill so the
+ * eye can count progress without reading the digits.
+ * ------------------------------------------------------------------------ */
+
+.otp {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: center;
+  width: 100%;
+}
+
+/* Boxes shrink to fit rather than overflowing the card: six fixed 52px boxes
+   plus gaps need 372px, which is wider than a 360px handset leaves once the
+   card's padding is taken off. They grow no larger than designed. */
+.otp__box {
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 52px;
+  aspect-ratio: 52 / 56;
+  height: auto;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 24px;
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--text-primary);
+}
+
+.otp__box--filled {
+  background: var(--field-filled);
+}
+
+.otp__box:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.otp__box:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.otp--invalid .otp__box {
+  border-color: var(--error);
+}
+
+@media (max-width: 480px) {
+  .otp {
+    gap: var(--space-2);
+  }
+
+  .otp__box {
+    font-size: var(--text-h2);
+  }
+
+  /* Give the boxes back the room the card's padding was taking. */
+  .auth-card {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Welcome
+ * ------------------------------------------------------------------------ */
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-5);
+  text-align: center;
+}
+
+.welcome__body {
+  margin: 0;
+  font-size: var(--text-h3);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+  text-wrap: pretty;
+}
+
+.link-accent {
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.link-accent:hover {
+  text-decoration: underline;
+}
+
+.link-quiet {
+  font-weight: var(--weight-bold);
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.link-quiet:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+ * Session check
+ * ------------------------------------------------------------------------ */
+
+.session {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--space-5);
+  background: var(--canvas);
+}
+
+.session__card {
+  width: 100%;
+  max-width: 560px;
+}
+
+.session__head {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+}
+
+.session__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* A button that reads as a link — "Back to Login" inside the code card. */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+}

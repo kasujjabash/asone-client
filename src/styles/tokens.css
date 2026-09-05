@@ -1,0 +1,229 @@
+/**
+ * AsOne design tokens.
+ *
+ * Transcribed from `public/assets/images/design-system.pdf`
+ * (AsOne Ministries Design System v1.0), sections 01 and 02.
+ *
+ * Two rules for this file:
+ *
+ *   1. Raw palette values appear here and nowhere else. Components read the
+ *      semantic tokens below them, never `--asone-green` directly, so a
+ *      change of brand colour is a change to this file.
+ *
+ *   2. The hex values are the ones printed in the design system, not the ones
+ *      sampled off the PDF. The PDF's colour profile shifts every swatch by a
+ *      few points on the red channel — sampling AsOne Green gives #698D8D
+ *      where the spec says #5E8E8E. The spec wins.
+ */
+
+:root {
+  /* ---------------------------------------------------------------------
+   * 01 / Brand palette
+   * ------------------------------------------------------------------ */
+
+  --asone-green: #5e8e8e;      /* Primary brand */
+  --asone-earth: #603838;      /* Warm accent */
+  --asone-ocean: #2b4f66;      /* Deep accent */
+  --asone-sand: #ddd3af;       /* Warm neutral */
+  --asone-slate: #21232b;      /* Dark base */
+  --asone-charcoal: #333842;   /* Dark secondary */
+  --asone-graphite: #3f4751;   /* Mid dark */
+  --asone-gray: #828e9b;       /* Muted neutral */
+
+  /* ---------------------------------------------------------------------
+   * 01 / Tonal scale — light to dark
+   * ------------------------------------------------------------------ */
+
+  --tone-frost: #eff5f5;       /* Canvas background */
+  --tone-mist: #adcecd;        /* Soft tint */
+  --tone-sage: #5f9e9e;        /* Accent light */
+  --tone-green-mid: #5e8e8e;   /* Primary mid */
+  --tone-deep-teal: #205269;   /* Primary deep */
+  --tone-ocean: #2b4f66;       /* Secondary deep */
+  --tone-graphite: #3f4751;    /* Text secondary */
+  --tone-charcoal: #333842;    /* Text primary */
+  --tone-slate: #21232b;       /* Nav background */
+  --tone-ink: #212221;         /* Primary text / dark bg */
+
+  /* ---------------------------------------------------------------------
+   * 01 / Semantic indicators
+   *
+   * Each pairs a strong colour with a tinted background for banners and
+   * badges. Deliberately distinct from the brand teal: a shortfall, a
+   * discrepancy and a cancellation have to read at a glance without
+   * competing with the accent.
+   * ------------------------------------------------------------------ */
+
+  --success: #16a34a;          /* Active / confirmed */
+  --success-bg: #dcfce7;
+  --warning: #d97706;          /* Needs attention */
+  --warning-bg: #fef3c7;
+  --error: #dc2626;            /* Error / alert */
+  --error-bg: #fee2e2;
+  --info: #2563eb;             /* Information */
+  --info-bg: #dbeafe;          /* Draft states */
+
+  /* ---------------------------------------------------------------------
+   * Semantic surfaces and text — APPROVED, from the screen designs
+   *
+   * What components actually consume. Where the screens and
+   * `design-system.pdf` disagreed, the screens win: they are the approved
+   * designs, and the PDF describes an older, adjacent product.
+   *
+   * The brand teal is unchanged and is not a guess — Figma returned
+   * `#5e8e8e` directly for the sign-in backdrop, matching the PDF exactly.
+   *
+   * The neutral layer is not the PDF's custom greys. The screens use
+   * Material 3's neutrals for form chrome and Tailwind's slate ramp for text
+   * and sunken fills. These were recovered from the design screenshots by
+   * compensating for their colour shift — the same shift that renders
+   * #5E8E8E as #698D8D — and each lands exactly on a known M3 or Tailwind
+   * value, which is the corroboration that they are right.
+   *
+   *   sampled   →  approved    source
+   *   #4A5567   →  #475569     Tailwind slate-600
+   *   #CAC4D0   →  #CAC4D0     Material 3 outline-variant
+   *   #48454E   →  #49454F     Material 3 on-surface-variant
+   *   #F8FAFC   →  #F8FAFC     Tailwind slate-50
+   *   #D5FAF1   →  #CCFBF1     Tailwind teal-100
+   *   #21232A   →  #21232B     AsOne Slate
+   * ------------------------------------------------------------------ */
+
+  --canvas: var(--tone-frost);
+  --surface: #ffffff;
+  --surface-sunken: #f8fafc;
+  --surface-inverse: var(--tone-slate);
+
+  --text-primary: var(--tone-slate);
+  --text-secondary: #475569;
+  --text-muted: var(--asone-gray);
+  --text-on-dark: #ffffff;
+  --text-on-accent: #ffffff;
+
+  /* One border colour across cards, tables and fields — the screens use the
+     Material 3 outline everywhere, not a separate rule for cards. */
+  --border: #cac4d0;
+  --border-strong: var(--asone-gray);
+  --border-focus: var(--accent);
+
+  --accent: var(--asone-green);
+  --accent-hover: var(--tone-deep-teal);
+  --accent-subtle: var(--tone-frost);
+  --accent-tint: var(--tone-mist);
+
+  --nav-bg: var(--tone-slate);
+
+  /* Form fields follow Material 3's outlined text field. */
+  --field-border: var(--border);
+  --field-label: #49454f;
+  --field-filled: var(--surface-sunken);
+
+  /* The halo behind the two-factor icon. */
+  --accent-halo: #ccfbf1;
+
+  /* The "Forgot password?" link. Softer than the semantic Error Red
+     (#dc2626), and reads as a link rather than an alert. The one screen
+     colour that matches no standard ramp, so it is carried at its
+     shift-compensated value — worth confirming with ERA 92. */
+  --link-danger: #e07788;
+
+  /* A photograph read through a brand wash — the auth backdrop. Both values
+     came straight from Figma, not from a screenshot. */
+  --overlay-brand: rgba(94, 142, 142, 0.9);
+  --on-overlay: #ffffff;
+  --on-overlay-dim: rgba(255, 255, 255, 0.5);
+
+  /* ---------------------------------------------------------------------
+   * 02 / Typography
+   *
+   * Ivy Mode for expressive display and title text; Proxima Nova for
+   * headings and body copy.
+   *
+   * Both are commercial faces — see fonts.css. The fallback stacks are
+   * chosen to be metrically close so layout does not shift when the
+   * licensed files arrive.
+   * ------------------------------------------------------------------ */
+
+  /* Geist is what the screen designs use — see fonts.css for why this
+     differs from the design system PDF. */
+  --font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: var(--font-sans);
+  --font-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace;
+
+  /* The scale is fixed by the spec, not fluid. This is a dense operations
+     tool used all day; predictable sizing beats responsive type here. */
+  --text-h1: 28px;             /* Ivy Mode */
+  --text-h2: 20px;             /* Proxima Nova Bold */
+  --text-h3: 16px;             /* Proxima Nova Bold */
+  --text-body: 14px;           /* Proxima Nova Regular */
+  --text-caption: 12px;        /* Proxima Nova Regular */
+  --text-overline: 11px;       /* Proxima Nova Bold, uppercase */
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.6;
+
+  --weight-regular: 400;
+  --weight-bold: 700;
+
+  --tracking-overline: 0.08em;
+
+  /* ---------------------------------------------------------------------
+   * Spacing, radius, elevation
+   * ------------------------------------------------------------------ */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  /* Buttons and badges are fully rounded in the spec. */
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(33, 35, 43, 0.06);
+  --shadow-md: 0 2px 8px rgba(33, 35, 43, 0.08);
+  --shadow-lg: 0 8px 24px rgba(33, 35, 43, 0.12);
+
+  /* ---------------------------------------------------------------------
+   * Component tokens — buttons
+   *
+   * Section 03: four variants, three states each, three size tiers.
+   * Disabled is the variant colour at half strength, which is what the
+   * spec's disabled swatches measure out to.
+   * ------------------------------------------------------------------ */
+
+  --btn-radius: var(--radius-pill);
+
+  --btn-primary-bg: var(--asone-green);
+  --btn-primary-bg-hover: var(--tone-deep-teal);
+  --btn-primary-bg-disabled: color-mix(in srgb, var(--asone-green) 50%, #ffffff);
+  --btn-primary-text: var(--text-on-accent);
+
+  --btn-secondary-bg: var(--surface);
+  --btn-secondary-bg-hover: var(--tone-frost);
+  --btn-secondary-border: var(--border);
+  --btn-secondary-text: var(--text-primary);
+
+  --btn-danger-bg: var(--error);
+  --btn-danger-bg-hover: #991b1b;
+  --btn-danger-bg-disabled: color-mix(in srgb, var(--error) 50%, #ffffff);
+  --btn-danger-text: var(--text-on-accent);
+
+  --btn-ghost-bg: transparent;
+  --btn-ghost-bg-hover: var(--tone-frost);
+  --btn-ghost-text: var(--text-primary);
+
+  --btn-pad-sm: 6px 12px;
+  --btn-pad-md: 8px 16px;
+  --btn-pad-lg: 12px 24px;
+
+  --disabled-opacity: 0.5;
+
+  color-scheme: light;
+}
