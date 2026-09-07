@@ -118,6 +118,16 @@
   --field-label: #49454f;
   --field-filled: var(--surface-sunken);
 
+  /* From the dashboard design's own style list, plus three values it uses
+     that the palette did not yet name. */
+  --surface-container: #f7f2fa;   /* M3 surface-container-low */
+  --surface-dim: #ded8e1;         /* M3 surface-dim — control borders */
+  --table-rule: #e6e0e9;          /* Row separators */
+  --grey-rule: #c8c8c8;           /* Grey02 — chart gridlines */
+  --shadow-card: 0 7px 15px rgba(38, 105, 93, 0.04);  /* Shadow02 */
+  --kpi-label: #667283;
+  --pill-danger-bg: #ffeef0;
+
   /* The halo behind the two-factor icon. */
   --accent-halo: #ccfbf1;
 
@@ -144,10 +154,13 @@
    * licensed files arrive.
    * ------------------------------------------------------------------ */
 
-  /* Geist is what the screen designs use — see fonts.css for why this
-     differs from the design system PDF. */
-  --font-sans: 'Geist', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-display: var(--font-sans);
+  /* Three families, because the designs use three. See fonts.css. */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* The auth screens and brand marks. */
+  --font-brand: 'Geist', var(--font-sans);
+  /* The dashboard's promotional banner, and nothing else. */
+  --font-promo: 'Poppins', var(--font-sans);
+  --font-display: var(--font-brand);
   --font-mono: ui-monospace, SFMono-Regular, 'JetBrains Mono', Menlo, monospace;
 
   /* The scale is fixed by the spec, not fluid. This is a dense operations

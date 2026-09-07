@@ -481,7 +481,7 @@ button.page-dots__dot {
 
 .onboarding__title {
   margin: 0;
-  font-family: var(--font-sans);
+  font-family: var(--font-brand);
   font-size: 24px;
   font-weight: var(--weight-bold);
   line-height: normal;
@@ -694,6 +694,7 @@ button.page-dots__dot {
 
 .signin__title {
   margin: 0;
+  font-family: var(--font-brand);
   font-size: 28px;
   font-weight: var(--weight-bold);
   line-height: 1.2;
@@ -791,6 +792,7 @@ button.page-dots__dot {
 
 .auth-card__title {
   margin: 0;
+  font-family: var(--font-brand);
   font-size: 24px;
   font-weight: var(--weight-bold);
   line-height: 1.2;
@@ -922,36 +924,6 @@ button.page-dots__dot {
   text-decoration: underline;
 }
 
-/* ---------------------------------------------------------------------------
- * Session check
- * ------------------------------------------------------------------------ */
-
-.session {
-  display: grid;
-  place-items: center;
-  min-height: 100dvh;
-  padding: var(--space-5);
-  background: var(--canvas);
-}
-
-.session__card {
-  width: 100%;
-  max-width: 560px;
-}
-
-.session__head {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
-}
-
-.session__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-}
-
 /* A button that reads as a link — "Back to Login" inside the code card. */
 .link-button {
   padding: 0;
@@ -959,4 +931,263 @@ button.page-dots__dot {
   background: none;
   font: inherit;
   cursor: pointer;
+}
+
+/* ---------------------------------------------------------------------------
+ * Loading — one treatment, everywhere
+ *
+ * Mobile reference, state 6. Skeletons for content that has not arrived, a
+ * spinner for an action already in flight.
+ * ------------------------------------------------------------------------ */
+
+.skeleton {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(
+    90deg,
+    var(--surface-sunken) 0%,
+    var(--accent-subtle) 50%,
+    var(--surface-sunken) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-sweep 1.4s ease-in-out infinite;
+}
+
+.skeleton--round { border-radius: var(--radius-pill); }
+
+.skeleton-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@keyframes skeleton-sweep {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+.spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  border: 2px solid var(--accent-tint);
+  border-top-color: var(--accent);
+  border-radius: var(--radius-pill);
+  animation: spinner-turn 700ms linear infinite;
+}
+
+@keyframes spinner-turn {
+  to { transform: rotate(360deg); }
+}
+
+/* A whole screen that has not resolved — the session boot. */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: 100dvh;
+  padding: var(--space-5);
+  background: var(--canvas);
+}
+
+.loading-screen__message {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton { animation: none; }
+  .spinner { animation-duration: 2.4s; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Panel footers — a home screen shows a preview, not the whole list
+ * ------------------------------------------------------------------------ */
+
+.panel__view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  align-self: flex-start;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  color: var(--accent-hover);
+  text-decoration: none;
+}
+
+.panel__view-all:hover { text-decoration: underline; }
+
+.panel__view-all:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Overflow with nowhere single to send someone — stated, not linked. */
+.panel__more {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+ * Panel body
+ *
+ * Takes the space the header and footer do not, so a panel holding its
+ * designed height can centre an empty state in the middle of the box rather
+ * than leaving it stranded at the top above dead space.
+ * ------------------------------------------------------------------------ */
+
+.panel__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+/* An empty or refused state sits in the middle of whatever room it is given.
+   `auto` margins in a flex column are what centre it. */
+.panel__body > .panel__clear {
+  margin: auto 0;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Skeletons mimic content, so they stay top-aligned where content would be. */
+.panel__body > .skeleton-stack,
+.panel__body > .skeleton {
+  flex: 0 0 auto;
+}
+
+/* ---------------------------------------------------------------------------
+ * Messages
+ *
+ * Bottom-right, stacked, above everything. Errors stay until dismissed;
+ * successes clear themselves — a confirmation nobody reads has still done
+ * its job, an error nobody reads has not.
+ * ------------------------------------------------------------------------ */
+
+.snackbars {
+  position: fixed;
+  right: var(--space-5);
+  bottom: var(--space-5);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  width: min(380px, calc(100vw - var(--space-5) * 2));
+  /* The container spans the corner but must not swallow clicks on the page
+     behind it; each snackbar re-enables them for itself. */
+  pointer-events: none;
+}
+
+.snackbar {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--text-muted);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: snackbar-in 180ms ease-out;
+}
+
+.snackbar--success { border-left-color: var(--success); }
+.snackbar--error { border-left-color: var(--error); }
+.snackbar--warning { border-left-color: var(--warning); }
+.snackbar--info { border-left-color: var(--info); }
+
+.snackbar__icon { flex-shrink: 0; margin-top: 1px; }
+
+.snackbar--success .snackbar__icon { color: var(--success); }
+.snackbar--error .snackbar__icon { color: var(--error); }
+.snackbar--warning .snackbar__icon { color: var(--warning); }
+.snackbar--info .snackbar__icon { color: var(--info); }
+
+.snackbar__body { flex: 1; min-width: 0; }
+
+.snackbar__message {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.snackbar__detail {
+  margin: 2px 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  /* A server message or a filename can be long; let it wrap. */
+  overflow-wrap: anywhere;
+}
+
+.snackbar__close {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  padding: 2px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.snackbar__close:hover { color: var(--text-primary); }
+
+.snackbar__close:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
+}
+
+@keyframes snackbar-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snackbar { animation: none; }
+}
+
+/* Paper does not need transient messages. */
+@media print {
+  .snackbars { display: none !important; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Server unreachable
+ * ------------------------------------------------------------------------ */
+
+.unreachable {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 42ch;
+  text-align: center;
+}
+
+.unreachable__icon { color: var(--warning); }
+
+.unreachable__title {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.unreachable__body {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  text-wrap: pretty;
 }

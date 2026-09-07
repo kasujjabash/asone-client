@@ -1,82 +1,24 @@
 /**
  * Fonts.
  *
- * ---------------------------------------------------------------------------
- * WHICH FONT IS ACTUALLY IN USE — and why there are two answers
- * ---------------------------------------------------------------------------
- * The screen designs in Figma ("AsOne Logistics - era92") set every text
- * layer in **Geist** — the splash title is Geist Bold 24px, its body Geist
- * Regular 15px. Geist is free and on Google Fonts, so it is loaded below and
- * is what the app renders.
+ * All three are on Google Fonts and free, so there is no licensing question
+ * to settle — which is worth stating, because `design-system.pdf` specified
+ * Ivy Mode and Proxima Nova, both commercial, and neither appears in any
+ * screen design.
  *
- * `design-system.pdf` says something different (see below). That document is
- * headed "AsOne Ministries" and is the older of the two. Where they disagree,
- * the screen designs win, because they are what the client signed off for
- * this product — but this is worth one line of confirmation from ERA 92,
- * because it decides whether the commercial licences below are needed at all.
+ * The screens use three families, and this file follows them rather than
+ * imposing one:
  *
- * If Ivy Mode / Proxima Nova are reinstated, point --font-display and
- * --font-sans in tokens.css back at them and follow Option A or B.
+ *   Inter    the application — dashboard, sidebar, tables, forms. Every text
+ *            layer in the dashboard frames is Inter.
+ *   Geist    the auth screens and the brand marks — the splash title,
+ *            sign-in headings, avatar initials, badge counts.
+ *   Poppins  the promotional banner on the dashboard, and nothing else.
  *
- * ---------------------------------------------------------------------------
- * THE DESIGN SYSTEM PDF's answer — two commercial faces:
- *
- *   Ivy Mode      Ivy Foundry     display and title text
- *   Proxima Nova  Mark Simonson   headings and body copy
- *
- * Neither is on Google Fonts, so neither can be linked for free. Both are
- * on Adobe Fonts, which is almost certainly the intended route given the
- * design was made in Figma with them.
- *
- * ---------------------------------------------------------------------------
- * OPTION A — Adobe Fonts web project (recommended, needs a Creative Cloud seat)
- * ---------------------------------------------------------------------------
- * Create a web project at fonts.adobe.com containing Ivy Mode and Proxima
- * Nova, then add its stylesheet to index.html:
- *
- *     <link rel="stylesheet" href="https://use.typekit.net/XXXXXXX.css">
- *
- * Nothing else changes — the family names in tokens.css already match what
- * Adobe serves. Delete this comment and the fallback note below.
- *
- * ---------------------------------------------------------------------------
- * OPTION B — self-hosted licensed files
- * ---------------------------------------------------------------------------
- * If AsOne or ERA 92 holds a webfont licence, drop the .woff2 files into
- * `public/fonts/` and uncomment the @font-face blocks at the bottom of this
- * file. Self-hosting is faster than Typekit and survives a lapsed
- * subscription, but the licence has to permit it.
- *
+ * Worth raising with ERA 92: three families across two screens is more than
+ * the work needs, and the dashboard frames also contain a stray Open Sans
+ * line in a chart tooltip. Consolidating on Inter plus Geist would lose
+ * nothing visible. Until that is decided, this matches the designs.
  */
 
-@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap');
-
-/* ---------------------------------------------------------------------------
- * OPTION B scaffolding — uncomment when licensed files exist in public/fonts/
- * ------------------------------------------------------------------------ */
-
-/*
-@font-face {
-  font-family: 'Ivy Mode';
-  src: url('/fonts/ivy-mode-regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Proxima Nova';
-  src: url('/fonts/proxima-nova-regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Proxima Nova';
-  src: url('/fonts/proxima-nova-bold.woff2') format('woff2');
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-*/
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Poppins:wght@500;600&display=swap');

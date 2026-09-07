@@ -1,0 +1,550 @@
+/**
+ * Dashboard — Figma 2001:424.
+ *
+ * Every value reads from tokens.css.
+ */
+
+/*
+ * Panel heights from the design (Figma 2001:424 / 2005:3748). The left
+ * column is a fixed 672px and Recent Activity is 359px; the other two are
+ * derived so both columns come out level:
+ *
+ *   left   293 + 20 + 359                    = 672
+ *   right  127 + 20 + 239 + 20 + 266         = 672
+ *
+ * They are floors rather than fixed heights, so a panel with more content
+ * than expected grows instead of clipping.
+ */
+:root {
+  --panel-h-attention: 293px;
+  --panel-h-activity: 359px;
+  --panel-h-warehouse: 239px;
+  --panel-h-chart: 266px;
+}
+
+.dashboard__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 500px;
+  gap: 20px;
+  align-items: start;
+  margin-top: var(--space-5);
+}
+
+.dashboard__col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+@media (max-width: 1200px) {
+  /* The 500px right column stops fitting; stack rather than squeeze the
+     bars into something unreadable. */
+  /*
+ * Panel heights from the design (Figma 2001:424 / 2005:3748). The left
+ * column is a fixed 672px and Recent Activity is 359px; the other two are
+ * derived so both columns come out level:
+ *
+ *   left   293 + 20 + 359                    = 672
+ *   right  127 + 20 + 239 + 20 + 266         = 672
+ *
+ * They are floors rather than fixed heights, so a panel with more content
+ * than expected grows instead of clipping.
+ */
+:root {
+  --panel-h-attention: 293px;
+  --panel-h-activity: 359px;
+  --panel-h-warehouse: 239px;
+  --panel-h-chart: 266px;
+}
+
+.dashboard__columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * KPI row
+ *
+ * Tiles share one row and wrap as a group. `minmax(0, 1fr)` rather than
+ * `1fr` so a long figure cannot push a tile wider than its share.
+ * ------------------------------------------------------------------------ */
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-3);
+}
+
+/* A tile: figure and icon together, then what it means, then its category.
+   The design lays a 5% brand wash over white and outlines it in brand. */
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background:
+    linear-gradient(0deg, rgba(94, 142, 142, 0.05), rgba(94, 142, 142, 0.05)),
+    var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-lg);
+}
+
+/* Something to look at, without reading as a failure — the design reserves
+   red for errors and uses the brand for emphasis. */
+.kpi--alert {
+  border-color: var(--warning);
+}
+
+.kpi__figure {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.kpi__icon {
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.kpi--alert .kpi__icon { color: var(--warning); }
+
+.kpi__value {
+  font-size: 20px;
+  font-weight: var(--weight-bold);
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.kpi__caption {
+  margin: 0;
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Pushed to the bottom edge so tiles with shorter captions still line up. */
+.kpi__label {
+  margin: auto 0 0;
+  font-size: var(--text-caption);
+  color: var(--kpi-label);
+}
+
+/* ---------------------------------------------------------------------------
+ * Panels
+ * ------------------------------------------------------------------------ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.panel--sunken {
+  background: var(--surface-container);
+}
+
+.panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.panel__title {
+  margin: 0;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.panel__meta,
+.panel__count {
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+}
+
+.panel__count {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--error);
+  color: var(--text-on-accent);
+  font-weight: var(--weight-regular);
+  white-space: nowrap;
+}
+
+/* "All clear" is a good outcome, so it reads calmly rather than as an
+   absence. */
+.panel__clear {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+/* ---------------------------------------------------------------------------
+ * Needs Attention
+ * ------------------------------------------------------------------------ */
+
+.attention {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.attention__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--accent-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.attention__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+}
+
+.attention__tag {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.attention__tag--error { background: var(--pill-danger-bg); color: var(--error); }
+.attention__tag--warning { background: var(--warning-bg); color: var(--warning); }
+.attention__tag--info { background: var(--info-bg); color: var(--info); }
+.attention__tag--success { background: var(--success-bg); color: var(--success); }
+.attention__tag--neutral { background: var(--surface-sunken); color: var(--text-secondary); }
+
+/* ---------------------------------------------------------------------------
+ * Activity timeline
+ * ------------------------------------------------------------------------ */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  /* The panel holds a set height; a long feed scrolls inside it rather than
+     pushing the column past the one beside it. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.timeline__entry {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.timeline__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+}
+
+.timeline__dot--success { background: var(--success); }
+.timeline__dot--warning { background: var(--warning); }
+.timeline__dot--error { background: var(--error); }
+.timeline__dot--info { background: var(--info); }
+.timeline__dot--neutral { background: var(--text-muted); }
+
+.timeline__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--text-caption);
+}
+
+.timeline__body b {
+  font-weight: var(--weight-regular);
+  color: var(--text-primary);
+}
+
+.timeline__body small { color: var(--text-secondary); }
+
+/* ---------------------------------------------------------------------------
+ * Warehouse bars
+ * ------------------------------------------------------------------------ */
+
+.bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.bars__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bars__label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+}
+
+.bars__track {
+  height: 20px;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.bars__fill {
+  height: 100%;
+  background: var(--accent);
+}
+
+/* The second and later bars step down in tone, as the design does, so two
+   warehouses are told apart without a legend. */
+.bars__row:nth-child(even) .bars__fill {
+  background: var(--tone-slate);
+}
+
+/* ---------------------------------------------------------------------------
+ * Collapsible sidebar groups
+ * ------------------------------------------------------------------------ */
+
+.sidebar__group-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  height: 32px;
+  padding: var(--space-2) 0;
+  border: 0;
+  background: none;
+  color: var(--text-on-dark);
+  font: inherit;
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar__group-label:hover { color: var(--accent-tint); }
+
+.sidebar__group-label:focus-visible {
+  outline: 2px solid var(--text-on-dark);
+  outline-offset: -2px;
+}
+
+.sidebar__group-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/*
+ * The design points the chevron DOWN when a group is open and UP when it is
+ * closed — the opposite of the usual convention, so it is worth stating: the
+ * arrow shows which way the group will move, not where its contents are.
+ * Base glyph is ChevronDown, so the rotation goes on the closed state.
+ */
+.sidebar__chevron {
+  flex-shrink: 0;
+  transform: rotate(180deg);
+  transition: transform 150ms ease;
+}
+
+.sidebar__chevron--open { transform: rotate(0deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar__chevron { transition: none; }
+}
+
+/* The warehouse switcher sits in the top bar's site chip. */
+.topbar__site--select { padding-right: var(--space-2); }
+
+.topbar__site select {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-size: var(--text-caption);
+  cursor: pointer;
+  appearance: none;
+}
+
+.topbar__site select option {
+  color: var(--text-primary);
+}
+
+/* ---------------------------------------------------------------------------
+ * Weekly report banner — Figma 2001:415
+ *
+ * Poppins at the design's sizes: SemiBold 20px headline, Medium 12px for the
+ * range and the button. The gradient runs brand teal to a pale mint at the
+ * design's angle.
+ * ------------------------------------------------------------------------ */
+
+.promo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-height: 127px;
+  /* min-width lets the nowrap headline shrink the card rather than overflow
+     it when the column narrows. */
+  min-width: 0;
+  padding: var(--space-4) 20px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(168deg, var(--asone-green) 23%, #d0fffb 104%);
+  color: var(--text-on-dark);
+}
+
+/*
+ * Colour is set explicitly, not inherited: base.css gives every `h2` the
+ * dark text colour, and that beats the white inherited from `.promo`
+ * because a bare element selector still wins when the class sets nothing.
+ *
+ * One line, as designed — so no max-width and no balancing, both of which
+ * force a wrap.
+ */
+.promo__title {
+  margin: 0;
+  color: var(--text-on-dark);
+  font-family: var(--font-promo);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.promo__range {
+  margin: 0;
+  font-family: var(--font-promo);
+  font-size: var(--text-caption);
+  font-weight: 500;
+}
+
+.promo__action {
+  margin-top: var(--space-1);
+  padding: 7px var(--space-4);
+  border: 0;
+  border-radius: 37px;
+  background: var(--tone-slate);
+  color: var(--text-on-dark);
+  font-family: var(--font-promo);
+  font-size: var(--text-caption);
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/*
+ * Keeps the design's exact fill while disabled. The usual half-opacity
+ * treatment reads as a different colour, and this button is not disabled
+ * because of anything the user did — there is simply no report endpoint yet.
+ * The cursor and `aria-disabled` carry the state instead.
+ */
+/* Nothing to download until the week has movements. */
+.promo__action:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+}
+
+/* ---------------------------------------------------------------------------
+ * Daily orders chart — Figma 2001:971
+ * ------------------------------------------------------------------------ */
+
+@media (max-width: 560px) {
+  /* The headline stays on one line; at this width it needs to be smaller to
+     do that inside the card. */
+  .promo__title { font-size: 17px; }
+}
+
+.chart__svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart__grid {
+  stroke: var(--grey-rule);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+.chart__area {
+  fill: var(--accent);
+  opacity: 0.12;
+}
+
+.chart__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart__tick,
+.chart__week {
+  fill: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart__tick { text-anchor: end; }
+
+.chart__week {
+  text-anchor: middle;
+  font-weight: 600;
+  fill: var(--text-primary);
+}
+
+.chart__note {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+/* An addition to the design: which warehouse holds the value, not just the
+   units. Abbreviated — the exact figure belongs on a report. */
+.bars__value {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}

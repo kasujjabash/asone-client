@@ -8,7 +8,7 @@
  */
 
 import { Navigate } from 'react-router-dom'
-import { BrandMark } from '@/components'
+import { BrandMark, LoadingScreen, ServerUnreachable } from '@/components'
 import { SignInForm } from '../components/SignInForm'
 import { SplitAuthLayout } from '../components/SplitAuthLayout'
 import { VerifyCodeCard } from '../components/VerifyCodeCard'
@@ -16,14 +16,18 @@ import { useAuth } from '../hooks/useAuth'
 import { paths } from '@/routes/paths'
 
 export function SignInScreen() {
-  const { status, challenge, error, pending, requestCode, submitCode, restart } = useAuth()
+  const { status, challenge, error, pending, requestCode, submitCode, restart, retry } =
+    useAuth()
 
   // Still asking the server who this is. Rendering the form now would flash
   // sign-in at somebody who is already signed in.
-  if (status === 'loading') return null
+  if (status === 'loading') return <LoadingScreen message="Checking your session…" />
+
+  // Held tokens, no answer from the server — not a reason to offer sign-in.
+  if (status === 'unreachable') return <ServerUnreachable onRetry={retry} />
 
   if (status === 'signedIn' || status === 'gated') {
-    return <Navigate to={paths.session} replace />
+    return <Navigate to={paths.dashboard} replace />
   }
 
   if (status === 'challenged' && challenge) {

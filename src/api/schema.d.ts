@@ -1102,6 +1102,218 @@ export interface paths {
         patch: operations["catalog_warehouses_partial_update"];
         trace?: never;
     };
+    "/api/dashboard/activity/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recent activity
+         * @description What has happened at this site lately, newest first — receipts confirmed, orders shipped, stock adjusted, production orders raised, backorders released.
+         *
+         *     Covers the last seven days. For anything older, the movement ledger is the record; this is a dashboard, not history.
+         */
+        get: operations["dashboard_activity_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/attention/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Needs attention
+         * @description The alert list — four kinds of thing somebody should look at, each as a count and a sentence.
+         *
+         *     Rows with a count of zero are **omitted**, so an empty list means there is genuinely nothing to do. `kind` is stable and is what the frontend should route on; `message` is for reading, not parsing.
+         */
+        get: operations["dashboard_attention_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/inventory-by-warehouse/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Inventory by warehouse
+         * @description Units, value and distinct SKUs at each site — the panel with a bar per warehouse.
+         *
+         *     Every warehouse appears, including one holding nothing: a site missing from the list reads as "no data" when the truth is "no stock", and those are different problems.
+         *
+         *     `total_skus` counts each SKU once however many sites hold it, so it is **not** the sum of the per-site counts.
+         */
+        get: operations["dashboard_inventory_by_warehouse_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/notifications/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Notifications — the bell
+         * @description The badge count in the header and the list behind it.
+         *
+         *     **These are derived, not stored.** They are the same conditions `attention/` reports, counted — which is what the design shows: the bell reads 4 and the Needs Attention panel reads "4 ALERTS".
+         *
+         *     So `unread_count` **does not fall when somebody reads them.** It falls when the low stock is replenished, the order is picked, the receipt is reconciled. That suits an operations queue — a warning you can dismiss without acting is a warning that stops working — but it is not how a social-media bell behaves.
+         *
+         *     There is no per-user read state and no history. If AsOne wants dismissible notifications, that is a stored model, not a wider version of this.
+         */
+        get: operations["dashboard_notifications_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/order-volume/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daily order volume
+         * @description Orders placed per day, for the chart. Cancelled orders are excluded — they were withdrawn, and counting them would overstate demand.
+         *
+         *     **Days with no orders are absent, not zero.** Whether a quiet day should show as a gap or a flat line is a decision about the axis, and the chart is better placed to make it than this endpoint.
+         */
+        get: operations["dashboard_order_volume_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/summary/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The headline figures
+         * @description F62 — the six tiles across the top of the dashboard, in one call.
+         *
+         *     One call rather than six because this is the first screen anybody opens, and six round trips over a rural connection is the difference between a screen that loads and one that does not.
+         *
+         *     Every figure is recomputed from the app that owns it, so a tile can never disagree with the screen it links to.
+         */
+        get: operations["dashboard_summary_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/weekly-report/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The weekly inventory report
+         * @description What moved, per SKU per warehouse, over a week — opening, received, adjusted, transferred, picked, shipped, returned, closing, and what the closing stock is worth.
+         *
+         *     **Opening plus the movements equals closing on every row.** That is what makes it a report rather than a list.
+         *
+         *     Defaults to the **last complete week**, Monday to Sunday. The card says the report is ready, and a report is only ready once its week is over — reporting the current week would give a different answer every time somebody opened it.
+         *
+         *     `/download/` returns the same thing as a spreadsheet.
+         */
+        get: operations["dashboard_weekly_report_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/dashboard/weekly-report/download/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Download the weekly report as a spreadsheet
+         * @description The same report as CSV, which opens in Excel — which is what Central Office will actually do with it.
+         *
+         *     The filename carries the period and the site, so a folder of these stays readable months later.
+         */
+        get: operations["dashboard_weekly_report_download_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/health/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Is the server up?
+         * @description Cheap, unauthenticated liveness check.
+         *
+         *     **Use it to tell a network failure from an expired session.** When a request fails with no response, call this: if it also fails, the server or the connection is down — tell the user that and **keep their session**. If it succeeds, the problem was authentication, and the 401's `code` says whether to refresh (`token_expired`) or sign out (`token_invalid`).
+         *
+         *     Returns **503** if the database is unreachable. A server that cannot reach Postgres answers every real request with a 500, so reporting it as healthy would send clients into a retry loop.
+         */
+        get: operations["health_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/inventory/adjustments/": {
         parameters: {
             query?: never;
@@ -1249,7 +1461,9 @@ export interface paths {
          *
          *     **201** if the count differed and a CORR_UP/CORR_DOWN adjustment was posted immediately (not left as an unposted draft, unlike the rest of this endpoint). **200** with `adjustment: null` if the count matched exactly — nothing to correct, and nothing gets written for it.
          *
-         *     Refused if the SKU has no catalog price on the count date, if the count is short of what is actually on hand (should not happen — the comparison is against the same figure — but re-checked anyway, same as everywhere else), or if the CORR_UP/CORR_DOWN reason code this direction needs does not exist or has been retired.
+         *     **400** if the SKU has no catalog price on the count date, or if the count is short of what is actually on hand (should not happen — the comparison is against the same figure — but re-checked anyway, same as everywhere else).
+         *
+         *     **409**, not 400, if the CORR_UP/CORR_DOWN reason code this direction needs does not exist or has been retired — the request itself was fine, and nothing the caller could change about it would fix a gap in Central Office's own master data. Same reasoning config/exceptions.py already uses for a refused delete.
          */
         post: operations["inventory_adjustments_correct_count_create"];
         delete?: never;
@@ -2531,10 +2745,34 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** @description One line of the recent activity timeline. */
+        ActivityEvent: {
+            /** Format: date-time */
+            at: string;
+            /** @description receipt, shipment, adjustment, production_order or backorder. */
+            kind: string;
+            /** @description The document number, for linking. */
+            reference: string;
+            description: string;
+        };
         /** @description Handing a backorder to a warehouse that has the stock — F45. */
         AssignBackorder: {
             /** @description A warehouse holding enough to fill it — never the one that ran short. */
             warehouse: number;
+        };
+        /**
+         * @description One row of the "Needs Attention" list.
+         *
+         *     A count and a sentence, not the underlying records — the row links
+         *     through to the screen that has those.
+         */
+        AttentionAlert: {
+            /** @description Stable identifier for the frontend to route on: low_stock, orders_on_hold, receipts_unreconciled, backorders_fillable. */
+            kind: string;
+            /** @description CRITICAL, HOLD, INSPECTION or READY. */
+            level: string;
+            count: number;
+            message: string;
         };
         /** @description What a school is still owed — F44. */
         Backorder: {
@@ -2625,6 +2863,24 @@ export interface components {
             adjustment_date: string;
             /** @default  */
             notes: string;
+        };
+        /** @description The six tiles across the top — F62. */
+        DashboardSummary: {
+            /** @description Units on hand and free to promise. */
+            available_units: number;
+            /**
+             * Format: decimal
+             * @description What that stock is carried at, in UGX.
+             */
+            inventory_value: string;
+            /** @description Garments on orders the warehouse has not picked yet. */
+            units_awaiting_pick: number;
+            /** @description Orders picked but not yet shipped — off the shelf, still in the building. */
+            orders_awaiting_dispatch: number;
+            /** @description Backorders open or assigned, not yet shipped. */
+            outstanding_backorders: number;
+            /** @description SKUs at or under their reorder floor. */
+            skus_below_minimum: number;
         };
         /**
          * @description * `INCREASE` - Increases stock
@@ -2783,6 +3039,12 @@ export interface components {
             notes?: string;
             lines: components["schemas"]["OrderLineInput"][];
         };
+        Health: {
+            /** @description "ok" or "degraded". */
+            status: string;
+            /** @description Whether Postgres answered. */
+            database: boolean;
+        };
         InventoryAdjustment: {
             readonly id: number;
             /** @description System assigned. Unique forever, never reused. */
@@ -2834,6 +3096,19 @@ export interface components {
              */
             adjustment_date: string;
             notes?: string;
+        };
+        /**
+         * @description The panel. The bar is proportional and the frontend scales it —
+         *     returning a percentage would bake in whether the scale is against the
+         *     largest site or the total, which is a design decision.
+         */
+        InventoryByWarehouse: {
+            warehouses: components["schemas"]["WarehouseInventory"][];
+            total_units: number;
+            /** Format: decimal */
+            total_value: string;
+            /** @description Distinct SKUs held anywhere, counted once — not the sum of the per-site counts. */
+            total_skus: number;
         };
         /**
          * @description The order as a document — F34.
@@ -2986,6 +3261,29 @@ export interface components {
          */
         MovementTypeEnum: "RECEIPT" | "ADJUSTMENT" | "TRANSFER_IN" | "TRANSFER_OUT" | "PICK" | "SHIPMENT" | "RETURN" | "DAMAGE";
         /**
+         * @description One item behind the bell. Same shape as an attention alert, because
+         *     it is the same condition seen from the header rather than the panel.
+         */
+        Notification: {
+            kind: string;
+            level: string;
+            message: string;
+            count: number;
+        };
+        /**
+         * @description The bell: a badge count and the list behind it.
+         *
+         *     `unread_count` is the number of *conditions* currently true, not a
+         *     per-user inbox — reading them does not clear it. See
+         *     `dashboard/services.py::notifications` for why, and for what a real
+         *     inbox would need.
+         */
+        Notifications: {
+            /** @description Badge number. Falls when the underlying problem is fixed, not when read. */
+            unread_count: number;
+            notifications: components["schemas"]["Notification"][];
+        };
+        /**
          * @description What PATCH may change on an order.
          *
          *     Header fields only. Amending an order's **lines** is F18 ("Should"), and
@@ -3048,6 +3346,23 @@ export interface components {
             /** Format: decimal */
             readonly total: string;
             readonly line_count: number;
+        };
+        /**
+         * @description The daily orders chart.
+         *
+         *     Days with no orders are absent rather than zero — see
+         *     `daily_order_volume()` for why that is the caller's decision.
+         */
+        OrderVolume: {
+            days: components["schemas"]["OrderVolumeDay"][];
+            total: number;
+            /** Format: double */
+            average_per_day: number;
+        };
+        OrderVolumeDay: {
+            /** Format: date */
+            date: string;
+            orders: number;
         };
         /** @description One SKU on an order: ordered, received so far, still to come. */
         OutstandingRow: {
@@ -4574,6 +4889,16 @@ export interface components {
             primary_tailoring_center?: number | null;
             readonly primary_tailoring_center_name: string;
         };
+        /** @description One site's line in the "Inventory by Warehouse" panel. */
+        WarehouseInventory: {
+            warehouse_id: number;
+            warehouse_name: string;
+            units: number;
+            /** Format: decimal */
+            value: string;
+            /** @description Distinct SKUs actually held here — not the catalogue size. */
+            sku_count: number;
+        };
         WarehouseSummary: {
             readonly id: number;
             readonly name: string;
@@ -4636,6 +4961,42 @@ export interface components {
             reason_code?: number | null;
             notes?: string;
             lines: components["schemas"]["WarehouseTransferLineInput"][];
+        };
+        /**
+         * @description The weekly inventory report, as data. `/download/` is the same thing
+         *     as a spreadsheet.
+         */
+        WeeklyReport: {
+            /** Format: date */
+            date_from: string;
+            /** Format: date */
+            date_to: string;
+            rows: components["schemas"]["WeeklyReportRow"][];
+            total_closing_units: number;
+            /** Format: decimal */
+            total_closing_value: string;
+        };
+        /**
+         * @description One SKU at one warehouse, over the week.
+         *
+         *     Opening plus the movements equals closing, on every row.
+         */
+        WeeklyReportRow: {
+            warehouse: string;
+            sku_number: string;
+            description: string;
+            opening: number;
+            received: number;
+            /** @description Signed — corrections, damages, losses. */
+            adjusted: number;
+            /** @description Signed — net of in and out. */
+            transferred: number;
+            picked: number;
+            shipped: number;
+            returned: number;
+            closing: number;
+            /** Format: decimal */
+            value: string;
         };
     };
     responses: never;
@@ -6728,6 +7089,223 @@ export interface operations {
             };
         };
     };
+    dashboard_activity_list: {
+        parameters: {
+            query?: {
+                /** @description Rows to return. Default 10, max 50. */
+                limit?: number;
+                /** @description Which warehouse to report on. Ignored for warehouse staff, who always see their own. Omitted by a lead means every site. */
+                warehouse?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActivityEvent"][];
+                };
+            };
+        };
+    };
+    dashboard_attention_list: {
+        parameters: {
+            query?: {
+                /** @description Which warehouse to report on. Ignored for warehouse staff, who always see their own. Omitted by a lead means every site. */
+                warehouse?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttentionAlert"][];
+                };
+            };
+        };
+    };
+    dashboard_inventory_by_warehouse_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Levels as at a date, YYYY-MM-DD. */
+                as_of?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InventoryByWarehouse"];
+                };
+            };
+        };
+    };
+    dashboard_notifications_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Which warehouse to report on. Ignored for warehouse staff, who always see their own. Omitted by a lead means every site. */
+                warehouse?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Notifications"];
+                };
+            };
+        };
+    };
+    dashboard_order_volume_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Inclusive start date, YYYY-MM-DD. */
+                from?: string;
+                /** @description Inclusive end date, YYYY-MM-DD. */
+                to?: string;
+                /** @description Which warehouse to report on. Ignored for warehouse staff, who always see their own. Omitted by a lead means every site. */
+                warehouse?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OrderVolume"];
+                };
+            };
+        };
+    };
+    dashboard_summary_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Which warehouse to report on. Ignored for warehouse staff, who always see their own. Omitted by a lead means every site. */
+                warehouse?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardSummary"];
+                };
+            };
+        };
+    };
+    dashboard_weekly_report_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Inclusive start, YYYY-MM-DD. */
+                from?: string;
+                /** @description Inclusive end, YYYY-MM-DD. */
+                to?: string;
+                /** @description Which warehouse to report on. Ignored for warehouse staff, who always see their own. Omitted by a lead means every site. */
+                warehouse?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WeeklyReport"];
+                };
+            };
+        };
+    };
+    dashboard_weekly_report_download_retrieve: {
+        parameters: {
+            query?: {
+                /** @description Inclusive start, YYYY-MM-DD. */
+                from?: string;
+                /** @description Inclusive end, YYYY-MM-DD. */
+                to?: string;
+                /** @description Which warehouse to report on. Ignored for warehouse staff, who always see their own. Omitted by a lead means every site. */
+                warehouse?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/csv": string;
+                };
+            };
+        };
+    };
+    health_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Health"];
+                };
+            };
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Health"];
+                };
+            };
+        };
+    };
     inventory_adjustments_list: {
         parameters: {
             query?: {
@@ -6881,6 +7459,13 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["InventoryAdjustment"];
                 };
+            };
+            /** @description CORR_UP/CORR_DOWN missing or retired. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

@@ -6,9 +6,19 @@
  * lets the app decide where to send the user. An interceptor that calls
  * `window.location.href = '/login'` cannot be tested without a browser, and
  * throws away whatever the user had typed.
+ *
+ * ---------------------------------------------------------------------------
+ * The session is cleared in exactly two places
+ * ---------------------------------------------------------------------------
+ * A `token_invalid` from the server, and a deliberate sign-out. Nothing else
+ * — not a network error, not a timeout, not a 500. Each of those means the
+ * request did not get an answer, which says nothing about whether the
+ * session is good, and guessing "signed out" is how a backend restart turns
+ * into everybody having to sign in again.
  */
 
 import axios, { type AxiosRequestConfig, type InternalAxiosRequestConfig } from 'axios'
+import { isServerReachable } from './health'
 import { tokens } from './tokens'
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8000/api'
@@ -29,23 +39,65 @@ export const http = axios.create({
 // Session death, announced rather than acted on
 // ---------------------------------------------------------------------------
 
-type SessionExpiredListener = () => void
+type Listener = () => void
 
-const sessionExpiredListeners = new Set<SessionExpiredListener>()
+const sessionExpiredListeners = new Set<Listener>()
+const serverUnreachableListeners = new Set<Listener>()
 
 /**
- * Called when the refresh token is spent or rejected — the one case where the
- * user genuinely has to sign in again. The auth feature subscribes and
- * handles the redirect; `api/` stays unaware that routes exist.
+ * The refresh token was **rejected** — spent, blacklisted or invalid. The one
+ * case where somebody genuinely has to sign in again. The auth feature
+ * subscribes and handles the redirect; `api/` stays unaware routes exist.
  */
-export function onSessionExpired(listener: SessionExpiredListener): () => void {
+export function onSessionExpired(listener: Listener): () => void {
   sessionExpiredListeners.add(listener)
   return () => sessionExpiredListeners.delete(listener)
+}
+
+/**
+ * The refresh **could not be attempted** — no response, or the server broke.
+ *
+ * Kept separate because the two need opposite handling, and conflating them
+ * was a real bug: a server that was simply down signed the user out and
+ * discarded their tokens, so when it came back they had to sign in again for
+ * no reason. Nothing about the session was wrong.
+ */
+export function onServerUnreachable(listener: Listener): () => void {
+  serverUnreachableListeners.add(listener)
+  return () => serverUnreachableListeners.delete(listener)
 }
 
 function announceSessionExpired(): void {
   tokens.clear()
   for (const listener of sessionExpiredListeners) listener()
+}
+
+function announceServerUnreachable(): void {
+  // Tokens are deliberately kept. They are probably still valid; the server
+  // just did not answer.
+  for (const listener of serverUnreachableListeners) listener()
+}
+
+/**
+ * Why a 401 was returned.
+ *
+ * The server normalises these deliberately — simplejwt reports an expired
+ * token and a forged one both as `token_not_valid` and buries the difference
+ * in an English sentence. `code` is the contract; `detail` is prose that may
+ * change.
+ *
+ *   token_expired      routine. Thirty-minute tokens expire all day. Refresh.
+ *   token_invalid      never ours, or tampered with. This will never work.
+ *   not_authenticated  there was no session to begin with.
+ */
+type TokenFailure = 'token_expired' | 'token_invalid' | 'not_authenticated' | 'unknown'
+
+function tokenFailureOf(error: unknown): TokenFailure {
+  if (!axios.isAxiosError(error)) return 'unknown'
+  const code = (error.response?.data as { code?: unknown } | undefined)?.code
+  return code === 'token_expired' || code === 'token_invalid' || code === 'not_authenticated'
+    ? code
+    : 'unknown'
 }
 
 // ---------------------------------------------------------------------------
@@ -104,12 +156,46 @@ http.interceptors.response.use(
     if (!axios.isAxiosError(error)) throw error
 
     const original = error.config as Retriable | undefined
-    const status = error.response?.status
+
+    /*
+     * No response at all: no status, no body. The browser simply failed.
+     *
+     * This is the case that gets frontends wrong. Treating it as
+     * "unauthorized" throws the session away and shows a login screen, and
+     * the user has no idea why. So ask the one question the failed request
+     * cannot answer — is the server there? — and only then decide.
+     */
+    if (!error.response) {
+      const reachable = await isServerReachable(BASE_URL)
+      if (!reachable) {
+        // Down, or no connection. The session is almost certainly fine.
+        announceServerUnreachable()
+        throw error
+      }
+      // The server is up, so something else failed this request. Still not a
+      // reason to sign anybody out.
+      throw error
+    }
+
+    const status = error.response.status
     const exempt = NO_REFRESH.some((path) => original?.url?.includes(path))
 
     // A 403 is a permission decision, not an expired token. Refreshing and
     // retrying would get the same answer, so it goes straight to the caller.
     if (status !== 401 || !original || original._retried || exempt) throw error
+
+    const failure = tokenFailureOf(error)
+
+    /*
+     * `token_invalid` will never work again — that is the one and only
+     * status that ends a session here. Anything else falls through to a
+     * refresh attempt, because a session that might still be good must not
+     * be discarded on a guess.
+     */
+    if (failure === 'token_invalid') {
+      announceSessionExpired()
+      throw error
+    }
 
     original._retried = true
 
@@ -120,8 +206,25 @@ http.interceptors.response.use(
       const access = await refreshing
       original.headers.Authorization = `Bearer ${access}`
       return http(original)
-    } catch {
-      announceSessionExpired()
+    } catch (refreshError) {
+      /*
+       * The refresh itself failed. Same question again, and the same rule:
+       * only a server that is up and rejecting the refresh token as invalid
+       * ends the session. A network failure, a timeout or a 500 leaves the
+       * tokens alone — they are probably still good, and the user should be
+       * told the server is unreachable, not shown a login screen.
+       */
+      if (!axios.isAxiosError(refreshError) || !refreshError.response) {
+        announceServerUnreachable()
+      } else if (tokenFailureOf(refreshError) === 'token_invalid') {
+        announceSessionExpired()
+      } else if (refreshError.response.status >= 500) {
+        announceServerUnreachable()
+      } else {
+        // A 4xx that is not token_invalid — a spent or blacklisted refresh
+        // token. It will not work again either.
+        announceSessionExpired()
+      }
       throw error
     }
   },

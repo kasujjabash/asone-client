@@ -1,0 +1,385 @@
+/**
+ * System Reports — Figma 58:3595.
+ *
+ * Every value reads from tokens.css.
+ */
+
+.page-head--split {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.exports {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------------------
+ * Filter bar — a teal band, as designed
+ * ------------------------------------------------------------------------ */
+
+.filters {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+  background: var(--accent);
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+}
+
+.filters__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 47px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--surface-dim);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+}
+
+.filters__field--grow { flex: 1 1 240px; }
+
+/* Shows what is included rather than offering to change it. */
+.filters__field--static { background: var(--surface-container); }
+
+.filters__field[aria-disabled='true'] { color: var(--text-muted); }
+
+.filters__label {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.filters__field input {
+  min-width: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: var(--text-primary);
+}
+
+.filters__field input:focus-visible { outline: none; }
+
+.filters__field:focus-within {
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 0 2px var(--on-overlay-dim);
+}
+
+/* The report's tiles sit on a heavier wash than the dashboard's. */
+.kpi-row--report .kpi {
+  background: var(--accent-subtle);
+  border-color: transparent;
+}
+
+.reports__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* The KPI row above sets no bottom margin, so the space belongs here —
+     matching the dashboard's column grid. */
+  margin-top: var(--space-5);
+}
+
+/* ---------------------------------------------------------------------------
+ * Grouped bars
+ *
+ * Divs, not SVG: this is one bar per value sized by percentage, and flexbox
+ * places the labels without a coordinate system.
+ * ------------------------------------------------------------------------ */
+
+.legend {
+  display: flex;
+  gap: var(--space-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.legend__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+.legend__swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+}
+
+/*
+ * Five series colours, cycled.
+ *
+ * AsOne runs two warehouses today and the design shows two, but the chart
+ * builds its bars from whatever the data contains — so a third warehouse
+ * appears on its own. With only two colours defined it would have been drawn
+ * in the first one and been indistinguishable from it.
+ *
+ * All five are brand palette values chosen to stay apart at bar size: teal,
+ * near-black, deep blue, pale mint, and the warm earth accent. Past five
+ * they repeat, which is the point at which a legend stops working anyway and
+ * the comparison wants a table instead.
+ */
+.legend__swatch--0 { background: var(--accent); }
+.legend__swatch--1 { background: var(--tone-slate); }
+.legend__swatch--2 { background: var(--tone-ocean); }
+.legend__swatch--3 { background: var(--tone-mist); }
+.legend__swatch--4 { background: var(--asone-earth); }
+
+.chart-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-4);
+  padding: var(--space-3) 0 0;
+  overflow-x: auto;
+}
+
+.chart-bars__group {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  flex: 1 1 0;
+  /* Room for the bars plus their gaps; the group scrolls sideways rather
+     than crushing them if there are many warehouses. */
+  min-width: 96px;
+  height: 100%;
+}
+
+.chart-bars__bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: var(--space-1);
+  flex: 1;
+  min-height: 0;
+}
+
+/*
+ * Bars share the group's width rather than taking a fixed 22px, so adding
+ * warehouses narrows them instead of overflowing the group. Capped at the
+ * designed width so two warehouses still look as drawn.
+ */
+.chart-bars__bar {
+  flex: 1 1 0;
+  min-width: 6px;
+  max-width: 22px;
+  min-height: 2px;
+  border-radius: 3px 3px 0 0;
+  transition: height 200ms ease;
+}
+
+.chart-bars__bar--0 { background: var(--accent); }
+.chart-bars__bar--1 { background: var(--tone-slate); }
+.chart-bars__bar--2 { background: var(--tone-ocean); }
+.chart-bars__bar--3 { background: var(--tone-mist); }
+.chart-bars__bar--4 { background: var(--asone-earth); }
+
+.chart-bars__label {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  text-align: center;
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-bars__bar { transition: none; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Pagination
+ * ------------------------------------------------------------------------ */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding-top: var(--space-2);
+}
+
+.pagination__position {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pagination__btn {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: var(--surface);
+  border: 1px solid var(--surface-dim);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.pagination__btn:hover:not(:disabled) {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+}
+
+.pagination__btn:disabled {
+  color: var(--text-muted);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination__btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 1px;
+}
+
+.pagination__page {
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  min-width: 48px;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------------------
+ * SKU ledger
+ * ------------------------------------------------------------------------ */
+
+.table-scroll {
+  overflow-x: auto;
+  /* A wide set of warehouses scrolls the table, never the page. */
+  margin: 0 calc(var(--space-1) * -1);
+  padding: 0 var(--space-1);
+}
+
+.ledger {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+/*
+ * `text-align` is set on the cell modifier below, not here, so a numeric
+ * column's header cannot end up aligned differently from its cells. Setting
+ * `left` on this rule was doing exactly that: `.ledger th` outranks a bare
+ * `.ledger__num`, so every quantity heading sat over the left edge of
+ * right-aligned figures.
+ */
+.ledger th {
+  padding: var(--space-3);
+  background: var(--surface-container);
+  border-bottom: 1px solid var(--table-rule);
+  font-family: var(--font-brand);
+  font-weight: var(--weight-bold);
+  color: var(--field-label);
+  white-space: nowrap;
+}
+
+/* Text columns, header and cell alike. */
+.ledger th,
+.ledger td {
+  text-align: left;
+}
+
+.ledger td {
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--table-rule);
+  color: var(--text-primary);
+}
+
+.ledger tbody tr:hover { background: var(--surface); }
+
+/*
+ * Descendant selector on purpose. `.ledger__num` alone loses to
+ * `.ledger th`, which is how the headers came adrift from their columns —
+ * do not "simplify" this back to a single class.
+ */
+.ledger th.ledger__num,
+.ledger td.ledger__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger__code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.ledger__total { font-weight: var(--weight-bold); }
+
+/* ---------------------------------------------------------------------------
+ * Print
+ *
+ * The "Print Statement" button is out for now, but browsers print anyway —
+ * Ctrl/Cmd-P on a screen with a fixed sidebar and a scrolling table
+ * produces something unusable. This keeps that honest for anyone who tries,
+ * and means restoring the button is a one-line change.
+ *
+ * Drops the app chrome and lays the report out for paper: no sidebar, no top
+ * bar, no controls, and the table allowed to break across pages with its
+ * header repeated.
+ * ------------------------------------------------------------------------ */
+
+@media print {
+  .sidebar,
+  .topbar,
+  .exports,
+  .filters,
+  .pagination,
+  .panel__view-all {
+    display: none !important;
+  }
+
+  .shell { grid-template-columns: 1fr; }
+  .shell__content { padding: 0; }
+
+  body { background: #ffffff; }
+
+  .panel,
+  .kpi {
+    border-color: #cccccc;
+    box-shadow: none;
+    background: #ffffff !important;
+    break-inside: avoid;
+  }
+
+  /* Repeat the header on every page a long ledger spills onto. */
+  .ledger thead { display: table-header-group; }
+  .ledger tr { break-inside: avoid; }
+
+  .table-scroll { overflow: visible; }
+
+  /* Panels are sized for a screen; on paper they should be their content. */
+  .panel { min-height: 0 !important; }
+}
+
+/* The warehouse control is a real select now; strip the native chrome so it
+   matches the other fields in the band. */
+.filters__field select {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+  cursor: pointer;
+}

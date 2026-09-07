@@ -8,11 +8,24 @@
 @import './fonts.css';
 @import './tokens.css';
 @import './components.css';
+@import './shell.css';
+@import './dashboard.css';
+@import './reports.css';
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+/**
+ * Any element that sets `display` beats the browser's `[hidden]` rule, which
+ * silently turns the `hidden` attribute into a no-op — a collapsed nav group
+ * stays visible with nothing to explain why. Restore it once, here, so
+ * `hidden` can be trusted as a toggle everywhere.
+ */
+[hidden] {
+  display: none !important;
 }
 
 body {

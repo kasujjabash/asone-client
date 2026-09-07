@@ -9,10 +9,12 @@
  *   sign-in for half a second before a session resolves is how an app looks
  *   broken.
  *
- *   It subscribes to `onSessionExpired`, which the transport raises when a
- *   refresh token is spent or rejected. That is the one case where someone
- *   genuinely has to sign in again, and it is announced rather than acted on
- *   so that routing stays here and out of `api/`.
+ *   It subscribes to the transport's two failure signals, which need
+ *   opposite handling. `onSessionExpired` means the refresh token was
+ *   rejected: sign out and say so. `onServerUnreachable` means the request
+ *   never landed: keep the session, because nothing about it is wrong, and
+ *   tell the user the server is not answering. Treating the second as the
+ *   first used to sign people out whenever the backend restarted.
  *
  *   It distinguishes 'gated' from 'signedIn'. An account with
  *   `must_change_password` is authenticated but gets 403 on almost
@@ -23,10 +25,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import * as authApi from '@/api/auth'
 import { toApiError, type ApiError } from '@/api/errors'
-import { onSessionExpired } from '@/api/http'
+import { onServerUnreachable, onSessionExpired } from '@/api/http'
+import { snackbar } from '@/components'
 import { tokens } from '@/api/tokens'
 import type { CurrentUser, LoginChallenge } from '@/api/types'
-import { mustChangePassword } from '@/domain/access'
+import { fullName, mustChangePassword } from '@/domain/access'
 import { AuthContext, type AuthState, type AuthStatus } from './AuthContext'
 
 function statusFor(user: CurrentUser): AuthStatus {
@@ -67,6 +70,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus('anonymous')
   }, [])
 
+  // Bumped to re-run the boot check after an outage.
+  const [attempt, setAttempt] = useState(0)
+  const retry = useCallback(() => {
+    setStatus('loading')
+    setAttempt((count) => count + 1)
+  }, [])
+
   // Boot: who does the stored token belong to?
   useEffect(() => {
     if (!tokens.access) return
@@ -76,16 +86,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .then((current) => {
         if (live.current) adopt(current)
       })
-      .catch(() => {
-        // A token that cannot identify itself is no token. The transport has
-        // already tried a refresh by this point.
+      .catch((error: unknown) => {
+        /*
+         * Only give up on the session if the server actually refused it. The
+         * transport has already tried a refresh and probed /api/health/ by
+         * this point, so a failure with no response means the server is
+         * down — and discarding the tokens then would force a sign-in that
+         * was never necessary.
+         */
+        const refused =
+          typeof error === 'object' &&
+          error !== null &&
+          'response' in error &&
+          Boolean((error as { response?: unknown }).response)
+
+        if (!refused) {
+          // Tokens kept. A distinct state, because 'anonymous' would bounce
+          // them to sign-in for no reason and 'loading' would spin forever.
+          if (live.current) setStatus('unreachable')
+          return
+        }
+
         tokens.clear()
         if (live.current) clear()
       })
-  }, [adopt, clear])
+  }, [adopt, clear, attempt])
 
-  // The transport announces a dead refresh token; routing is decided here.
-  useEffect(() => onSessionExpired(clear), [clear])
+  // A rejected refresh token: the session really is over.
+  useEffect(
+    () =>
+      onSessionExpired(() => {
+        clear()
+        snackbar.warning(
+          'You have been signed out',
+          'That sign-in is no longer valid. Please sign in again.',
+        )
+      }),
+    [clear],
+  )
+
+  // The server did not answer. The session is untouched — say what happened
+  // rather than silently dropping someone at the sign-in screen.
+  useEffect(
+    () =>
+      onServerUnreachable(() => {
+        // Confirmed against /api/health/ before this fires, so it is not a
+        // guess. The session is untouched — no redirect, nothing cleared.
+        snackbar.error(
+          'Cannot reach the server',
+          'You are still signed in. This will work again once the connection is back.',
+        )
+      }),
+    [],
+  )
 
   const requestCode = useCallback(async (email: string, password: string) => {
     setPending(true)
@@ -94,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const issued = await authApi.requestLoginCode({ email, password })
       setChallenge(issued)
       setStatus('challenged')
+      snackbar.info('Check your email', `We sent a sign-in code to ${issued.email_hint}.`)
     } catch (cause) {
       setError(toApiError(cause))
     } finally {
@@ -112,6 +166,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           code,
         })
         adopt(session.user)
+        snackbar.success(`Signed in as ${fullName(session.user)}`, session.user.role_display)
       } catch (cause) {
         setError(toApiError(cause))
       } finally {
@@ -132,9 +187,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authApi.logout()
     } finally {
+      // Cleared whatever the server said: the user asked to be signed out,
+      // and a network hiccup must not leave them holding a live token.
       setPending(false)
       setError(null)
       clear()
+      snackbar.success('Signed out')
     }
   }, [clear])
 
@@ -155,8 +213,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       restart,
       signOut,
       refresh,
+      retry,
     }),
-    [status, user, challenge, error, pending, requestCode, submitCode, restart, signOut, refresh],
+    [
+      status,
+      user,
+      challenge,
+      error,
+      pending,
+      requestCode,
+      submitCode,
+      restart,
+      signOut,
+      refresh,
+      retry,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

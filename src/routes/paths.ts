@@ -3,11 +3,14 @@
  *
  * Separate from AppRoutes so importing a path does not pull a component graph
  * with it — and so Fast Refresh keeps working on the routes file.
+ *
+ * The destinations the sidebar links to live in
+ * `features/shell/navigation.ts`; as each screen is built its path moves
+ * here and the two are reconciled.
  */
 
 export const paths = {
   welcome: '/',
   signIn: '/sign-in',
-  /** Signed-in confirmation. The dashboard takes this slot once it exists. */
-  session: '/session',
+  dashboard: '/dashboard',
 } as const

@@ -64,6 +64,54 @@ export function movementTone(type: MovementType): Tone {
 }
 
 /**
+ * The severity the dashboard's attention feed reports.
+ *
+ * The server grades each alert — CRITICAL, HOLD, and so on — and this only
+ * picks how that looks. Unknown levels fall back to neutral rather than
+ * throwing: the server may add one, and a new alert kind should not blank
+ * the panel.
+ */
+export function alertTone(level: string): Tone {
+  switch (level.toUpperCase()) {
+    case 'CRITICAL':
+      return 'error'
+    case 'WARNING':
+    case 'HOLD':
+      return 'warning'
+    case 'READY':
+    case 'INFO':
+      return 'info'
+    default:
+      return 'neutral'
+  }
+}
+
+/**
+ * The kind of thing that happened, in the activity feed.
+ *
+ * Same reasoning: the server names the kind, this picks the colour, and an
+ * unfamiliar kind gets a neutral dot instead of an exception.
+ */
+export function activityTone(kind: string): Tone {
+  switch (kind) {
+    case 'receipt':
+    case 'return':
+      return 'success'
+    case 'order':
+    case 'shipment':
+    case 'production_order':
+      return 'info'
+    case 'adjustment':
+    case 'transfer':
+      return 'warning'
+    case 'backorder':
+      return 'error'
+    default:
+      return 'neutral'
+  }
+}
+
+/**
  * A stock figure against its minimum.
  *
  * Both numbers come from the server; this only chooses how to show the

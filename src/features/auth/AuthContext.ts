@@ -12,13 +12,24 @@ import type { CurrentUser, LoginChallenge } from '@/api/types'
 /**
  * Where a visitor is in the sign-in sequence.
  *
- *   loading    still asking the server who this is — say nothing yet
- *   anonymous  no session
- *   challenged password accepted, code emailed, waiting on the code
- *   gated      signed in, but must replace the password before anything else
- *   signedIn   fully in
+ *   loading      still asking the server who this is — say nothing yet
+ *   unreachable  we hold tokens but the server did not answer. NOT signed
+ *                out: the session is probably fine and the tokens are kept.
+ *                A distinct state because the alternatives are both wrong —
+ *                'anonymous' would redirect to sign-in for no reason, and
+ *                staying 'loading' is a spinner that never stops.
+ *   anonymous    no session
+ *   challenged   password accepted, code emailed, waiting on the code
+ *   gated        signed in, but must replace the password before anything else
+ *   signedIn     fully in
  */
-export type AuthStatus = 'loading' | 'anonymous' | 'challenged' | 'gated' | 'signedIn'
+export type AuthStatus =
+  | 'loading'
+  | 'unreachable'
+  | 'anonymous'
+  | 'challenged'
+  | 'gated'
+  | 'signedIn'
 
 export interface AuthState {
   status: AuthStatus
@@ -37,6 +48,8 @@ export interface AuthState {
   signOut: () => Promise<void>
   /** Re-read the user, e.g. after clearing the password gate. */
   refresh: () => Promise<void>
+  /** Try the session again after an outage. */
+  retry: () => void
 }
 
 export const AuthContext = createContext<AuthState | null>(null)

@@ -183,6 +183,25 @@ export type OutstandingRow = S['OutstandingRow']
 export type ReconciliationRow = S['ReconciliationRow']
 
 // ---------------------------------------------------------------------------
+// Dashboard
+//
+// A read-only aggregation over the other apps. Totals here are computed by
+// the server, so money is read rather than summed on the client.
+// ---------------------------------------------------------------------------
+
+export type DashboardSummary = S['DashboardSummary']
+export type AttentionAlert = S['AttentionAlert']
+export type ActivityEvent = S['ActivityEvent']
+export type OrderVolume = S['OrderVolume']
+export type OrderVolumeDay = S['OrderVolumeDay']
+export type NotificationFeed = S['Notifications']
+export type NotificationItem = S['Notification']
+export type InventoryByWarehouse = S['InventoryByWarehouse']
+export type WarehouseInventory = S['WarehouseInventory']
+export type WeeklyReport = S['WeeklyReport']
+export type WeeklyReportRow = S['WeeklyReportRow']
+
+// ---------------------------------------------------------------------------
 // Orders
 // ---------------------------------------------------------------------------
 

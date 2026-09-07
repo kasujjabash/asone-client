@@ -45,8 +45,13 @@ export function OnboardingPanel() {
           />
         </div>
 
+        {/*
+          The year is read from the clock, not written down. A footer that
+          says 2026 in January 2027 is the kind of thing nobody notices until
+          a client does.
+        */}
         <footer className="onboarding__footer">
-          © 2026 As One Logistics • Managed Uniform Operations
+          © {new Date().getFullYear()} As One Logistics • Managed Uniform Operations
         </footer>
       </div>
     </BrandBackdrop>

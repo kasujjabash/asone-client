@@ -12,12 +12,29 @@
  * calls for it; it needs either an endpoint or a decision.
  */
 
-import { Link } from 'react-router-dom'
-import { BrandMark, Button } from '@/components'
+import { Link, Navigate } from 'react-router-dom'
+import { BrandMark, Button, LoadingScreen, ServerUnreachable } from '@/components'
 import { SplitAuthLayout } from '../components/SplitAuthLayout'
+import { useAuth } from '../hooks/useAuth'
 import { paths } from '@/routes/paths'
 
 export function WelcomeScreen() {
+  const { status, retry } = useAuth()
+
+  // Still asking the server who this is; showing the marketing panel now
+  // would flash it at somebody already signed in.
+  if (status === 'loading') return <LoadingScreen message="Checking your session…" />
+
+  // Held tokens, no answer from the server — not a reason to offer sign-in.
+  if (status === 'unreachable') return <ServerUnreachable onRetry={retry} />
+
+  // Signed in already: "/" is the app, not an invitation to sign up. Without
+  // this, visiting the root while authenticated lands on a screen offering
+  // to sign in, which reads as having been signed out.
+  if (status === 'signedIn' || status === 'gated') {
+    return <Navigate to={paths.dashboard} replace />
+  }
+
   return (
     <SplitAuthLayout>
       <div className="welcome">
