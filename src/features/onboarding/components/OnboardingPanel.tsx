@@ -51,7 +51,7 @@ export function OnboardingPanel() {
           a client does.
         */}
         <footer className="onboarding__footer">
-          © {new Date().getFullYear()} As One Logistics • Managed Uniform Operations
+          © {new Date().getFullYear()} AsOne Logistics • Managed Uniform Operations
         </footer>
       </div>
     </BrandBackdrop>

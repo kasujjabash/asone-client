@@ -212,3 +212,26 @@ export type Invoice = S['Invoice']
 export type OrderAvailabilityRow = S['OrderAvailabilityRow']
 export type OrderDemandRow = S['OrderDemandRow']
 export type OrderOnHold = S['OrderOnHold']
+export type PackingList = S['PackingList']
+
+/**
+ * One despatch against an order.
+ *
+ * An order can have more than one: a backorder may be filled by a warehouse
+ * that is not the school's own and shipped direct (decision D2). `received_at`
+ * is the school confirming it arrived — the fact that completes the order.
+ */
+export type Shipment = S['Shipment']
+
+/**
+ * What a school's dashboard shows — orders by state, what is owed, parcels
+ * awaiting confirmation, and outstanding backorders.
+ *
+ * A separate shape from `DashboardSummary` because it answers a different
+ * question. That one is about a warehouse: units in bins, SKUs under their
+ * floor. A school holds no stock, so none of those figures are about it.
+ */
+export type SchoolDashboard = S['SchoolDashboard']
+export type SchoolDelivery = S['DeliveryToConfirm']
+export type SchoolBackorder = S['SchoolBackorder']
+export type PackingListLine = S['PackingListLine']

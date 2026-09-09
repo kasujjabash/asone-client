@@ -6,7 +6,7 @@
  */
 
 import { get } from './http'
-import type { Page, Sku, Warehouse } from './types'
+import type { Page, School, Sku, Warehouse } from './types'
 
 export function warehouses(params?: { page?: number }) {
   return get<Page<Warehouse>>('/catalog/warehouses/', params ?? undefined)
@@ -26,4 +26,9 @@ export function skus(params?: {
   page?: number
 }) {
   return get<Page<Sku>>('/catalog/skus/', params ?? undefined)
+}
+
+/** Schools, for the order list's school filter. */
+export function schools(params?: { level?: string; page?: number }) {
+  return get<Page<School>>('/catalog/schools/', params ?? undefined)
 }

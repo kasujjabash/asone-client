@@ -26,6 +26,8 @@ export function schoolOrderTone(status: SchoolOrderStatus): Tone {
     case 'PICKED':
       return 'info'
     case 'SHIPPED':
+      return 'info'
+    case 'COMPLETED':
       return 'success'
     case 'CANCELLED':
       return 'error'
@@ -61,6 +63,77 @@ export function movementTone(type: MovementType): Tone {
     case 'ADJUSTMENT':
       return 'warning'
   }
+}
+
+/**
+ * The order lifecycle, as the server models it.
+ *
+ * Five steps, not the seven the design draws. `INVOICED` and `PAID` are not
+ * statuses:
+ *
+ *   Invoiced   every order has an invoice from the moment it is placed, so
+ *              it is not a state to move into.
+ *   Paid       releasing *is* the payment confirmation — the order carries
+ *              `released_at` and `payment_reference`.
+ *
+ * `SHIPPED` and `COMPLETED` are both here and both matter. Shipped means it
+ * left the warehouse; completed means the school says it arrived. The gap
+ * between them is where a lost parcel shows up — collapse them and a
+ * delivery that never turned up looks exactly like one that did.
+ *
+ * `CANCELLED` is deliberately not in the trail. It is an exit, not a step,
+ * and drawing it in sequence implies every order passes through it.
+ */
+export const ORDER_TRAIL: readonly SchoolOrderStatus[] = [
+  'HOLD',
+  'RELEASED',
+  'PICKED',
+  'SHIPPED',
+  'COMPLETED',
+]
+
+/** Human label for a trail step. */
+export const ORDER_STEP_LABELS: Record<SchoolOrderStatus, string> = {
+  HOLD: 'Hold',
+  RELEASED: 'Released',
+  PICKED: 'Picking',
+  SHIPPED: 'Shipped',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+}
+
+/**
+ * How far along an order is, as an index into ORDER_TRAIL.
+ *
+ * Cancelled returns -1: it has no position, and giving it one would place it
+ * somewhere on a line it never travelled.
+ */
+export function orderTrailPosition(status: SchoolOrderStatus): number {
+  return ORDER_TRAIL.indexOf(status)
+}
+
+/**
+ * Whether an order has been paid for.
+ *
+ * Derived, because the server has no payment field. Releasing an order *is*
+ * the payment confirmation — `release_order()` records who confirmed it and
+ * when — so `released_at` is the fact behind this badge. Nothing is invented:
+ * an unreleased order simply has not been paid yet.
+ */
+export function paymentLabel(order: {
+  status: SchoolOrderStatus
+  released_at: string | null
+}): string {
+  if (order.status === 'CANCELLED') return 'Void'
+  return order.released_at ? 'Paid' : 'Unpaid'
+}
+
+export function paymentTone(order: {
+  status: SchoolOrderStatus
+  released_at: string | null
+}): Tone {
+  if (order.status === 'CANCELLED') return 'neutral'
+  return order.released_at ? 'success' : 'warning'
 }
 
 /**

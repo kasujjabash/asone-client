@@ -1,0 +1,652 @@
+/**
+ * Orders — Figma orders-list and order-detail.
+ */
+
+/* ---------------------------------------------------------------------------
+ * Status trail
+ *
+ * Four steps. Cancellation is not one of them — see OrderStatusTrail.
+ * ------------------------------------------------------------------------ */
+
+.trail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.trail__step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption);
+}
+
+.trail__step:not(:last-child)::after {
+  content: "";
+  width: 24px;
+  height: 1px;
+  margin-left: var(--space-2);
+  background: var(--border);
+}
+
+.trail__marker {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+}
+
+.trail__step--done { color: var(--accent-hover); }
+.trail__step--done .trail__marker { background: var(--accent-subtle); color: var(--accent-hover); }
+
+.trail__step--current { background: var(--tone-slate); color: var(--text-on-dark); }
+.trail__step--current .trail__marker { background: var(--text-on-dark); color: var(--tone-slate); }
+
+.trail__step--todo { color: var(--text-muted); }
+.trail__step--todo .trail__marker { background: var(--surface-sunken); color: var(--text-muted); }
+
+/* An exit, not a step: shown on its own rather than placed in sequence. */
+.trail--cancelled { border-color: var(--error); }
+
+.trail__cancelled {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--error);
+}
+
+.trail__cancelled em { font-weight: var(--weight-regular); color: var(--text-secondary); }
+
+/* ---------------------------------------------------------------------------
+ * Tabs
+ * ------------------------------------------------------------------------ */
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-4);
+  padding: var(--space-1);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-lg);
+}
+
+.tabs__tab {
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  font: inherit;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tabs__tab--active {
+  background: var(--accent-subtle);
+  color: var(--accent-hover);
+  font-weight: var(--weight-bold);
+}
+
+.tabs__tab:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Detail layout
+ * ------------------------------------------------------------------------ */
+
+/*
+ * The right column holds the fulfilment controls and the receipt ledger.
+ * Wider than the 360px it started at. The kit table still has the room it
+ * needs on the left, and the collapse to one column below 1100px keeps this
+ * from squeezing anything on a laptop.
+ */
+.order-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 480px;
+  gap: 20px;
+  align-items: start;
+  margin-top: var(--space-4);
+}
+
+.order-detail__main,
+.order-detail__side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-width: 0;
+}
+
+.order-detail__confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+@media (max-width: 1100px) {
+  .order-detail { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* A wide table scrolls inside its panel rather than the page. */
+.scroll-x { overflow-x: auto; }
+
+/* ---------------------------------------------------------------------------
+ * Order table columns
+ *
+ * Proportions measured off the design (Figma orders-list): the header text
+ * starts at 430, 582, 905, 1116, 1245, 1460 and 1611 across a 1315px table,
+ * which gives the shares below. Declared rather than left to auto layout,
+ * which shrink-wrapped the numeric columns and pushed the total hard against
+ * the status badge while School kept space it did not need.
+ * ------------------------------------------------------------------------ */
+
+.ledger--orders { table-layout: fixed; min-width: 940px; }
+
+.ledger--orders .col-order { width: 11.6%; }
+.ledger--orders .col-school { width: 24.6%; }
+.ledger--orders .col-student { width: 16%; }
+.ledger--orders .col-items { width: 9.8%; }
+.ledger--orders .col-total { width: 16.3%; }
+.ledger--orders .col-status { width: 11.5%; }
+.ledger--orders .col-date { width: 10.2%; }
+
+/*
+ * Figures are left-aligned, as the design has them. Right-aligning the total
+ * is what put it against the status badge — the column is wide enough that
+ * the number ended up at the far edge with the badge starting immediately
+ * after. Tabular figures keep the digits lining up regardless.
+ */
+.ledger--orders .ledger__num,
+.ledger--orders th.ledger__num {
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Long names truncate rather than wrapping a row onto two lines. */
+.ledger--orders tbody td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+ * Filter band — Figma orders-list
+ *
+ * A wide search box with three narrow controls beside it, below the tabs.
+ * ------------------------------------------------------------------------ */
+
+.order-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.order-filters__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 320px;
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  color: var(--text-muted);
+}
+
+.order-filters__search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+.order-filters__search input:focus-visible { outline: none; }
+
+.order-filters__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.order-filters__control select,
+.order-filters__control input {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-body);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.order-filters__control svg { color: var(--text-muted); flex-shrink: 0; }
+
+/* A control that has been narrowed reads as chosen. */
+.order-filters__control--active {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+
+/* Total and its payment badge share a cell, as the design has them. */
+.order-total {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ---------------------------------------------------------------------------
+ * Tab bar — Figma order-table
+ *
+ * Its own bordered card above the filters, with the active tab as a tinted
+ * pill rather than an underline.
+ * ------------------------------------------------------------------------ */
+
+.tabbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-top: var(--space-4);
+  padding: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.tabbar__tab {
+  padding: var(--space-2) var(--space-4);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  font: inherit;
+  font-size: var(--text-h3);
+  font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.tabbar__tab--active {
+  background: var(--accent-halo);
+  color: var(--accent-hover);
+  font-weight: var(--weight-bold);
+}
+
+.tabbar__tab:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: -2px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Table card — the table and its footer share one bordered surface
+ * ------------------------------------------------------------------------ */
+
+.table-card {
+  margin-top: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.table-card__footer {
+  padding: var(--space-3) 20px;
+}
+
+/* The table sits flush inside the card, so its own edges come off. */
+.table-card .ledger { border-radius: 0; }
+.table-card .ledger tbody tr:last-child td { border-bottom: 0; }
+
+/* An empty state inside the card needs its own breathing room. */
+.table-card .empty { border: 0; border-radius: 0; }
+
+/* Order number reads as the link it is. */
+.ledger__link {
+  color: var(--accent-hover);
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.ledger__link:hover { text-decoration: underline; }
+
+.ledger__strong { font-weight: var(--weight-bold); }
+
+.order-total__value { font-weight: var(--weight-bold); }
+
+/* A cancelled order's total is struck through: still the record of what was
+   invoiced, but nothing is owed. */
+.order-total__void {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+ * Breadcrumb — Figma order-details
+ * ------------------------------------------------------------------------ */
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-size: var(--text-body);
+}
+
+.crumbs__link { color: var(--text-secondary); text-decoration: none; }
+.crumbs__link:hover { text-decoration: underline; }
+.crumbs__sep { color: var(--text-muted); flex-shrink: 0; }
+.crumbs__current { color: var(--accent-hover); font-weight: 500; }
+
+/* ---------------------------------------------------------------------------
+ * Status trail
+ *
+ * Brand colours, as specified: in progress takes the accent #5E8E8E, done
+ * takes the pale mint #CCFBF1, not-yet takes the sunken grey.
+ * ------------------------------------------------------------------------ */
+
+.trail {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: var(--space-4) 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.trail__item { display: flex; align-items: center; }
+
+.trail__pill {
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-body);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.trail__pill--done {
+  background: var(--accent-halo);
+  color: var(--accent-hover);
+}
+
+.trail__pill--current {
+  background: var(--accent);
+  color: var(--text-on-accent);
+  font-weight: var(--weight-bold);
+}
+
+.trail__pill--todo {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.trail__rule {
+  width: 28px;
+  height: 2px;
+  margin: 0 var(--space-2);
+  background: var(--border);
+}
+
+.trail--cancelled { border-color: var(--error); }
+
+.trail__cancelled {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--error);
+}
+
+.trail__cancelled em { font-weight: var(--weight-regular); color: var(--text-secondary); }
+
+/* ---------------------------------------------------------------------------
+ * Detail cards
+ * ------------------------------------------------------------------------ */
+
+.card-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.card-panel__title {
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+/* Some headings are teal in the design; this is the one that is. */
+.card-panel__title--accent { color: var(--accent-hover); }
+
+.card-panel__note {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+.card-panel__rule {
+  height: 1px;
+  margin: 0;
+  border: 0;
+  background: var(--border);
+}
+
+/* Four facts across a row, each a small uppercase label over its value. */
+.fact-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-4);
+  margin: 0;
+}
+
+.fact dt {
+  margin-bottom: var(--space-1);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fact dd {
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.fact__accent { color: var(--accent-hover); }
+
+/* Buttons and the field above them need air between them. */
+.stack-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.stack-actions .btn { width: 100%; }
+
+.ledger-lines {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin: 0;
+}
+
+.ledger-lines > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.ledger-lines dt {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.ledger-lines dd {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.total-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.total-line strong { color: var(--accent-hover); font-size: 20px; }
+
+/* The kit table's header takes the design's #F8FAFC. */
+.card-panel .ledger th {
+  background: var(--surface-sunken);
+}
+
+/* A row is a link to its order. */
+.ledger__row--clickable { cursor: pointer; }
+.ledger__row--clickable:hover { background: var(--accent-subtle); }
+
+.table-card__footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* ---------------------------------------------------------------------------
+ * Delivery slip — F40
+ *
+ * The server returns the packing list as data and leaves rendering to us, so
+ * this is the paper version. Hidden on screen; the print stylesheet drops
+ * everything else and shows only this.
+ * ------------------------------------------------------------------------ */
+
+.packing-print { display: none; }
+
+@media print {
+  /* Only the slips reach the paper. */
+  body * { visibility: hidden; }
+
+  .packing-print,
+  .packing-print * { visibility: visible; }
+
+  .packing-print {
+    display: block;
+    position: absolute;
+    inset: 0;
+    padding: 0;
+  }
+
+  .slip {
+    /* One slip per sheet: they travel with different boxes. */
+    page-break-after: always;
+    padding: 24px;
+    color: #000;
+  }
+
+  .slip:last-child { page-break-after: auto; }
+}
+
+.slip__head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding-bottom: var(--space-3);
+  border-bottom: 2px solid var(--tone-slate);
+}
+
+.slip__brand {
+  margin: 0;
+  font-size: 18px;
+  font-weight: var(--weight-bold);
+}
+
+.slip__sub,
+.slip__meta p {
+  margin: 2px 0 0;
+  font-size: var(--text-caption);
+}
+
+.slip__meta { text-align: right; }
+
+.slip__facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3) var(--space-5);
+  margin: var(--space-4) 0;
+}
+
+.slip__facts dt {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.slip__facts dd { margin: 2px 0 0; font-size: var(--text-body); }
+
+.slip__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-body);
+}
+
+.slip__table th,
+.slip__table td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #999;
+  text-align: left;
+}
+
+.slip__table tfoot td {
+  font-weight: var(--weight-bold);
+  border-bottom: 0;
+  border-top: 2px solid var(--tone-slate);
+}
+
+.slip__sign {
+  margin-top: var(--space-6);
+  font-size: var(--text-body);
+}

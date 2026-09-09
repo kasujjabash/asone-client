@@ -24,10 +24,18 @@
  * navigation that leads somewhere forbidden is worse than one that is quiet.
  */
 
-import type { AccessFunction } from '@/api/types'
+import { canReadSchoolOrders } from '@/domain/access'
+import type { AccessFunction, CurrentUser } from '@/api/types'
 
-/** `null` means every signed-in user, whatever their role. */
-export type NavRequirement = AccessFunction | null
+/**
+ * What a destination needs.
+ *
+ *   a column   the usual case — one cell of AsOne's access matrix
+ *   a predicate for the few server rules that are not a single column, such
+ *              as who may read school orders. It names the rule it mirrors.
+ *   null       every signed-in user
+ */
+export type NavRequirement = AccessFunction | ((user: CurrentUser | null) => boolean) | null
 
 export interface NavItem {
   label: string
@@ -55,9 +63,18 @@ export const NAVIGATION: readonly NavGroup[] = [
   {
     label: 'Operations',
     items: [
-      // School order entry. Neither lead can reach this; Finance is read-only
-      // elsewhere. Only SCHOOL_STAFF holds this column.
-      { label: 'Orders', path: '/orders', requires: 'school_orders', icon: 'Package' },
+      /*
+       * Mirrors the server, which is wider than the matrix column here:
+       * writing an order is School Staff only, but reading the list is
+       * School Staff plus Finance — see canReadSchoolOrders. Gating on
+       * `school_orders` alone hid the screen from Finance, who the server
+       * lets in.
+       *
+       * Warehouse staff are still out: they can act on a single order
+       * (pick list, pick, availability) but cannot browse them, so their
+       * way in is the dashboard's picking queue, not this tab.
+       */
+      { label: 'Orders', path: '/orders', requires: canReadSchoolOrders, icon: 'Package' },
       {
         label: 'Receiving',
         path: '/receiving',

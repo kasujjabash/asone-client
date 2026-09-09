@@ -26,11 +26,27 @@ import type {
   InventoryByWarehouse,
   NotificationFeed,
   OrderVolume,
+  SchoolDashboard,
   WeeklyReport,
 } from './types'
 
 /** `warehouse` narrows every figure to one site; omit for all of them. */
 type Scoped = { warehouse?: number | null }
+
+/**
+ * The school's own dashboard — the other half of F62.
+ *
+ * Not this file's other endpoints with a `?school=`: those are warehouse
+ * figures, and a school has no warehouse. It reads the caller's own school
+ * and takes no parameters, so there is nothing to scope on the client.
+ *
+ * One request rather than four, because unlike the warehouse dashboard none
+ * of these panels is separately forbidden — they are all the same school's
+ * rows.
+ */
+export function schoolDashboard() {
+  return get<SchoolDashboard>('/dashboard/school/')
+}
 
 /** The KPI row: units, value, pick queue, dispatch queue, backorders, low stock. */
 export function summary(params?: Scoped) {

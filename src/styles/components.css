@@ -1191,3 +1191,14 @@ button.page-dots__dot {
   color: var(--text-secondary);
   text-wrap: pretty;
 }
+
+/* An outlined destructive action: present, findable, not shouting. */
+.btn--danger-outline {
+  background: var(--surface);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.btn--danger-outline:hover:not(:disabled) {
+  background: var(--error-bg);
+}

@@ -12,7 +12,14 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
  * `inverse` is for brand surfaces — the teal backdrop on onboarding and
  * sign-in. A primary button there would be teal on teal and disappear.
  */
-type Variant = 'primary' | 'secondary' | 'danger' | 'ghost' | 'inverse'
+type Variant =
+  | 'primary'
+  | 'secondary'
+  | 'danger'
+  /** Outlined red — a destructive action that should not shout. */
+  | 'danger-outline'
+  | 'ghost'
+  | 'inverse'
 type Size = 'sm' | 'md' | 'lg'
 
 interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> {

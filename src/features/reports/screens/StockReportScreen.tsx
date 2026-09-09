@@ -1,5 +1,9 @@
 /**
- * System Reports — Figma 58:3595.
+ * Stock levels — Figma 58:3595.
+ *
+ * One report, reached from the reports index. It used to be the whole
+ * Reports destination; it is now what opens when somebody picks "Stock
+ * levels" from the list.
  *
  * Composes the filter bar, four figures, the category comparison and the SKU
  * ledger. Filtering by SKU happens here so the table, the count and the CSV
@@ -11,6 +15,8 @@ import { useMemo, useState } from 'react'
 import { snackbar } from '@/components'
 import { toCsv, downloadFile } from '@/domain/csv'
 import { formatQuantity } from '@/domain/money'
+import { ArrowLeft } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { AppShell } from '@/features/shell/components/AppShell'
 import { CategoryChart } from '../components/CategoryChart'
 import { ExportControls } from '../components/ExportControls'
@@ -18,14 +24,10 @@ import { ReportFilters, type ReportFilterState } from '../components/ReportFilte
 import { ReportKpiRow } from '../components/ReportKpiRow'
 import { SkuLedgerTable } from '../components/SkuLedgerTable'
 import { useStockReport } from '../hooks/useStockReport'
+import { today } from '../today'
 import { filterRows } from '../pivot'
 
-/** Today, as the date input wants it. */
-function today(): string {
-  return new Date().toISOString().slice(0, 10)
-}
-
-export function ReportsScreen() {
+export function StockReportScreen() {
   const [filters, setFilters] = useState<ReportFilterState>({
     asOf: today(),
     skuQuery: '',
@@ -75,10 +77,15 @@ export function ReportsScreen() {
   }
 
   return (
-    <AppShell title="Reports">
+    <AppShell title="Inventory Reports">
+      <Link className="page-back" to="/reports">
+        <ArrowLeft size={14} aria-hidden />
+        All reports
+      </Link>
+
       <header className="page-head page-head--split">
         <div>
-          <h1 className="page-head__title">System Reports</h1>
+          <h1 className="page-head__title">Inventory Reports</h1>
           <p className="page-head__subtitle">
             Stock on hand, valuation and per-SKU breakdown as at{' '}
             {filters.asOf === today() ? 'today' : filters.asOf}

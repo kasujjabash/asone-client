@@ -10,9 +10,9 @@
  */
 
 import type { ReactNode } from 'react'
-import { can } from '@/domain/access'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AccessDeniedScreen } from '@/features/shell/screens/AccessDeniedScreen'
+import { meetsRequirement } from '@/features/shell/visibleNavigation'
 import type { NavRequirement } from '@/features/shell/navigation'
 
 interface RequireAccessProps {
@@ -23,7 +23,9 @@ interface RequireAccessProps {
 export function RequireAccess({ requires, children }: RequireAccessProps) {
   const { user } = useAuth()
 
-  if (requires !== null && !can(user, requires)) {
+  // Same check the sidebar uses, so a destination is never visible and
+  // unreachable, or hidden and reachable.
+  if (!meetsRequirement(user, requires)) {
     return <AccessDeniedScreen />
   }
 

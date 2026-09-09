@@ -383,3 +383,100 @@
   color: var(--text-primary);
   cursor: pointer;
 }
+
+/* ---------------------------------------------------------------------------
+ * Reports index — category cards
+ * ------------------------------------------------------------------------ */
+
+.reports-index {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.report-group {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.report-group__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.report-group__icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+
+.report-group__title {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.report-group__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-3) 20px var(--space-4);
+}
+
+.report-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0 var(--space-2) var(--space-3);
+  border-left: 2px solid var(--border);
+  font-size: var(--text-body);
+  color: var(--text-primary);
+}
+
+/* Listed so the gap between what is designed and what the server can answer
+   stays visible. The reason is on the row's title attribute. */
+.report-row--pending {
+  color: var(--text-muted);
+  cursor: help;
+}
+
+.report-row__title { flex: 1; }
+
+.report-row__tag {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--accent-subtle);
+  color: var(--accent-hover);
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* A way back from a report to the list. */
+.page-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  color: var(--accent-hover);
+  text-decoration: none;
+}
+
+.page-back:hover { text-decoration: underline; }
+
+@media print {
+  .page-back { display: none !important; }
+}
