@@ -1,11 +1,14 @@
 /**
  * School detail — header, KPIs, and sections.
  *
- * The header is real: everything on it is an actual field on `School`. The
- * four KPI tiles and all four tabs are deliberately built as honest gaps
- * rather than wired to invented numbers — see each tab's own message for
- * exactly what is missing and why. Two of the four (Shipments, Backorders)
- * are closer to real than the other two: `/orders/reports/part-processed/`
+ * The header and the Active Orders / Status are real. Total Students and
+ * Total Revenue remain honest gaps: there is no student roster anywhere in
+ * the system (a student is a free-text name on an order, not a record), and
+ * Total Revenue would need summing every one of a school's orders, which —
+ * unlike the count behind Active Orders — no endpoint this role can read
+ * currently exposes. All four tabs are still gaps too; see each one's own
+ * message for exactly what is missing and why. Two of the four (Shipments,
+ * Backorders) are closer to real than the other two: `/orders/reports/part-processed/`
  * and `/orders/reports/backorders/` are actually readable by this role
  * (`CanReadFulfilmentReports` / `CanReadBackorderReport` both grant leads
  * "all sites"), unlike the raw `/orders/school-orders/` endpoint the Orders
@@ -13,7 +16,14 @@
  * these figures should mean.
  */
 
-import { MapPin, PackageX, School as SchoolIcon, Users, Warehouse as WarehouseIcon } from 'lucide-react'
+import {
+  ClipboardList,
+  MapPin,
+  PackageX,
+  School as SchoolIcon,
+  Users,
+  Warehouse as WarehouseIcon,
+} from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Badge, Button, EmptyState, LoadingScreen, Tabs } from '@/components'
@@ -79,6 +89,9 @@ export function SchoolDetailScreen() {
             <Badge tone={school.level === 'HS' ? 'neutral' : 'info'}>
               {school.level_display}
             </Badge>
+            <Badge tone={school.is_active ? 'success' : 'neutral'}>
+              {school.is_active ? 'Active' : 'Inactive'}
+            </Badge>
           </div>
 
           <div className="detail-head__meta">
@@ -112,9 +125,9 @@ export function SchoolDetailScreen() {
         <KpiCard label="Total Students" value="—" caption="No student roster exists yet" icon={Users} />
         <KpiCard
           label="Active Orders"
-          value="—"
-          caption="Needs an endpoint this role can read"
-          icon={PackageX}
+          value={String(school.active_orders_count)}
+          caption="On hold, released, or picked"
+          icon={ClipboardList}
         />
         <KpiCard
           label="Total Revenue"

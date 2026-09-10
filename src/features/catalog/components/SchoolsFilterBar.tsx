@@ -7,13 +7,10 @@
  * this screen's own design — don't repeat that; a different screen's
  * pattern is not "consistency" when this screen has its own.)
  *
- * Type and Warehouse are real, server-side filters (`SchoolViewSet`
- * supports `?level=` and `?primary_warehouse=`). Search narrows only the
- * page already on screen — see `useSchools` for why. Status is drawn to
- * match the design (a normal-looking field, not disabled) but is not wired
- * to anything: `School` has no active/inactive concept in the database, so
- * there is nothing behind it yet — worth raising at Monday's meeting rather
- * than inventing a field or visually flagging it as broken.
+ * Type, Warehouse and Status are all real, server-side filters now
+ * (`SchoolViewSet` supports `?level=`, `?primary_warehouse=` and, since
+ * `School` gained an `is_active` field, `?is_active=`). Search narrows only
+ * the page already on screen — see `useSchools` for why.
  */
 
 import { Search } from 'lucide-react'
@@ -27,6 +24,8 @@ interface SchoolsFilterBarProps {
   onLevelChange: (value: SchoolLevel | null) => void
   warehouseId: number | null
   onWarehouseChange: (value: number | null) => void
+  isActive: boolean | null
+  onIsActiveChange: (value: boolean | null) => void
   warehouses: Warehouse[]
   onAdd: () => void
 }
@@ -40,6 +39,8 @@ export function SchoolsFilterBar({
   onLevelChange,
   warehouseId,
   onWarehouseChange,
+  isActive,
+  onIsActiveChange,
   warehouses,
   onAdd,
 }: SchoolsFilterBarProps) {
@@ -89,10 +90,17 @@ export function SchoolsFilterBar({
       </span>
 
       <span className="filters__field">
-        {/* Not wired — School has no active/inactive field yet. Matches the
-            design visually; ask Monday before this does anything. */}
-        <select aria-label="Status" defaultValue="active">
-          <option value="active">Status: Active</option>
+        <select
+          aria-label="Status"
+          value={isActive === null ? ALL : isActive ? 'active' : 'inactive'}
+          onChange={(event) => {
+            const next = event.target.value
+            onIsActiveChange(next === ALL ? null : next === 'active')
+          }}
+        >
+          <option value={ALL}>Status: All</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
         </select>
       </span>
 

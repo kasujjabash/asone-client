@@ -4074,6 +4074,9 @@ export interface components {
             address?: string;
             primary_warehouse?: number;
             readonly primary_warehouse_name?: string;
+            /** @description Inactive schools stay in reports and past orders but cannot be assigned new ones. */
+            is_active?: boolean;
+            readonly active_orders_count?: number;
         };
         /** @description An order, reading. Doubles as the invoice — same number, same lines. */
         PatchedSchoolOrder: {
@@ -4495,6 +4498,9 @@ export interface components {
             address?: string;
             primary_warehouse: number;
             readonly primary_warehouse_name: string;
+            /** @description Inactive schools stay in reports and past orders but cannot be assigned new ones. */
+            is_active?: boolean;
+            readonly active_orders_count: number;
         };
         /**
          * @description * `PS` - Primary School
@@ -6365,6 +6371,7 @@ export interface operations {
     catalog_schools_list: {
         parameters: {
             query?: {
+                is_active?: boolean;
                 /**
                  * @description * `PS` - Primary School
                  *     * `HS` - High School

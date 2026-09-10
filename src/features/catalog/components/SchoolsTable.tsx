@@ -4,12 +4,13 @@
  * Same table shape as the reports ledger (`.ledger`, `.table-scroll`) — one
  * data-table language across the app.
  *
- * "Active Orders" and "Students" read as a dash, not a placeholder row: both
- * would need a per-school order aggregate, and `/orders/school-orders/` is
- * 403 for the Program Lead / Operations Manager roles that reach this
- * screen (`table_updates`) — see the `SchoolOrderAccess` permission on the
- * server. Showing "—" here is the same rule `KpiRow` follows: a figure that
- * has not arrived reads as a dash, never as an invented zero.
+ * Type, Address, Primary Warehouse, Active Orders and Status are all real
+ * fields now (`School.is_active`, and `active_orders_count` — annotated on
+ * the server, see `SchoolViewSet.get_queryset` for exactly what "active"
+ * counts). "Students" is the one column with nothing behind it: AsOne has
+ * no student roster anywhere in the system — a student is a free-text name
+ * on an order, not a record — so it reads as a dash rather than an invented
+ * number, the same rule `KpiRow` follows for a figure that hasn't arrived.
  */
 
 import { School as SchoolIcon } from 'lucide-react'
@@ -18,8 +19,8 @@ import { Badge, EmptyState, Pagination } from '@/components'
 import { paths } from '@/routes/paths'
 import type { School } from '@/api/types'
 
-const NOT_AVAILABLE_TITLE =
-  'Needs a per-school order endpoint this role can read — not built yet'
+const STUDENTS_NOT_AVAILABLE_TITLE =
+  'AsOne has no student roster yet — a student is a free-text name on an order, not a record'
 
 /** DRF's fixed page size — see API_ENDPOINTS.md. */
 const PAGE_SIZE = 50
@@ -43,6 +44,7 @@ export function SchoolsTable({
   onAdd,
 }: SchoolsTableProps) {
   const pageCount = Math.max(Math.ceil(totalCount / PAGE_SIZE), 1)
+
   if (loading) {
     return (
       <div className="skeleton-stack" aria-hidden>
@@ -74,12 +76,13 @@ export function SchoolsTable({
               <th scope="col">Type</th>
               <th scope="col">Address</th>
               <th scope="col">Primary Warehouse</th>
-              <th scope="col" className="ledger__num" title={NOT_AVAILABLE_TITLE}>
+              <th scope="col" className="ledger__num">
                 Active Orders
               </th>
-              <th scope="col" className="ledger__num" title={NOT_AVAILABLE_TITLE}>
+              <th scope="col" className="ledger__num" title={STUDENTS_NOT_AVAILABLE_TITLE}>
                 Students
               </th>
+              <th scope="col">Status</th>
             </tr>
           </thead>
           <tbody>
@@ -97,11 +100,14 @@ export function SchoolsTable({
                 </td>
                 <td>{school.address || '—'}</td>
                 <td>{school.primary_warehouse_name}</td>
-                <td className="ledger__num" title={NOT_AVAILABLE_TITLE}>
+                <td className="ledger__num">{school.active_orders_count}</td>
+                <td className="ledger__num" title={STUDENTS_NOT_AVAILABLE_TITLE}>
                   —
                 </td>
-                <td className="ledger__num" title={NOT_AVAILABLE_TITLE}>
-                  —
+                <td>
+                  <Badge tone={school.is_active ? 'success' : 'neutral'}>
+                    {school.is_active ? 'Active' : 'Inactive'}
+                  </Badge>
                 </td>
               </tr>
             ))}

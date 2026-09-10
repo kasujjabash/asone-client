@@ -14,7 +14,13 @@ import { SchoolsTable } from '../components/SchoolsTable'
 import { useSchools, type SchoolFilters } from '../hooks/useSchools'
 import { useWarehouseOptions } from '../hooks/useWarehouseOptions'
 
-const EMPTY_FILTERS: SchoolFilters = { level: null, warehouseId: null, query: '', page: 1 }
+const EMPTY_FILTERS: SchoolFilters = {
+  level: null,
+  warehouseId: null,
+  isActive: null,
+  query: '',
+  page: 1,
+}
 
 export function SchoolsScreen() {
   const navigate = useNavigate()
@@ -48,6 +54,8 @@ export function SchoolsScreen() {
         onLevelChange={(level) => applyFilter({ level })}
         warehouseId={filters.warehouseId}
         onWarehouseChange={(warehouseId) => applyFilter({ warehouseId })}
+        isActive={filters.isActive}
+        onIsActiveChange={(isActive) => applyFilter({ isActive })}
         warehouses={warehouses}
         onAdd={() => navigate(paths.schoolNew)}
       />

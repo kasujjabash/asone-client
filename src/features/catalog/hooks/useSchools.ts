@@ -1,13 +1,11 @@
 /**
  * Schools — master data list.
  *
- * Filtered server-side on level and primary warehouse. There is no
- * server-side name search on this endpoint — `SearchFilter` is not wired
- * into `SchoolViewSet`, the same gap `TopBar`'s search box already notes for
- * the app generally — so a text filter here can only narrow the page
- * already fetched, not the whole table. See `filterSchools` in
- * `ReportsScreen`'s sibling, `pivot.ts`, for the same shape of client-side
- * substring filter over a different resource.
+ * Filtered server-side on level, primary warehouse, and now active status.
+ * There is no server-side name search on this endpoint — `SearchFilter` is
+ * not wired into `SchoolViewSet`, the same gap `TopBar`'s search box already
+ * notes for the app generally — so a text filter here can only narrow the
+ * page already fetched, not the whole table.
  */
 
 import { useQuery } from '@tanstack/react-query'
@@ -18,6 +16,7 @@ import type { School, SchoolLevel } from '@/api/types'
 export interface SchoolFilters {
   level: SchoolLevel | null
   warehouseId: number | null
+  isActive: boolean | null
   query: string
   page: number
 }
@@ -42,14 +41,15 @@ function filterSchools(schools: School[], query: string): School[] {
 }
 
 export function useSchools(filters: SchoolFilters): SchoolsResult {
-  const { level, warehouseId, query, page } = filters
+  const { level, warehouseId, isActive, query, page } = filters
 
   const { data, isLoading, isError } = useQuery({
-    queryKey: keys.schools(level, warehouseId, page),
+    queryKey: keys.schools(level, warehouseId, isActive, page),
     queryFn: () =>
       catalogApi.schools({
         level: level ?? undefined,
         primary_warehouse: warehouseId ?? undefined,
+        is_active: isActive ?? undefined,
         page,
       }),
   })

@@ -31,7 +31,11 @@ export const keys = {
 
   // Schools — master data, so the list is invalidated as a whole on any
   // write rather than patched row by row.
-  schools: (level: string | null, warehouseId: number | null, page: number) =>
-    ['schools', level, warehouseId, page] as const,
+  schools: (
+    level: string | null,
+    warehouseId: number | null,
+    isActive: boolean | null,
+    page: number,
+  ) => ['schools', level, warehouseId, isActive, page] as const,
   school: (id: number) => ['schools', 'detail', id] as const,
 } as const

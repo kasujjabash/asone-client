@@ -16,6 +16,7 @@ export function warehouses(params?: { page?: number }) {
 export function schools(params?: {
   level?: SchoolLevel
   primary_warehouse?: number
+  is_active?: boolean
   page?: number
 }) {
   return get<Page<School>>('/catalog/schools/', params ?? undefined)
@@ -30,6 +31,7 @@ export interface SchoolInput {
   level: SchoolLevel
   address?: string
   primary_warehouse: number
+  is_active?: boolean
 }
 
 export function createSchool(input: SchoolInput) {
