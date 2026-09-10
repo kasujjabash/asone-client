@@ -623,6 +623,18 @@ button.page-dots__dot {
   outline-offset: 1px;
 }
 
+/* Select's chevron is decorative, not a control of its own — clicks must
+   reach the <select> beneath it, not stop on the icon. */
+.textfield__trailing--static {
+  pointer-events: none;
+  color: var(--text-muted);
+}
+
+.textfield__input--select {
+  appearance: none;
+  cursor: pointer;
+}
+
 .textfield--invalid .textfield__input {
   border-color: var(--error);
 }
@@ -1160,6 +1172,47 @@ button.page-dots__dot {
 /* Paper does not need transient messages. */
 @media print {
   .snackbars { display: none !important; }
+}
+
+/* ---------------------------------------------------------------------------
+ * Tabs
+ *
+ * A detail screen's sections — Orders, Students, and so on. Underline style,
+ * not pills: this sits directly under a page heading, and a row of filled
+ * pills there would compete with the KPI tiles below it for weight.
+ * ------------------------------------------------------------------------ */
+
+.tabs {
+  display: flex;
+  gap: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs__tab {
+  padding: var(--space-3) 0;
+  margin-bottom: -1px; /* Sits on top of the strip's own border. */
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tabs__tab:hover {
+  color: var(--text-primary);
+}
+
+.tabs__tab--active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tabs__tab:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 /* ---------------------------------------------------------------------------

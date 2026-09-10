@@ -27,6 +27,9 @@ import { SignInScreen } from '@/features/auth/screens/SignInScreen'
 import { WelcomeScreen } from '@/features/auth/screens/WelcomeScreen'
 import { DashboardScreen } from '@/features/dashboard/screens/DashboardScreen'
 import { ReportsScreen } from '@/features/reports/screens/ReportsScreen'
+import { SchoolDetailScreen } from '@/features/catalog/screens/SchoolDetailScreen'
+import { SchoolFormScreen } from '@/features/catalog/screens/SchoolFormScreen'
+import { SchoolsScreen } from '@/features/catalog/screens/SchoolsScreen'
 import { ALL_NAV_ITEMS } from '@/features/shell/navigation'
 import { PlaceholderScreen } from '@/features/shell/screens/PlaceholderScreen'
 import { RequireAccess } from './RequireAccess'
@@ -40,6 +43,7 @@ import { paths } from './paths'
 const SCREENS: Record<string, ComponentType> = {
   '/dashboard': DashboardScreen,
   '/reports': ReportsScreen,
+  '/schools': SchoolsScreen,
 }
 
 export function AppRoutes() {
@@ -73,6 +77,46 @@ export function AppRoutes() {
               />
             )
           })}
+
+          {/*
+            Schools' add/edit/detail screens are reached from the Schools
+            list, not the sidebar, so they are not entries in
+            `navigation.ts` and are not covered by the loop above. They still
+            need the same guard as `/schools` itself: `table_updates`.
+            React Router ranks a static segment over a dynamic one at the
+            same depth, so `/schools/new` matches before `/schools/:id` can
+            claim it.
+          */}
+          <Route
+            path="/schools/new"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="table_updates">
+                  <SchoolFormScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/schools/:id/edit"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="table_updates">
+                  <SchoolFormScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/schools/:id"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="table_updates">
+                  <SchoolDetailScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
 
               <Route path="*" element={<Navigate to={paths.welcome} replace />} />
             </Routes>

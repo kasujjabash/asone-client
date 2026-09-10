@@ -13,4 +13,8 @@ export const paths = {
   welcome: '/',
   signIn: '/sign-in',
   dashboard: '/dashboard',
+  schools: '/schools',
+  schoolNew: '/schools/new',
+  schoolDetail: (id: number | string) => `/schools/${id}`,
+  schoolEdit: (id: number | string) => `/schools/${id}/edit`,
 } as const

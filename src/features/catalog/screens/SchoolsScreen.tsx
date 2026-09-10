@@ -1,0 +1,65 @@
+/**
+ * Schools — master data (F12), Locations & Administration.
+ *
+ * Table Updates only, matching `navigation.ts`'s `requires: 'table_updates'`
+ * for this destination — a Program Lead or Operations Manager screen.
+ */
+
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { AppShell } from '@/features/shell/components/AppShell'
+import { paths } from '@/routes/paths'
+import { SchoolsFilterBar } from '../components/SchoolsFilterBar'
+import { SchoolsTable } from '../components/SchoolsTable'
+import { useSchools, type SchoolFilters } from '../hooks/useSchools'
+import { useWarehouseOptions } from '../hooks/useWarehouseOptions'
+
+const EMPTY_FILTERS: SchoolFilters = { level: null, warehouseId: null, query: '', page: 1 }
+
+export function SchoolsScreen() {
+  const navigate = useNavigate()
+  const [filters, setFilters] = useState<SchoolFilters>(EMPTY_FILTERS)
+
+  const { schools, totalCount, isLoading } = useSchools(filters)
+  const { warehouses } = useWarehouseOptions()
+
+  /** Any filter change invalidates the current page position. */
+  function applyFilter(next: Partial<Omit<SchoolFilters, 'page'>>) {
+    setFilters((current) => ({ ...current, ...next, page: 1 }))
+  }
+
+  function changePage(page: number) {
+    setFilters((current) => ({ ...current, page }))
+  }
+
+  return (
+    <AppShell title="Schools">
+      <header className="page-head">
+        <h1 className="page-head__title">Schools</h1>
+        <p className="page-head__subtitle">
+          Manage uniform programs, student enrollment ratios, and school dispatch hubs.
+        </p>
+      </header>
+
+      <SchoolsFilterBar
+        query={filters.query}
+        onQueryChange={(query) => applyFilter({ query })}
+        level={filters.level}
+        onLevelChange={(level) => applyFilter({ level })}
+        warehouseId={filters.warehouseId}
+        onWarehouseChange={(warehouseId) => applyFilter({ warehouseId })}
+        warehouses={warehouses}
+        onAdd={() => navigate(paths.schoolNew)}
+      />
+
+      <SchoolsTable
+        schools={schools}
+        totalCount={totalCount}
+        loading={isLoading}
+        page={filters.page}
+        onPageChange={changePage}
+        onAdd={() => navigate(paths.schoolNew)}
+      />
+    </AppShell>
+  )
+}

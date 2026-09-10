@@ -1,0 +1,41 @@
+/**
+ * Locations & Administration — Schools, Warehouses, Tailoring Centers.
+ *
+ * No Figma frame for these yet (see the training-skill lookup table for why
+ * that citation is normally here) — this follows `reports.css`'s existing
+ * detail-header shape (`.page-head--split`) rather than inventing a new one,
+ * since a record's header — name, a type badge, meta, actions on the right —
+ * is the same problem `ReportsScreen` already solved.
+ */
+
+.detail-head__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.detail-head__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  color: var(--text-secondary);
+}
+
+.detail-head__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.detail-head__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.detail-tabs {
+  margin-top: var(--space-6);
+}
+
+.detail-tabs__panel {
+  padding-top: var(--space-5);
+}

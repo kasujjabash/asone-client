@@ -1,15 +1,44 @@
 /**
  * Catalog — master data.
- *
- * Only what the shell and dashboard need so far; the rest arrives with the
- * master-data phase.
  */
 
-import { get } from './http'
-import type { Page, Sku, Warehouse } from './types'
+import { get, patch, post } from './http'
+import type { Page, School, SchoolLevel, Sku, Warehouse } from './types'
 
 export function warehouses(params?: { page?: number }) {
   return get<Page<Warehouse>>('/catalog/warehouses/', params ?? undefined)
+}
+
+// ---------------------------------------------------------------------------
+// Schools — F12
+// ---------------------------------------------------------------------------
+
+export function schools(params?: {
+  level?: SchoolLevel
+  primary_warehouse?: number
+  page?: number
+}) {
+  return get<Page<School>>('/catalog/schools/', params ?? undefined)
+}
+
+export function school(id: number) {
+  return get<School>(`/catalog/schools/${id}/`)
+}
+
+export interface SchoolInput {
+  name: string
+  level: SchoolLevel
+  address?: string
+  primary_warehouse: number
+}
+
+export function createSchool(input: SchoolInput) {
+  return post<School>('/catalog/schools/', input)
+}
+
+/** Schools cannot be deleted — PATCH is the only way to change one. */
+export function updateSchool(id: number, input: Partial<SchoolInput>) {
+  return patch<School>(`/catalog/schools/${id}/`, input)
 }
 
 /**
