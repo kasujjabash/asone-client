@@ -1,18 +1,22 @@
 /**
  * The schools list's filter bar.
  *
- * Same teal band as the reports screen (`ReportFilters`) — one filter-bar
- * language across the app, not a second one invented per screen.
+ * Matches the Figma design exactly: a plain white toolbar, each field its
+ * own bordered pill, no wrapping colour band. (An earlier pass wrongly
+ * reused the reports screen's teal `.filters` band here instead of matching
+ * this screen's own design — don't repeat that; a different screen's
+ * pattern is not "consistency" when this screen has its own.)
  *
  * Type and Warehouse are real, server-side filters (`SchoolViewSet`
  * supports `?level=` and `?primary_warehouse=`). Search narrows only the
- * page already on screen — see `useSchools` for why. Status is drawn inert,
- * the same way `ReportFilters` draws the School field inert: `School` has no
- * active/inactive concept in the database yet, so there is nothing to filter
- * on. Worth raising at Monday's meeting rather than inventing a field.
+ * page already on screen — see `useSchools` for why. Status is drawn to
+ * match the design (a normal-looking field, not disabled) but is not wired
+ * to anything: `School` has no active/inactive concept in the database, so
+ * there is nothing behind it yet — worth raising at Monday's meeting rather
+ * than inventing a field or visually flagging it as broken.
  */
 
-import { CircleDashed, Search, Tag, Warehouse as WarehouseIcon } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Button } from '@/components'
 import type { SchoolLevel, Warehouse } from '@/api/types'
 
@@ -40,7 +44,7 @@ export function SchoolsFilterBar({
   onAdd,
 }: SchoolsFilterBarProps) {
   return (
-    <div className="filters">
+    <div className="toolbar">
       <label className="filters__field filters__field--grow">
         <Search size={16} aria-hidden />
         <input
@@ -52,7 +56,6 @@ export function SchoolsFilterBar({
       </label>
 
       <span className="filters__field">
-        <Tag size={16} aria-hidden />
         <select
           aria-label="School type"
           value={level ?? ALL}
@@ -68,7 +71,6 @@ export function SchoolsFilterBar({
       </span>
 
       <span className="filters__field">
-        <WarehouseIcon size={16} aria-hidden />
         <select
           aria-label="Primary warehouse"
           value={warehouseId === null ? ALL : String(warehouseId)}
@@ -86,18 +88,15 @@ export function SchoolsFilterBar({
         </select>
       </span>
 
-      <span className="filters__field filters__field--static" aria-disabled="true">
-        <CircleDashed size={16} aria-hidden />
-        <span
-          title="Schools have no active/inactive status in the database yet"
-        >
-          Status: Not tracked
-        </span>
+      <span className="filters__field">
+        {/* Not wired — School has no active/inactive field yet. Matches the
+            design visually; ask Monday before this does anything. */}
+        <select aria-label="Status" defaultValue="active">
+          <option value="active">Status: Active</option>
+        </select>
       </span>
 
-      <Button size="sm" onClick={onAdd}>
-        + Add School
-      </Button>
+      <Button onClick={onAdd}>+ Add School</Button>
     </div>
   )
 }

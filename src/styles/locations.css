@@ -8,6 +8,27 @@
  * is the same problem `ReportsScreen` already solved.
  */
 
+/* ---------------------------------------------------------------------------
+ * Toolbar — the schools list's filter bar
+ *
+ * A plain white bar, unlike the reports screen's teal `.filters` band —
+ * this screen's own design has no colour wash. Individual fields reuse
+ * `.filters__field` from reports.css as-is: that class is already neutral
+ * (white, bordered) on its own — the teal only ever came from `.filters`,
+ * the *parent* wrapping it, which this deliberately does not use.
+ * ------------------------------------------------------------------------ */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+}
+
 .detail-head__title-row {
   display: flex;
   align-items: center;
