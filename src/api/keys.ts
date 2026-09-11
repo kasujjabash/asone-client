@@ -26,6 +26,7 @@ export const keys = {
   ordersOnHold: () => ['orders', 'on-hold'] as const,
   ordersPartProcessed: () => ['orders', 'part-processed'] as const,
   backorders: () => ['orders', 'backorders'] as const,
+  schoolOrdersForSchool: (schoolId: number) => ['orders', 'by-school', schoolId] as const,
   receipts: () => ['receipts'] as const,
   warehouses: () => ['warehouses'] as const,
 

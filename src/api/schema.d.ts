@@ -8240,6 +8240,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8349,6 +8350,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8386,6 +8388,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8479,6 +8482,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8538,6 +8542,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8597,6 +8602,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8640,6 +8646,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8733,6 +8740,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse

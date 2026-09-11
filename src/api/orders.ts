@@ -40,6 +40,8 @@ export function outstandingBackorders(params?: { page?: number }) {
 export function schoolOrders(params?: {
   status?: SchoolOrderStatus
   order_date?: string
+  /** Leads only — School Staff never sends this, their own school is implicit. */
+  school?: number
   page?: number
   /** Capped at 200 by the server's pagination class. */
   page_size?: number

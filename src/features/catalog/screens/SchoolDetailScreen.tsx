@@ -1,26 +1,27 @@
 /**
  * School detail — header, KPIs, and sections.
  *
- * The header, Active Orders, and Status are real. Total Students and Total
- * Revenue remain honest gaps: there is no student roster anywhere in the
- * system (a student is a free-text name on an order, not a record), and
- * Total Revenue would need summing every one of a school's orders, which —
- * unlike the count behind Active Orders — no endpoint this role can read
- * currently exposes. All four tabs are gaps too; see each one's own message
- * for exactly what is missing and why. Two of the four (Shipments,
- * Backorders) are closer to real than the other two:
- * `/orders/reports/part-processed/` and `/orders/reports/backorders/` are
- * actually readable by this role (`CanReadFulfilmentReports` /
- * `CanReadBackorderReport` both grant leads "all sites"), unlike the raw
- * `/orders/school-orders/` endpoint the Orders tab would need. Worth wiring
- * those two first once Monday settles what these figures should mean.
+ * The header, Active Orders, Status, and the Orders tab are all real now.
+ * Orders became buildable once the backend widened `SchoolOrderViewSet` to
+ * let both leads read the list (9 September 2026, pending AsOne's written
+ * confirmation) and added a `?school=` filter alongside it — see
+ * `orders/views.py`. Before that, this tab showed an honest "not available
+ * for this role" message, which was correct at the time but is stale now
+ * that the underlying access actually changed.
  *
- * Earlier drafts of this screen filled the gaps with fake numbers — a
+ * Total Students remains a gap: there is no student roster anywhere in the
+ * system (a student is a free-text name on an order, not a record). Total
+ * Revenue and Pending Shipments are left as gaps too for now even though the
+ * same order list this screen now fetches could answer both — worth wiring
+ * once that's confirmed wanted, rather than doing it silently alongside an
+ * unrelated fix. Students, Shipments and Backorders (the tabs) are gaps for
+ * the same reasons as before — see TAB_GAPS.
+ *
+ * Earlier drafts of this screen filled every gap with fake numbers — a
  * hardcoded demo-orders table shown for every school regardless of which
  * one was open, and per-school KPI figures keyed off the school's name.
- * Both are removed: a dash that says why is honest, but numbers that look
- * real and are not are actively misleading, worse than the gap they were
- * covering.
+ * Removed: a dash or a stated gap is honest, but numbers that look real and
+ * are not are actively misleading, worse than the gap they were covering.
  */
 
 import {
@@ -36,18 +37,18 @@ import {
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Badge, Button, EmptyState, LoadingScreen } from '@/components'
+import { formatUGX } from '@/domain/money'
+import { paymentLabel, paymentTone, schoolOrderTone } from '@/domain/status'
 import { AppShell } from '@/features/shell/components/AppShell'
 import { paths } from '@/routes/paths'
 import { useSchool } from '../hooks/useSchool'
+import { useSchoolOrdersForSchool } from '../hooks/useSchoolOrdersForSchool'
+import type { SchoolOrder } from '@/api/types'
 
 const TABS = ['Orders', 'Students', 'Shipments', 'Backorders'] as const
 type SchoolTab = (typeof TABS)[number]
 
-const TAB_GAPS: Record<SchoolTab, { title: string; body: string }> = {
-  Orders: {
-    title: 'Orders — not available for this role yet',
-    body: 'This needs /orders/school-orders/, which only School Staff and Finance can read today; Program Leads and Operations Managers get a 403. Worth asking Monday whether a lead should be able to view any school’s orders.',
-  },
+const NON_ORDERS_TAB_GAPS: Record<Exclude<SchoolTab, 'Orders'>, { title: string; body: string }> = {
   Students: {
     title: 'Students — not a concept in the system yet',
     body: 'AsOne has no student roster. A student is a free-text name on an order, not a database record — showing a list here means deciding whether students become a real entity first.',
@@ -68,6 +69,11 @@ export function SchoolDetailScreen() {
   const navigate = useNavigate()
   const { school, isLoading } = useSchool(schoolId)
   const [tab, setTab] = useState<SchoolTab>('Orders')
+  const {
+    orders,
+    isLoading: ordersLoading,
+    isError: ordersErrored,
+  } = useSchoolOrdersForSchool(schoolId)
 
   if (isLoading) return <LoadingScreen message="Loading school…" />
 
@@ -83,8 +89,6 @@ export function SchoolDetailScreen() {
       </AppShell>
     )
   }
-
-  const gap = TAB_GAPS[tab]
 
   return (
     <AppShell title={school.name}>
@@ -188,9 +192,112 @@ export function SchoolDetailScreen() {
         </div>
 
         <div className="detail-tabs__panel">
-          <EmptyState icon={PackageX} title={gap.title} body={gap.body} />
+          {tab === 'Orders' ? (
+            <SchoolOrdersPanel
+              orders={orders}
+              loading={ordersLoading}
+              errored={ordersErrored}
+            />
+          ) : (
+            <EmptyState
+              icon={PackageX}
+              title={NON_ORDERS_TAB_GAPS[tab].title}
+              body={NON_ORDERS_TAB_GAPS[tab].body}
+            />
+          )}
         </div>
       </div>
     </AppShell>
+  )
+}
+
+/**
+ * The real Orders table — see the module comment for what unlocked this.
+ *
+ * `page_size: 100` in the hook behind this means a school with more than
+ * 100 orders would only show its first page here; fine for now given real
+ * volumes, but worth a "view all" link to a proper filtered list once one
+ * exists, rather than raising the page size indefinitely.
+ */
+function SchoolOrdersPanel({
+  orders,
+  loading,
+  errored,
+}: {
+  orders: SchoolOrder[]
+  loading: boolean
+  errored: boolean
+}) {
+  if (loading) {
+    return (
+      <div className="skeleton-stack" aria-hidden>
+        <span className="skeleton" style={{ height: 40 }} />
+        <span className="skeleton" style={{ height: 40 }} />
+      </div>
+    )
+  }
+
+  if (errored) {
+    return (
+      <EmptyState
+        icon={PackageX}
+        title="Couldn't load this school's orders"
+        body="Something went wrong reaching the server. Try again in a moment."
+      />
+    )
+  }
+
+  if (orders.length === 0) {
+    return (
+      <EmptyState
+        icon={PackageX}
+        title="No orders yet"
+        body="Nothing has been placed for this school so far."
+      />
+    )
+  }
+
+  return (
+    <div className="school-orders-table-card">
+      <table className="school-orders-table">
+        <thead>
+          <tr>
+            <th scope="col">Order #</th>
+            <th scope="col">Student</th>
+            <th scope="col">Uniform Items</th>
+            <th scope="col" style={{ textAlign: 'right' }}>
+              Total / Payment
+            </th>
+            <th scope="col" style={{ textAlign: 'center' }}>
+              Status
+            </th>
+            <th scope="col" style={{ textAlign: 'right' }}>
+              Order Date
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map((order) => (
+            <tr key={order.id}>
+              <td className="school-orders-table__td-num">{order.number}</td>
+              <td className="school-orders-table__td-student">{order.student_name}</td>
+              <td className="school-orders-table__td-items">
+                {order.lines.map((line) => `${line.sku_description} (${line.quantity})`).join(', ')}
+              </td>
+              <td className="school-orders-table__td-payment">
+                <div className="school-orders-table__td-payment-wrap">
+                  <span className="school-orders-table__amount">{formatUGX(order.total)}</span>
+                  <Badge tone={paymentTone(order)}>{paymentLabel(order)}</Badge>
+                </div>
+              </td>
+              <td className="school-orders-table__td-status">
+                <Badge tone={schoolOrderTone(order.status)}>{order.status_display}</Badge>
+              </td>
+              <td className="school-orders-table__td-date">{order.order_date}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   )
 }
