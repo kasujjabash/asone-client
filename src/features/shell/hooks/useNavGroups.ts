@@ -1,31 +1,15 @@
 /**
- * Which navigation group is open.
+ * Read which navigation group is open.
  *
- * An accordion: one group at a time. Overview starts open, clicking another
- * header closes it and opens the new one, and clicking the open one closes
- * it — so the rail can be fully collapsed.
- *
- * A single label rather than a set, because that is the rule: holding a set
- * and then enforcing one member would let the two disagree.
+ * Throws outside the provider — that would otherwise show up as a sidebar
+ * whose groups silently refuse to stay open.
  */
 
-import { useCallback, useState } from 'react'
+import { useContext } from 'react'
+import { NavGroupsContext, type NavGroupsState } from '../NavGroupsContext'
 
-const OPEN_BY_DEFAULT = 'Overview'
-
-interface NavGroupState {
-  isOpen: (label: string) => boolean
-  toggle: (label: string) => void
-}
-
-export function useNavGroups(): NavGroupState {
-  const [openLabel, setOpenLabel] = useState<string | null>(OPEN_BY_DEFAULT)
-
-  const isOpen = useCallback((label: string) => openLabel === label, [openLabel])
-
-  const toggle = useCallback((label: string) => {
-    setOpenLabel((current) => (current === label ? null : label))
-  }, [])
-
-  return { isOpen, toggle }
+export function useNavGroups(): NavGroupsState {
+  const value = useContext(NavGroupsContext)
+  if (!value) throw new Error('useNavGroups must be used inside <NavGroupsProvider>')
+  return value
 }

@@ -22,11 +22,16 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { queryClient } from '@/api/queryClient'
 import { SnackbarProvider } from '@/components'
 import { AuthProvider } from '@/features/auth/AuthProvider'
+import { NavGroupsProvider } from '@/features/shell/NavGroupsProvider'
 import { WarehouseFilterProvider } from '@/features/shell/WarehouseFilterProvider'
 import { SignInScreen } from '@/features/auth/screens/SignInScreen'
 import { WelcomeScreen } from '@/features/auth/screens/WelcomeScreen'
-import { DashboardScreen } from '@/features/dashboard/screens/DashboardScreen'
-import { ReportsScreen } from '@/features/reports/screens/ReportsScreen'
+import { HomeScreen } from '@/features/dashboard/screens/HomeScreen'
+import { ReportsIndexScreen } from '@/features/reports/screens/ReportsIndexScreen'
+import { StockReportScreen } from '@/features/reports/screens/StockReportScreen'
+import { OrderDetailScreen } from '@/features/orders/screens/OrderDetailScreen'
+import { OrdersListScreen } from '@/features/orders/screens/OrdersListScreen'
+import { canReadSchoolOrders } from '@/domain/access'
 import { SchoolDetailScreen } from '@/features/catalog/screens/SchoolDetailScreen'
 import { SchoolFormScreen } from '@/features/catalog/screens/SchoolFormScreen'
 import { SchoolsScreen } from '@/features/catalog/screens/SchoolsScreen'
@@ -41,8 +46,11 @@ import { paths } from './paths'
  * the placeholder, so this list is the honest record of what exists.
  */
 const SCREENS: Record<string, ComponentType> = {
-  '/dashboard': DashboardScreen,
-  '/reports': ReportsScreen,
+  // HomeScreen, not DashboardScreen: a school gets a different dashboard
+  // behind the same path — see features/dashboard/screens/HomeScreen.tsx.
+  '/dashboard': HomeScreen,
+  '/reports': ReportsIndexScreen,
+  '/orders': OrdersListScreen,
   '/schools': SchoolsScreen,
 }
 
@@ -57,9 +65,39 @@ export function AppRoutes() {
           {/* Inside AuthProvider: the filter's options depend on the role,
               and a warehouse-scoped user has no choice to offer. */}
           <WarehouseFilterProvider>
-            <Routes>
+            {/* Above the routes: the sidebar is rendered inside each screen,
+                so anything held in it is lost on every navigation. */}
+            <NavGroupsProvider>
+              <Routes>
           <Route path={paths.welcome} element={<WelcomeScreen />} />
           <Route path={paths.signIn} element={<SignInScreen />} />
+
+          {/*
+            Detail screens that hang off a nav destination rather than being
+            one. They are listed before the generated routes so a more
+            specific path is matched first.
+          */}
+          <Route
+            path="/orders/:orderId"
+            element={
+              <RequireAuth>
+                <RequireAccess requires={canReadSchoolOrders}>
+                  <OrderDetailScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/reports/inventory"
+            element={
+              <RequireAuth>
+                <RequireAccess requires={null}>
+                  <StockReportScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
 
           {ALL_NAV_ITEMS.map((item) => {
             const Screen = SCREENS[item.path] ?? PlaceholderScreen
@@ -119,7 +157,8 @@ export function AppRoutes() {
           />
 
               <Route path="*" element={<Navigate to={paths.welcome} replace />} />
-            </Routes>
+              </Routes>
+            </NavGroupsProvider>
           </WarehouseFilterProvider>
         </AuthProvider>
         </BrowserRouter>

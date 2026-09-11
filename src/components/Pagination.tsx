@@ -15,6 +15,7 @@
  */
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { Button } from './Button'
 
 interface PaginationProps {
   /** 1-based. */
@@ -36,8 +37,6 @@ export function Pagination({
   onChange,
   noun = 'rows',
 }: PaginationProps) {
-  if (pageCount <= 1) return null
-
   const first = (page - 1) * pageSize + 1
   const last = Math.min(page * pageSize, totalItems)
 
@@ -47,30 +46,32 @@ export function Pagination({
         Showing {first}–{last} of {totalItems} {noun}
       </p>
 
-      <div className="pagination__controls">
-        <button
-          type="button"
-          className="pagination__btn"
+      {/* Buttons only when there is somewhere to go; the position line is
+          always shown, so a single page still says how much it holds. */}
+      <div className="pagination__controls" hidden={pageCount <= 1}>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => onChange(page - 1)}
           disabled={page <= 1}
-          aria-label="Previous page"
         >
-          <ChevronLeft size={16} aria-hidden />
-        </button>
+          <ChevronLeft size={14} aria-hidden />
+          Previous
+        </Button>
 
         <span className="pagination__page" aria-current="page">
           {page} / {pageCount}
         </span>
 
-        <button
-          type="button"
-          className="pagination__btn"
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => onChange(page + 1)}
           disabled={page >= pageCount}
-          aria-label="Next page"
         >
-          <ChevronRight size={16} aria-hidden />
-        </button>
+          Next
+          <ChevronRight size={14} aria-hidden />
+        </Button>
       </div>
     </nav>
   )

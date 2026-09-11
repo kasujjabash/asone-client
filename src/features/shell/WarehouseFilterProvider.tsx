@@ -18,9 +18,28 @@ import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import * as catalog from '@/api/catalog'
 import { keys } from '@/api/keys'
-import { homeWarehouseId, seesAllLocations } from '@/domain/access'
+import { homeWarehouseId, scopeOf, seesAllLocations } from '@/domain/access'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { WarehouseFilterContext, type WarehouseFilter } from './WarehouseFilterContext'
+
+/**
+ * What this user's screens are actually showing, in words.
+ *
+ * Only an all-locations role is ever told "All warehouses". A scoped role is
+ * told the name of the one site they have, because that is what the server
+ * is giving them — and a school clerk is told their *school*, not a
+ * warehouse, since a school is the site they belong to.
+ */
+function siteLabelFor(
+  user: ReturnType<typeof useAuth>['user'],
+  canSwitch: boolean,
+  selectedName: string | null,
+): string {
+  if (selectedName) return selectedName
+  if (canSwitch) return 'All warehouses'
+  if (scopeOf(user) === 'assigned_schools') return user?.school?.name ?? 'Your school'
+  return user?.warehouse?.name ?? 'Your site'
+}
 
 export function WarehouseFilterProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
@@ -55,7 +74,14 @@ export function WarehouseFilterProvider({ children }: { children: ReactNode }) {
       ? (options.find((warehouse) => warehouse.id === warehouseId)?.name ?? null)
       : (user?.warehouse?.name ?? null)
 
-    return { warehouseId, warehouseName: name, options, canSwitch, select }
+    return {
+      warehouseId,
+      warehouseName: name,
+      siteLabel: siteLabelFor(user, canSwitch, name),
+      options,
+      canSwitch,
+      select,
+    }
   }, [canSwitch, selected, pinned, options, user, select])
 
   return (

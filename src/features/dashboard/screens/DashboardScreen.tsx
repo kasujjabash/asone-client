@@ -29,11 +29,13 @@ import { useDashboardData } from '../hooks/useDashboardData'
 
 export function DashboardScreen() {
   const { user } = useAuth()
-  const { warehouseName, canSwitch } = useWarehouseFilter()
+  const { warehouseName, siteLabel } = useWarehouseFilter()
   const data = useDashboardData()
   const daily = useDailyOrders()
 
-  const heading = warehouseName ?? (canSwitch ? 'All warehouses' : 'All locations')
+  // siteLabel already knows the difference between "all warehouses" and a
+  // scoped role's one site, so the heading does not re-derive it.
+  const heading = siteLabel
 
   return (
     <AppShell title="Dashboard overview">

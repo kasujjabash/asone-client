@@ -1218,6 +1218,28 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/dashboard/school/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The school's own dashboard
+         * @description Orders by state, what is owed, parcels awaiting confirmation, and outstanding backorders — all for the caller's own school.
+         *
+         *     `deliveries_to_confirm` is the actionable list: each row is a parcel that left a warehouse and that nobody has said arrived. Confirming one is `POST /api/orders/school-orders/{id}/confirm-receipt/`, and the order becomes **Completed** once every parcel on it is confirmed.
+         */
+        get: operations["dashboard_school_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dashboard/summary/": {
         parameters: {
             query?: never;
@@ -2215,6 +2237,32 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/school-orders/{id}/confirm-receipt/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a parcel arrived
+         * @description The school says the shipment arrived. The order becomes **Completed** once every shipment on it is confirmed — an order can have two, because a backorder may ship direct from another warehouse (D2).
+         *
+         *     **This does not touch stock.** It left at ship and stays gone. Recording it here instead would mean stock the warehouse has physically handed to a driver still counting as theirs.
+         *
+         *     `shipment` may be omitted when the order has only one.
+         *
+         *     `notes` is for what was wrong — short, damaged, wrong student. It is recorded and nothing acts on it: what to *do* about a bad delivery is a question AsOne has not answered.
+         */
+        post: operations["orders_school_orders_confirm_receipt_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/orders/school-orders/{id}/demand/": {
         parameters: {
             query?: never;
@@ -2814,6 +2862,16 @@ export interface components {
              */
             reason: string;
         };
+        /** @description The school confirming a parcel arrived — F41's other half. */
+        ConfirmReceipt: {
+            /** @description Which shipment. May be omitted when the order has only one. */
+            shipment?: number;
+            /**
+             * @description Anything wrong — short, damaged, wrong student. Recorded, not acted on.
+             * @default
+             */
+            notes: string;
+        };
         /**
          * @description One reason code's effect on the value of stock — F58.
          *
@@ -2881,6 +2939,20 @@ export interface components {
             outstanding_backorders: number;
             /** @description SKUs at or under their reorder floor. */
             skus_below_minimum: number;
+        };
+        /** @description A parcel sent to this school that nobody has confirmed arrived. */
+        DeliveryToConfirm: {
+            id: number;
+            number: string;
+            order_id: number;
+            order_number: string;
+            student_name: string;
+            /** Format: date */
+            shipped_on: string;
+            /** @description Oldest first — the oldest is the one worth chasing. */
+            days_in_transit: number;
+            /** @description Not always the school's own: a backorder may ship direct from another (D2). */
+            from_warehouse: string;
         };
         /**
          * @description * `INCREASE` - Increases stock
@@ -4502,6 +4574,31 @@ export interface components {
             is_active?: boolean;
             readonly active_orders_count: number;
         };
+        /** @description Something the school ordered that the warehouse could not fill. */
+        SchoolBackorder: {
+            id: number;
+            order_id: number;
+            order_number: string;
+            student_name: string;
+            sku_number: string;
+            sku_description: string;
+            quantity: number;
+            status: string;
+        };
+        /** @description F62 for a school — everything its screen shows, in one round trip. */
+        SchoolDashboard: {
+            school: components["schemas"]["SchoolSite"];
+            /** @description The warehouse that fills this school's orders. Not a site it controls. */
+            warehouse: components["schemas"]["SchoolSite"] | null;
+            orders: components["schemas"]["SchoolOrderCounts"];
+            /**
+             * Format: decimal
+             * @description The value of the school's unpaid invoices.
+             */
+            amount_outstanding: string;
+            deliveries_to_confirm: components["schemas"]["DeliveryToConfirm"][];
+            backorders: components["schemas"]["SchoolBackorder"][];
+        };
         /**
          * @description * `PS` - Primary School
          *     * `HS` - High School
@@ -4542,6 +4639,18 @@ export interface components {
             readonly payment_reference: string;
             readonly lines: components["schemas"]["SchoolOrderLine"][];
         };
+        /** @description The school's orders, in the four buckets a school thinks in. */
+        SchoolOrderCounts: {
+            /** @description Unpaid invoices. The only bucket the school can still cancel. */
+            awaiting_payment: number;
+            /** @description Paid and with the warehouse. Nothing for the school to do. */
+            in_progress: number;
+            /** @description Shipped, and the school has not said it arrived. The actionable one. */
+            awaiting_confirmation: number;
+            completed: number;
+            cancelled: number;
+            total: number;
+        };
         /** @description One line as the warehouse and the invoice see it — always a SKU. */
         SchoolOrderLine: {
             readonly id: number;
@@ -4565,10 +4674,11 @@ export interface components {
          *     * `RELEASED` - Released to the warehouse
          *     * `PICKED` - Picked
          *     * `SHIPPED` - Shipped
+         *     * `COMPLETED` - Received by the school
          *     * `CANCELLED` - Cancelled
          * @enum {string}
          */
-        SchoolOrderStatusEnum: "HOLD" | "RELEASED" | "PICKED" | "SHIPPED" | "CANCELLED";
+        SchoolOrderStatusEnum: "HOLD" | "RELEASED" | "PICKED" | "SHIPPED" | "COMPLETED" | "CANCELLED";
         /**
          * @description Placing an order — F30, F31.
          *
@@ -4588,6 +4698,10 @@ export interface components {
             skus?: components["schemas"]["SkuLineInput"][];
             /** @default  */
             notes: string;
+        };
+        SchoolSite: {
+            id: number;
+            name: string;
         };
         SchoolSummary: {
             readonly id: number;
@@ -4658,6 +4772,11 @@ export interface components {
             /** @description The carrier's reference, if there is one. */
             readonly waybill_number: string;
             readonly notes: string;
+            /** Format: date-time */
+            readonly received_at: string | null;
+            readonly received_by: number | null;
+            /** @description Anything wrong with the parcel — short, damaged, wrong student. */
+            readonly receipt_notes: string;
             readonly lines: components["schemas"]["ShipmentLine"][];
         };
         ShipmentLine: {
@@ -5044,6 +5163,8 @@ export interface operations {
                 email?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 succeeded?: boolean;
                 user?: number;
             };
@@ -5266,6 +5387,8 @@ export interface operations {
                 is_active?: boolean;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `PROGRAM_LEAD` - Program Lead
                  *     * `OPERATIONS_MANAGER` - Operations Manager
@@ -5535,6 +5658,8 @@ export interface operations {
                 is_active?: boolean;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description Which price list this garment appears on.
                  *
@@ -5690,6 +5815,8 @@ export interface operations {
                 is_active?: boolean;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description Which price list this garment appears on.
                  *
@@ -5752,6 +5879,8 @@ export interface operations {
                 kit?: number;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 sku?: number;
             };
             header?: never;
@@ -5900,6 +6029,8 @@ export interface operations {
                 is_active?: boolean;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `PS` - Primary School
                  *     * `HS` - High School
@@ -6051,6 +6182,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 sku?: number;
                 warehouse?: number;
             };
@@ -6248,6 +6381,8 @@ export interface operations {
                 garment?: number;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
             };
             header?: never;
             path?: never;
@@ -6379,6 +6514,8 @@ export interface operations {
                 level?: "HS" | "PS";
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 primary_warehouse?: number;
             };
             header?: never;
@@ -6526,6 +6663,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
             };
             header?: never;
             path?: never;
@@ -6682,6 +6821,8 @@ export interface operations {
                 is_active?: boolean;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 size?: number;
             };
             header?: never;
@@ -6808,6 +6949,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
             };
             header?: never;
             path?: never;
@@ -6954,6 +7097,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 primary_tailoring_center?: number;
             };
             header?: never;
@@ -7212,6 +7357,25 @@ export interface operations {
             };
         };
     };
+    dashboard_school_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SchoolDashboard"];
+                };
+            };
+        };
+    };
     dashboard_summary_retrieve: {
         parameters: {
             query?: {
@@ -7318,6 +7482,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 posted_at?: string;
                 reason_code?: number;
                 sku?: number;
@@ -7493,6 +7659,8 @@ export interface operations {
                 movement_type?: "ADJUSTMENT" | "DAMAGE" | "PICK" | "RECEIPT" | "RETURN" | "SHIPMENT" | "TRANSFER_IN" | "TRANSFER_OUT";
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 sku?: number;
                 warehouse?: number;
             };
@@ -7540,6 +7708,8 @@ export interface operations {
                 is_active?: boolean;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
             };
             header?: never;
             path?: never;
@@ -7714,6 +7884,8 @@ export interface operations {
                 from_warehouse?: number;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 posted_at?: string;
                 to_warehouse?: number;
             };
@@ -7835,6 +8007,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 sku?: number;
                 /**
                  * @description * `OPEN` - Outstanding — no warehouse assigned
@@ -7967,6 +8141,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
             };
             header?: never;
             path?: never;
@@ -7989,6 +8165,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
             };
             header?: never;
             path?: never;
@@ -8011,6 +8189,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
             };
             header?: never;
             path?: never;
@@ -8058,14 +8238,17 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
                  *     * `PICKED` - Picked
                  *     * `SHIPPED` - Shipped
+                 *     * `COMPLETED` - Received by the school
                  *     * `CANCELLED` - Cancelled
                  */
-                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+                status?: "CANCELLED" | "COMPLETED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
             };
             header?: never;
             path?: never;
@@ -8164,14 +8347,17 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
                  *     * `PICKED` - Picked
                  *     * `SHIPPED` - Shipped
+                 *     * `COMPLETED` - Received by the school
                  *     * `CANCELLED` - Cancelled
                  */
-                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+                status?: "CANCELLED" | "COMPLETED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
             };
             header?: never;
             path: {
@@ -8198,14 +8384,17 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
                  *     * `PICKED` - Picked
                  *     * `SHIPPED` - Shipped
+                 *     * `COMPLETED` - Received by the school
                  *     * `CANCELLED` - Cancelled
                  */
-                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+                status?: "CANCELLED" | "COMPLETED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
             };
             header?: never;
             path: {
@@ -8254,20 +8443,51 @@ export interface operations {
             };
         };
     };
+    orders_school_orders_confirm_receipt_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this school order. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["ConfirmReceipt"];
+                "application/x-www-form-urlencoded": components["schemas"]["ConfirmReceipt"];
+                "multipart/form-data": components["schemas"]["ConfirmReceipt"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Shipment"];
+                };
+            };
+        };
+    };
     orders_school_orders_demand_list: {
         parameters: {
             query?: {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
                  *     * `PICKED` - Picked
                  *     * `SHIPPED` - Shipped
+                 *     * `COMPLETED` - Received by the school
                  *     * `CANCELLED` - Cancelled
                  */
-                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+                status?: "CANCELLED" | "COMPLETED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
             };
             header?: never;
             path: {
@@ -8316,14 +8536,17 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
                  *     * `PICKED` - Picked
                  *     * `SHIPPED` - Shipped
+                 *     * `COMPLETED` - Received by the school
                  *     * `CANCELLED` - Cancelled
                  */
-                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+                status?: "CANCELLED" | "COMPLETED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
             };
             header?: never;
             path: {
@@ -8372,14 +8595,17 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
                  *     * `PICKED` - Picked
                  *     * `SHIPPED` - Shipped
+                 *     * `COMPLETED` - Received by the school
                  *     * `CANCELLED` - Cancelled
                  */
-                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+                status?: "CANCELLED" | "COMPLETED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
             };
             header?: never;
             path: {
@@ -8412,14 +8638,17 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
                  *     * `PICKED` - Picked
                  *     * `SHIPPED` - Shipped
+                 *     * `COMPLETED` - Received by the school
                  *     * `CANCELLED` - Cancelled
                  */
-                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+                status?: "CANCELLED" | "COMPLETED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
             };
             header?: never;
             path: {
@@ -8502,14 +8731,17 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
                  *     * `PICKED` - Picked
                  *     * `SHIPPED` - Shipped
+                 *     * `COMPLETED` - Received by the school
                  *     * `CANCELLED` - Cancelled
                  */
-                status?: "CANCELLED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
+                status?: "CANCELLED" | "COMPLETED" | "HOLD" | "PICKED" | "RELEASED" | "SHIPPED";
             };
             header?: never;
             path: {
@@ -8536,6 +8768,8 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `OPEN` - Open
                  *     * `CLOSED` - Closed
@@ -8640,6 +8874,8 @@ export interface operations {
                 order_date?: string;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `OPEN` - Open
                  *     * `CLOSED` - Closed
@@ -8672,6 +8908,8 @@ export interface operations {
                 group_order?: number;
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 /**
                  * @description * `OPEN` - Open
                  *     * `CLOSED` - Closed
@@ -8817,6 +9055,8 @@ export interface operations {
             query?: {
                 /** @description A page number within the paginated result set. */
                 page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
                 posted_at?: string;
                 production_order?: number;
             };

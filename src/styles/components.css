@@ -1354,3 +1354,14 @@ button.page-dots__dot {
   background: #fafbfc;
   border-top: 1px solid #f1f5f9;
 }
+
+/* An outlined destructive action: present, findable, not shouting. */
+.btn--danger-outline {
+  background: var(--surface);
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.btn--danger-outline:hover:not(:disabled) {
+  background: var(--error-bg);
+}

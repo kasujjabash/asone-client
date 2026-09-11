@@ -37,7 +37,7 @@ export function Sidebar({ user, onSignOut }: SidebarProps) {
           <img src={markUrl} width={33} height={32} alt="" aria-hidden />
         </span>
         <span className="sidebar__wordmark">
-          <b>As One Logistics</b>
+          <b>AsOne Logistics</b>
           <small>Uganda Operations</small>
         </span>
       </div>

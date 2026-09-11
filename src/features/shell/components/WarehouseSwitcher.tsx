@@ -6,19 +6,28 @@
  * for — a picker there would imply a choice they do not have.
  */
 
-import { ChevronDown, Warehouse } from 'lucide-react'
+import { ChevronDown, School, Warehouse } from 'lucide-react'
+import { scopeOf } from '@/domain/access'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useWarehouseFilter } from '../hooks/useWarehouseFilter'
 
 const ALL = 'all'
 
 export function WarehouseSwitcher() {
-  const { warehouseId, warehouseName, options, canSwitch, select } = useWarehouseFilter()
+  const { warehouseId, siteLabel, options, canSwitch, select } = useWarehouseFilter()
+  const { user } = useAuth()
 
   if (!canSwitch) {
+    // A school belongs to a school, not a warehouse — so it gets the school
+    // icon and the school's name. It used to read "All locations", which is
+    // the one thing a school-scoped user definitively does not have.
+    const atSchool = scopeOf(user) === 'assigned_schools'
+    const Icon = atSchool ? School : Warehouse
+
     return (
       <span className="topbar__site">
-        <Warehouse size={16} aria-hidden />
-        {warehouseName ?? 'All locations'}
+        <Icon size={16} aria-hidden />
+        {siteLabel}
       </span>
     )
   }

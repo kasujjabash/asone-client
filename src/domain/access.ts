@@ -67,6 +67,116 @@ export function siteLabel(user: CurrentUser | null): string | null {
 }
 
 /**
+ * Who may read the school order list.
+ *
+ * ---------------------------------------------------------------------------
+ * Not a matrix column, and deliberately not pretending to be one
+ * ---------------------------------------------------------------------------
+ * `SchoolOrderViewSet` splits read from write: writing is School Staff only
+ * (the "School Orders Entry" column), while reading is granted per view
+ * through `read_roles`. The readable set is School Staff, Finance and both
+ * leads — a rule with no single column behind it.
+ *
+ * Operations Manager sits alongside Program Lead because every other cell of
+ * AsOne's matrix treats the two identically.
+ *
+ * NOTE: this is wider than AsOne's printed matrix (p.9), which leaves the
+ * leads' cell blank. Widened at ERA 92's request on 9 September 2026, with
+ * the server and its tests changed to match — and it still needs AsOne's
+ * written confirmation. If they say no, drop the two leads here and narrow
+ * `read_roles` in orders/views.py back to Finance.
+ *
+ * Expressing that as some column that happens to fit — `inventory_adjustments`
+ * is Finance-only, so it would work — would be a lie that survives until
+ * somebody changes that cell for an unrelated reason. A named predicate that
+ * says which server rule it mirrors is honest about what it is.
+ *
+ * Keep this in step with `orders/views.py::SchoolOrderViewSet.read_roles`.
+ */
+export function canReadSchoolOrders(user: CurrentUser | null): boolean {
+  if (!user) return false
+  return (
+    user.role === 'SCHOOL_STAFF' ||
+    user.role === 'FINANCE' ||
+    user.role === 'PROGRAM_LEAD' ||
+    user.role === 'OPERATIONS_MANAGER'
+  )
+}
+
+/**
+ * Who may place, amend or cancel a school order — F30-F33, F36.
+ *
+ * **School Staff, and nobody else.** AsOne's p.9 matrix leaves the School
+ * Orders Entry column blank for both leads and for Finance, and the Role
+ * Access sheet keeps the point of sale off their screens. Finance and the
+ * leads *read* orders — see `canReadSchoolOrders` — they do not write them.
+ *
+ * Mirrors `orders/permissions.py::SchoolOrderAccess`, write half.
+ *
+ * Open question Q7 asks whether every school has a working computer. If the
+ * answer is no, somebody enters orders on their behalf and their role joins
+ * this predicate — which is why it is a predicate and not an inline check.
+ */
+export function canPlaceSchoolOrder(user: CurrentUser | null): boolean {
+  return user?.role === 'SCHOOL_STAFF'
+}
+
+/**
+ * Who may confirm a parcel arrived — the second half of F41.
+ *
+ * The school holding it. Separate from {@link canPlaceSchoolOrder} even
+ * though the audience matches today, because it is a different act — the
+ * school reports a fact about the document rather than changing it — and it
+ * is the likeliest to move if Q7 is answered badly.
+ *
+ * Mirrors `orders/permissions.py::CanConfirmReceipt`.
+ */
+export function canConfirmReceipt(user: CurrentUser | null): boolean {
+  return user?.role === 'SCHOOL_STAFF'
+}
+
+/**
+ * Who may release an order off Hold — F35.
+ *
+ * **Finance, and that is a placeholder.** AsOne's chart says an order waits
+ * until "School Monitor" confirms the invoice is paid, and nobody has said
+ * what School Monitor is — open question Q2. The server codes it as Finance
+ * on the reasoning that confirming money has arrived is a finance act, and
+ * says plainly that this is its reading rather than AsOne's instruction.
+ *
+ * Deliberately not School Staff: a school marking its own invoice paid is a
+ * control decision AsOne has not made.
+ *
+ * Mirrors `orders/permissions.py::CanConfirmPayment`. When Q2 is answered,
+ * both change together.
+ */
+export function canConfirmPayment(user: CurrentUser | null): boolean {
+  return user?.role === 'FINANCE'
+}
+
+/**
+ * Who may read a packing list — F40.
+ *
+ * The leads and the warehouse that packs it. AsOne's checklist leaves the
+ * School Staff cell blank, and the server enforces that
+ * (`CanReadPackingList`), so a school clerk's Print button is disabled with
+ * the reason rather than left to fail on a 403.
+ *
+ * Worth querying with AsOne: their definitions page says a school uses the
+ * invoice number and student name to hand shipments to the right child,
+ * which is what a packing list is for. The server's reading — and so this
+ * one — is that the school gets the printed sheet in the box, not a screen.
+ */
+export function canReadPackingList(user: CurrentUser | null): boolean {
+  if (!user) return false
+  return (
+    user.role === 'PROGRAM_LEAD' ||
+    user.role === 'OPERATIONS_MANAGER' ||
+    user.role === 'WAREHOUSE_STAFF'
+  )
+}
+
+/**
  * True while the account is held at the password gate.
  *
  * The backend answers 403 on almost everything in this state — only

@@ -5,8 +5,16 @@
  * `count` answers "how many" without fetching a single row.
  */
 
-import { get } from './http'
-import type { OrderOnHold, Page, SchoolOrder } from './types'
+import { get, post } from './http'
+import type {
+  Invoice,
+  OrderOnHold,
+  PackingList,
+  Page,
+  SchoolOrder,
+  SchoolOrderStatus,
+  Shipment,
+} from './types'
 
 /** Orders placed but not yet paid for. */
 export function ordersOnHold(params?: { page?: number }) {
@@ -29,6 +37,83 @@ export function outstandingBackorders(params?: { page?: number }) {
   return get<Page<Record<string, unknown>>>('/orders/reports/backorders/', params ?? undefined)
 }
 
-export function schoolOrders(params?: { status?: string; order_date?: string; page?: number }) {
+export function schoolOrders(params?: {
+  status?: SchoolOrderStatus
+  order_date?: string
+  page?: number
+  /** Capped at 200 by the server's pagination class. */
+  page_size?: number
+}) {
   return get<Page<SchoolOrder>>('/orders/school-orders/', params ?? undefined)
+}
+
+export function schoolOrder(id: number) {
+  return get<SchoolOrder>(`/orders/school-orders/${id}/`)
+}
+
+/**
+ * The invoice, grouped by the kits the school chose.
+ *
+ * Every order has one from the moment it is placed — it is not a state the
+ * order moves into, which is why there is no "invoiced" status.
+ */
+export function invoice(id: number) {
+  return get<Invoice>(`/orders/school-orders/${id}/invoice/`)
+}
+
+/**
+ * Confirm payment and release to the warehouse — F35.
+ *
+ * Releasing *is* the payment confirmation: the order records `released_at`
+ * and a `payment_reference`. There is no separate paid state.
+ */
+export function releaseOrder(id: number, body?: { payment_reference?: string }) {
+  return post<SchoolOrder>(`/orders/school-orders/${id}/release/`, body ?? {})
+}
+
+/**
+ * The school says the parcel arrived — the second half of F41.
+ *
+ * The order becomes **Completed** only once every shipment on it is
+ * confirmed. An order can have two: a backorder may ship direct from a
+ * warehouse that is not the school's own (decision D2), so `shipment` may be
+ * omitted only when there is exactly one.
+ *
+ * This does not touch stock. It left the shelf at ship and stays gone —
+ * recording it here would mean goods already handed to a driver still
+ * counting as the warehouse's.
+ *
+ * `notes` is for what was wrong: short, damaged, the wrong student. It is
+ * recorded and nothing acts on it.
+ */
+export function confirmReceipt(
+  id: number,
+  body?: { shipment?: number; notes?: string },
+) {
+  return post<Shipment>(`/orders/school-orders/${id}/confirm-receipt/`, body ?? {})
+}
+
+/** Every despatch against an order. More than one is normal (D2). */
+export function orderShipments(id: number) {
+  return get<Shipment[]>(`/orders/school-orders/${id}/shipments/`)
+}
+
+/** Cancel an unpaid invoice. Cancelled, never deleted. */
+export function cancelOrder(id: number, reason: string) {
+  return post<SchoolOrder>(`/orders/school-orders/${id}/cancel/`, { reason })
+}
+
+/**
+ * Packing lists — what the design calls the delivery slip.
+ *
+ * One per shipment, so an order that has not shipped returns an empty list.
+ * The endpoint returns data, not a PDF: rendering and printing it is the
+ * frontend's job.
+ *
+ * Leads and warehouse staff only. The checklist leaves the School Staff cell
+ * blank on F40 — the likeliest reading being that a school gets the printed
+ * sheet in the box rather than a screen.
+ */
+export function packingLists(id: number) {
+  return get<PackingList[]>(`/orders/school-orders/${id}/packing-lists/`)
 }

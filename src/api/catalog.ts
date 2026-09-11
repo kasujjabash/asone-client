@@ -10,7 +10,7 @@ export function warehouses(params?: { page?: number }) {
 }
 
 // ---------------------------------------------------------------------------
-// Schools — F12
+// Schools — F12. Also what the order list's school filter uses.
 // ---------------------------------------------------------------------------
 
 export function schools(params?: {
