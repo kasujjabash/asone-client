@@ -13,8 +13,7 @@
  * the page already on screen — see `useSchools` for why.
  */
 
-import { Search } from 'lucide-react'
-import { Button } from '@/components'
+import { ChevronDown, Search } from 'lucide-react'
 import type { SchoolLevel, Warehouse } from '@/api/types'
 
 interface SchoolsFilterBarProps {
@@ -45,18 +44,18 @@ export function SchoolsFilterBar({
   onAdd,
 }: SchoolsFilterBarProps) {
   return (
-    <div className="toolbar">
-      <label className="filters__field filters__field--grow">
-        <Search size={16} aria-hidden />
+    <div className="schools-filter-card">
+      <div className="schools-filter__search">
+        <Search size={16} className="schools-filter__search-icon" aria-hidden />
         <input
           type="search"
           placeholder="Search school name or address…"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
         />
-      </label>
+      </div>
 
-      <span className="filters__field">
+      <div className="schools-filter__select-wrapper">
         <select
           aria-label="School type"
           value={level ?? ALL}
@@ -64,14 +63,16 @@ export function SchoolsFilterBar({
             const next = event.target.value
             onLevelChange(next === ALL ? null : (next as SchoolLevel))
           }}
+          className="schools-filter__select"
         >
           <option value={ALL}>Type: All</option>
-          <option value="PS">Primary School</option>
+          <option value="PS">Primary</option>
           <option value="HS">High School</option>
         </select>
-      </span>
+        <ChevronDown size={14} className="schools-filter__chevron" aria-hidden />
+      </div>
 
-      <span className="filters__field">
+      <div className="schools-filter__select-wrapper">
         <select
           aria-label="Primary warehouse"
           value={warehouseId === null ? ALL : String(warehouseId)}
@@ -79,6 +80,7 @@ export function SchoolsFilterBar({
             const next = event.target.value
             onWarehouseChange(next === ALL ? null : Number(next))
           }}
+          className="schools-filter__select"
         >
           <option value={ALL}>Warehouse: All</option>
           {warehouses.map((warehouse) => (
@@ -87,9 +89,10 @@ export function SchoolsFilterBar({
             </option>
           ))}
         </select>
-      </span>
+        <ChevronDown size={14} className="schools-filter__chevron" aria-hidden />
+      </div>
 
-      <span className="filters__field">
+      <div className="schools-filter__select-wrapper">
         <select
           aria-label="Status"
           value={isActive === null ? ALL : isActive ? 'active' : 'inactive'}
@@ -97,14 +100,18 @@ export function SchoolsFilterBar({
             const next = event.target.value
             onIsActiveChange(next === ALL ? null : next === 'active')
           }}
+          className="schools-filter__select"
         >
           <option value={ALL}>Status: All</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="active">Status: Active</option>
+          <option value="inactive">Status: Inactive</option>
         </select>
-      </span>
+        <ChevronDown size={14} className="schools-filter__chevron" aria-hidden />
+      </div>
 
-      <Button onClick={onAdd}>+ Add School</Button>
+      <button type="button" className="schools-filter__add-btn" onClick={onAdd}>
+        + Add School
+      </button>
     </div>
   )
 }

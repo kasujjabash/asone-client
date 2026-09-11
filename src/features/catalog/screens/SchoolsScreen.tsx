@@ -6,9 +6,8 @@
  */
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { AppShell } from '@/features/shell/components/AppShell'
-import { paths } from '@/routes/paths'
+import { AddSchoolModal } from '../components/AddSchoolModal'
 import { SchoolsFilterBar } from '../components/SchoolsFilterBar'
 import { SchoolsTable } from '../components/SchoolsTable'
 import { useSchools, type SchoolFilters } from '../hooks/useSchools'
@@ -23,8 +22,8 @@ const EMPTY_FILTERS: SchoolFilters = {
 }
 
 export function SchoolsScreen() {
-  const navigate = useNavigate()
   const [filters, setFilters] = useState<SchoolFilters>(EMPTY_FILTERS)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   const { schools, totalCount, isLoading } = useSchools(filters)
   const { warehouses } = useWarehouseOptions()
@@ -40,9 +39,9 @@ export function SchoolsScreen() {
 
   return (
     <AppShell title="Schools">
-      <header className="page-head">
-        <h1 className="page-head__title">Schools</h1>
-        <p className="page-head__subtitle">
+      <header className="schools-page-head">
+        <h1 className="schools-page-head__title">Schools</h1>
+        <p className="schools-page-head__subtitle">
           Manage uniform programs, student enrollment ratios, and school dispatch hubs.
         </p>
       </header>
@@ -57,7 +56,7 @@ export function SchoolsScreen() {
         isActive={filters.isActive}
         onIsActiveChange={(isActive) => applyFilter({ isActive })}
         warehouses={warehouses}
-        onAdd={() => navigate(paths.schoolNew)}
+        onAdd={() => setIsAddModalOpen(true)}
       />
 
       <SchoolsTable
@@ -66,7 +65,13 @@ export function SchoolsScreen() {
         loading={isLoading}
         page={filters.page}
         onPageChange={changePage}
-        onAdd={() => navigate(paths.schoolNew)}
+        onAdd={() => setIsAddModalOpen(true)}
+      />
+
+      <AddSchoolModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        warehouses={warehouses}
       />
     </AppShell>
   )
