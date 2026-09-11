@@ -624,18 +624,6 @@ button.page-dots__dot {
   outline-offset: 1px;
 }
 
-/* Select's chevron is decorative, not a control of its own — clicks must
-   reach the <select> beneath it, not stop on the icon. */
-.textfield__trailing--static {
-  pointer-events: none;
-  color: var(--text-muted);
-}
-
-.textfield__input--select {
-  appearance: none;
-  cursor: pointer;
-}
-
 .textfield--invalid .textfield__input {
   border-color: var(--error);
 }

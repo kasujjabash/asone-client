@@ -41,8 +41,10 @@ import { formatUGX } from '@/domain/money'
 import { paymentLabel, paymentTone, schoolOrderTone } from '@/domain/status'
 import { AppShell } from '@/features/shell/components/AppShell'
 import { paths } from '@/routes/paths'
+import { AddSchoolModal } from '../components/AddSchoolModal'
 import { useSchool } from '../hooks/useSchool'
 import { useSchoolOrdersForSchool } from '../hooks/useSchoolOrdersForSchool'
+import { useWarehouseOptions } from '../hooks/useWarehouseOptions'
 import type { SchoolOrder } from '@/api/types'
 
 const TABS = ['Orders', 'Students', 'Shipments', 'Backorders'] as const
@@ -69,11 +71,13 @@ export function SchoolDetailScreen() {
   const navigate = useNavigate()
   const { school, isLoading } = useSchool(schoolId)
   const [tab, setTab] = useState<SchoolTab>('Orders')
+  const [isEditOpen, setIsEditOpen] = useState(false)
   const {
     orders,
     isLoading: ordersLoading,
     isError: ordersErrored,
   } = useSchoolOrdersForSchool(schoolId)
+  const { warehouses } = useWarehouseOptions()
 
   if (isLoading) return <LoadingScreen message="Loading school…" />
 
@@ -114,7 +118,7 @@ export function SchoolDetailScreen() {
             <button
               type="button"
               className="school-summary-card__btn-secondary"
-              onClick={() => navigate(paths.schoolEdit(school.id))}
+              onClick={() => setIsEditOpen(true)}
             >
               Edit Details
             </button>
@@ -209,6 +213,19 @@ export function SchoolDetailScreen() {
           )}
         </div>
       </div>
+
+      <AddSchoolModal
+        // React Router doesn't remount this screen when navigating between
+        // two different schools' detail pages (same route element, params
+        // just change) — without a key here, the modal's internal state
+        // would carry over from whichever school it last opened for. Same
+        // fix as the Warehouses/Tailoring Centers modals, see those screens.
+        key={school.id}
+        isOpen={isEditOpen}
+        onClose={() => setIsEditOpen(false)}
+        warehouses={warehouses}
+        school={school}
+      />
     </AppShell>
   )
 }

@@ -33,7 +33,6 @@ import { OrderDetailScreen } from '@/features/orders/screens/OrderDetailScreen'
 import { OrdersListScreen } from '@/features/orders/screens/OrdersListScreen'
 import { canReadSchoolOrders } from '@/domain/access'
 import { SchoolDetailScreen } from '@/features/catalog/screens/SchoolDetailScreen'
-import { SchoolFormScreen } from '@/features/catalog/screens/SchoolFormScreen'
 import { SchoolsScreen } from '@/features/catalog/screens/SchoolsScreen'
 import { WarehousesScreen } from '@/features/catalog/screens/WarehousesScreen'
 import { TailoringCentersScreen } from '@/features/catalog/screens/TailoringCentersScreen'
@@ -121,34 +120,13 @@ export function AppRoutes() {
           })}
 
           {/*
-            Schools' add/edit/detail screens are reached from the Schools
-            list, not the sidebar, so they are not entries in
-            `navigation.ts` and are not covered by the loop above. They still
-            need the same guard as `/schools` itself: `table_updates`.
-            React Router ranks a static segment over a dynamic one at the
-            same depth, so `/schools/new` matches before `/schools/:id` can
-            claim it.
+            The school detail screen is reached from the Schools list, not
+            the sidebar, so it is not an entry in `navigation.ts` and is not
+            covered by the loop above. It still needs the same guard as
+            `/schools` itself: `table_updates`. Add and edit are both a modal
+            on this screen and on the list — see `AddSchoolModal` — not
+            separate routes, so there is only this one to add.
           */}
-          <Route
-            path="/schools/new"
-            element={
-              <RequireAuth>
-                <RequireAccess requires="table_updates">
-                  <SchoolFormScreen />
-                </RequireAccess>
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/schools/:id/edit"
-            element={
-              <RequireAuth>
-                <RequireAccess requires="table_updates">
-                  <SchoolFormScreen />
-                </RequireAccess>
-              </RequireAuth>
-            }
-          />
           <Route
             path="/schools/:id"
             element={

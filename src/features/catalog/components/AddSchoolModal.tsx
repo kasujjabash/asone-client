@@ -1,8 +1,11 @@
 /**
- * Add School Modal.
+ * Add or edit a School — one modal for both, same pattern as
+ * `AddWarehouseModal` / `AddTailoringCenterModal`.
  *
- * Allows quick registration of a new school directly from the SchoolsScreen
- * without leaving the page.
+ * Editing used to be a separate full-page route (`/schools/:id/edit`,
+ * `SchoolFormScreen` + `SchoolForm`), the one place in Locations that broke
+ * from the modal pattern the other two screens established. Removed in
+ * favour of this, so there is one way to add or edit a school, not two.
  */
 
 import { ChevronDown } from 'lucide-react'
@@ -16,6 +19,8 @@ interface AddSchoolModalProps {
   isOpen: boolean
   onClose: () => void
   warehouses: Warehouse[]
+  /** Present when editing; absent when adding. */
+  school?: School | null
   onSuccess?: (school: School) => void
 }
 
@@ -23,30 +28,33 @@ export function AddSchoolModal({
   isOpen,
   onClose,
   warehouses,
+  school,
   onSuccess,
 }: AddSchoolModalProps) {
-  const [name, setName] = useState('')
-  const [level, setLevel] = useState<SchoolLevel | ''>('PS')
+  const [name, setName] = useState(school?.name ?? '')
+  const [level, setLevel] = useState<SchoolLevel | ''>(school?.level ?? 'PS')
   // '' means "nothing chosen yet", not "no warehouses" — `warehouses` arrives
   // from an async fetch that has often not resolved on first render, so
   // seeding this from `warehouses[0]` at mount time would frequently seed it
   // from an empty list. The effective value below falls back to the first
   // warehouse once the list has actually loaded, computed at render time
   // rather than synced back into state.
-  const [warehouseId, setWarehouseId] = useState('')
-  const [address, setAddress] = useState('')
+  const [warehouseId, setWarehouseId] = useState(
+    school?.primary_warehouse ? String(school.primary_warehouse) : '',
+  )
+  const [address, setAddress] = useState(school?.address ?? '')
 
   const effectiveWarehouseId = warehouseId || (warehouses[0] ? String(warehouses[0].id) : '')
 
-  const save = useSaveSchool()
+  const save = useSaveSchool(school?.id)
   const error = save.error ? toApiError(save.error) : null
   const fieldError = (fieldName: string) => error?.fields?.[fieldName]?.[0]
 
   function handleReset() {
-    setName('')
-    setLevel('PS')
-    setWarehouseId('')
-    setAddress('')
+    setName(school?.name ?? '')
+    setLevel(school?.level ?? 'PS')
+    setWarehouseId(school?.primary_warehouse ? String(school.primary_warehouse) : '')
+    setAddress(school?.address ?? '')
     save.reset()
   }
 
@@ -64,9 +72,8 @@ export function AddSchoolModal({
         name: name.trim(),
         level,
         primary_warehouse: Number(effectiveWarehouseId),
-        // As-is, not `|| undefined` — see the same fix in SchoolForm.tsx.
-        // Harmless on this add-only modal today, but wrong the moment
-        // anything reuses it for editing.
+        // As-is, not `|| undefined` — an edit that clears the address needs
+        // an explicit "", or PATCH omits the key and the old value survives.
         address: address.trim(),
       },
       {
@@ -82,8 +89,12 @@ export function AddSchoolModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Add School"
-      subtitle="Register a new school and assign it to a dispatch warehouse."
+      title={school ? 'Edit School' : 'Add School'}
+      subtitle={
+        school
+          ? 'Update this school’s details.'
+          : 'Register a new school and assign it to a dispatch warehouse.'
+      }
       maxWidth={520}
     >
       <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -201,7 +212,11 @@ export function AddSchoolModal({
             className="schools-modal-btn-primary"
             disabled={save.isPending || !name.trim() || !level || !effectiveWarehouseId}
           >
-            {save.isPending ? 'Adding School…' : 'Add School'}
+            {save.isPending
+              ? 'Saving…'
+              : school
+                ? 'Save Changes'
+                : 'Add School'}
           </button>
         </div>
       </form>
