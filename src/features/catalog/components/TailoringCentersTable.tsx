@@ -7,7 +7,7 @@
  */
 
 import { Pencil, Warehouse as TailoringCenterIcon } from 'lucide-react'
-import { Button, EmptyState, Pagination } from '@/components'
+import { EmptyState, Pagination } from '@/components'
 import type { TailoringCenter } from '@/api/types'
 
 const PAGE_SIZE = 50
@@ -70,14 +70,14 @@ export function TailoringCentersTable({
                 <td className="schools-table__td-name">{center.name}</td>
                 <td className="schools-table__td-muted">{center.address || '—'}</td>
                 <td>
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
+                    type="button"
+                    className="schools-table__edit-btn"
                     onClick={() => onEdit(center)}
                     aria-label={`Edit ${center.name}`}
                   >
                     <Pencil size={16} aria-hidden />
-                  </Button>
+                  </button>
                 </td>
               </tr>
             ))}

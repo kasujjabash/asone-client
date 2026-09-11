@@ -327,8 +327,47 @@
   white-space: nowrap;
 }
 
-.school-summary-card__btn-primary:hover {
+.school-summary-card__btn-primary:hover:not(:disabled) {
   background: #3d5a62;
+}
+
+.school-summary-card__btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------------
+ * Table row actions — the edit pencil on Warehouses/Tailoring Centers
+ *
+ * These have no detail screen, so editing is a row action rather than a
+ * page — kept to the same 6px radius as every other control on these
+ * screens, not the app-wide `Button` component's pill shape.
+ * ------------------------------------------------------------------------ */
+
+.schools-table__edit-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  background: transparent;
+  color: #64748b;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.schools-table__edit-btn:hover {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #e2e8f0;
+}
+
+.schools-table__edit-btn:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
 
 .school-summary-card__meta {

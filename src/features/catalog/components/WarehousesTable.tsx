@@ -4,7 +4,7 @@
  */
 
 import { Pencil, Warehouse as WarehouseIcon } from 'lucide-react'
-import { Button, EmptyState, Pagination } from '@/components'
+import { EmptyState, Pagination } from '@/components'
 import type { Warehouse } from '@/api/types'
 
 const PAGE_SIZE = 50
@@ -71,14 +71,14 @@ export function WarehousesTable({
                   {warehouse.primary_tailoring_center_name || '—'}
                 </td>
                 <td>
-                  <Button
-                    variant="ghost"
-                    size="sm"
+                  <button
+                    type="button"
+                    className="schools-table__edit-btn"
                     onClick={() => onEdit(warehouse)}
                     aria-label={`Edit ${warehouse.name}`}
                   >
                     <Pencil size={16} aria-hidden />
-                  </Button>
+                  </button>
                 </td>
               </tr>
             ))}

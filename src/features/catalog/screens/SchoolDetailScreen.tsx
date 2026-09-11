@@ -36,7 +36,7 @@ import {
 } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Badge, Button, EmptyState, LoadingScreen } from '@/components'
+import { Badge, EmptyState, LoadingScreen } from '@/components'
 import { formatUGX } from '@/domain/money'
 import { paymentLabel, paymentTone, schoolOrderTone } from '@/domain/status'
 import { AppShell } from '@/features/shell/components/AppShell'
@@ -118,12 +118,14 @@ export function SchoolDetailScreen() {
             >
               Edit Details
             </button>
-            <Button
+            <button
+              type="button"
+              className="school-summary-card__btn-primary"
               disabled
               title="Placing an order is School Staff only — a lead's account has no school to place one for."
             >
               + New Student Order
-            </Button>
+            </button>
           </div>
         </div>
 

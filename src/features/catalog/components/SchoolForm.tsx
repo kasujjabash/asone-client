@@ -11,7 +11,7 @@
  */
 
 import { useState, type FormEvent } from 'react'
-import { Alert, Button, Select, TextField } from '@/components'
+import { Alert, Select, TextField } from '@/components'
 import type { SchoolInput } from '@/api/catalog'
 import type { ApiError } from '@/api/errors'
 import type { School, SchoolLevel, Warehouse } from '@/api/types'
@@ -111,12 +111,23 @@ export function SchoolForm({
       />
 
       <div className="signin__actions" style={{ justifyContent: 'flex-end', gap: 12 }}>
-        <Button type="button" variant="secondary" onClick={onCancel} disabled={pending}>
+        {/* schools-modal-btn-* rather than the app-wide Button component —
+            same 6px-radius convention as every other button on the Locations
+            screens (Button defaults to a fully pill-shaped radius). This
+            page's inputs (TextField/Select) still use the base design
+            system's look; that's a separate, bigger inconsistency than
+            button rounding and left alone here. */}
+        <button
+          type="button"
+          className="schools-modal-btn-secondary"
+          onClick={onCancel}
+          disabled={pending}
+        >
           Cancel
-        </Button>
-        <Button type="submit" disabled={pending}>
+        </button>
+        <button type="submit" className="schools-modal-btn-primary" disabled={pending}>
           {pending ? 'Saving…' : school ? 'Save Changes' : 'Add School'}
-        </Button>
+        </button>
       </div>
     </form>
   )
