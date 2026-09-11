@@ -18,6 +18,7 @@
 import { get, post } from './http'
 import { tokens } from './tokens'
 import type {
+  AccountRequest,
   Credentials,
   CurrentUser,
   EmailVerification,
@@ -26,6 +27,8 @@ import type {
   Page,
   RoleInfo,
   Session,
+  UserAdmin,
+  UserCreate,
   VerifyLoginCode,
 } from './types'
 
@@ -70,6 +73,57 @@ export async function verifyLoginCode(input: VerifyLoginCode): Promise<Session> 
  */
 export function verifyEmail(input: EmailVerification): Promise<{ detail: string }> {
   return post<{ detail: string }>('/auth/verify-email/', input)
+}
+
+/**
+ * "Get Started Onboarding" — request an account.
+ *
+ * MOCKED: there is no self-service registration endpoint on the server.
+ * Accounts are created by a Program Lead or Operations Manager through
+ * `POST /auth/users/`, and self-registration may not be something AsOne
+ * wants at all (every transaction records who performed it). This stub
+ * exists so the screen the design calls for can be built and reviewed now;
+ * swap the body for a real `post()` call once that decision is made and an
+ * endpoint exists.
+ */
+export function requestAccount(input: AccountRequest): Promise<LoginChallenge> {
+  return new Promise((resolve) => {
+    setTimeout(
+      () =>
+        resolve({
+          challenge: 'mock-challenge',
+          expires_at: new Date(Date.now() + 10 * 60_000).toISOString(),
+          detail: 'A verification code has been sent.',
+          email_hint: maskEmail(input.email),
+        }),
+      600,
+    )
+  })
+}
+
+function maskEmail(email: string): string {
+  const [name, domain] = email.split('@')
+  if (!name || !domain) return email
+  return `${name[0]}${'•'.repeat(Math.max(name.length - 2, 1))}${name.slice(-1)}@${domain}`
+}
+
+/**
+ * Confirm the code sent to a requested account's address.
+ *
+ * MOCKED alongside `requestAccount` — the server has no registration flow
+ * for this to complete. Accepts any 6-digit code so the screen can be
+ * reviewed end to end.
+ */
+export function confirmAccount(input: EmailVerification): Promise<{ detail: string }> {
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      if (input.code.length === 6) {
+        resolve({ detail: 'Email confirmed.' })
+      } else {
+        reject(new Error('Enter the 6-digit code.'))
+      }
+    }, 600)
+  })
 }
 
 /**
@@ -129,4 +183,26 @@ export function loginAttempts(params?: {
   page?: number
 }): Promise<Page<LoginAttempt>> {
   return get('/auth/login-attempts/', params)
+}
+
+/**
+ * Staff accounts — the Users tab of Users & Roles.
+ *
+ * Program Lead and Operations Manager only; the server enforces this and a
+ * 403 here means the role does not hold `table_updates`, not a bug.
+ */
+export function listUsers(params?: { page?: number }): Promise<Page<UserAdmin>> {
+  return get<Page<UserAdmin>>('/auth/users/', params)
+}
+
+/**
+ * "+ Add User" — provisioning a new staff account.
+ *
+ * There is no self-service sign-up (see `requestAccount`): every account is
+ * created by a lead through this endpoint. The password is generated unless
+ * one is typed and is returned once in the response — never emailed — so the
+ * caller must show it to the person who will pass it on.
+ */
+export function createUser(input: UserCreate): Promise<UserAdmin> {
+  return post<UserAdmin>('/auth/users/', input)
 }

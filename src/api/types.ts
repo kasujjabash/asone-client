@@ -55,7 +55,17 @@ export type Scope = S['ScopeEnum']
 export type WarehouseSummary = S['WarehouseSummary']
 export type SchoolSummary = S['SchoolSummary']
 export type UserAdmin = S['UserAdmin']
-export type UserCreate = S['UserCreate']
+
+/**
+ * Creating a staff account — the request body for `POST /auth/users/`.
+ *
+ * SCHEMA GAP — the generated type includes `id` as required, because the
+ * server names the same serializer for the request and the 201 response,
+ * and `id` is only ever present on the latter. Ask for a request-only
+ * serializer (or `@extend_schema(request=...)`) and delete this override.
+ */
+export type UserCreate = Omit<S['UserCreate'], 'id'>
+
 export type LoginAttempt = S['LoginAttempt']
 
 /**
@@ -123,6 +133,19 @@ export type VerifyLoginCode = S['VerifyLoginCode']
 
 /** A new member of staff confirming the address their account was created against. */
 export type EmailVerification = S['EmailVerification']
+
+/**
+ * "Get Started Onboarding" — request an account.
+ *
+ * MOCKED — no server type backs this; see `requestAccount` in `api/auth.ts`.
+ * Shaped to match the design's Create Account fields until a real
+ * registration endpoint exists to generate a type from.
+ */
+export interface AccountRequest {
+  full_name: string
+  email: string
+  phone_number: string
+}
 
 /**
  * What `POST /auth/login/verify/` returns — the tokens and the whole user,

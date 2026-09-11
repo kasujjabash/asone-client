@@ -12,5 +12,6 @@
 export const paths = {
   welcome: '/',
   signIn: '/sign-in',
+  createAccount: '/create-account',
   dashboard: '/dashboard',
 } as const

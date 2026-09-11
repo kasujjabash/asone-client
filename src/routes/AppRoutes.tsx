@@ -24,6 +24,7 @@ import { SnackbarProvider } from '@/components'
 import { AuthProvider } from '@/features/auth/AuthProvider'
 import { NavGroupsProvider } from '@/features/shell/NavGroupsProvider'
 import { WarehouseFilterProvider } from '@/features/shell/WarehouseFilterProvider'
+import { CreateAccountScreen } from '@/features/auth/screens/CreateAccountScreen'
 import { SignInScreen } from '@/features/auth/screens/SignInScreen'
 import { WelcomeScreen } from '@/features/auth/screens/WelcomeScreen'
 import { HomeScreen } from '@/features/dashboard/screens/HomeScreen'
@@ -31,6 +32,7 @@ import { ReportsIndexScreen } from '@/features/reports/screens/ReportsIndexScree
 import { StockReportScreen } from '@/features/reports/screens/StockReportScreen'
 import { OrderDetailScreen } from '@/features/orders/screens/OrderDetailScreen'
 import { OrdersListScreen } from '@/features/orders/screens/OrdersListScreen'
+import { UsersRolesScreen } from '@/features/users/screens/UsersRolesScreen'
 import { canReadSchoolOrders } from '@/domain/access'
 import { ALL_NAV_ITEMS } from '@/features/shell/navigation'
 import { PlaceholderScreen } from '@/features/shell/screens/PlaceholderScreen'
@@ -48,6 +50,7 @@ const SCREENS: Record<string, ComponentType> = {
   '/dashboard': HomeScreen,
   '/reports': ReportsIndexScreen,
   '/orders': OrdersListScreen,
+  '/users': UsersRolesScreen,
 }
 
 export function AppRoutes() {
@@ -67,6 +70,7 @@ export function AppRoutes() {
               <Routes>
           <Route path={paths.welcome} element={<WelcomeScreen />} />
           <Route path={paths.signIn} element={<SignInScreen />} />
+          <Route path={paths.createAccount} element={<CreateAccountScreen />} />
 
           {/*
             Detail screens that hang off a nav destination rather than being
