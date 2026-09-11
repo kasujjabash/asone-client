@@ -7,6 +7,7 @@
  */
 
 export { Alert } from './Alert'
+export { AnimatedNumber } from './AnimatedNumber'
 export { Avatar } from './Avatar'
 export { Badge, type Tone } from './Badge'
 export { BrandMark } from './BrandMark'

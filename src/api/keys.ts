@@ -24,7 +24,9 @@ export const keys = {
   reorderAlerts: (warehouseId: number | null) => ['reorder-alerts', warehouseId] as const,
   movements: (warehouseId: number | null) => ['movements', warehouseId] as const,
   ordersOnHold: () => ['orders', 'on-hold'] as const,
-  ordersPartProcessed: () => ['orders', 'part-processed'] as const,
+  ordersPartProcessed: (warehouseId: number | null) =>
+    ['orders', 'part-processed', warehouseId] as const,
+  shipments: (warehouseId: number | null) => ['orders', 'shipments', warehouseId] as const,
   backorders: () => ['orders', 'backorders'] as const,
   schoolOrdersForSchool: (schoolId: number) => ['orders', 'by-school', schoolId] as const,
   receipts: () => ['receipts'] as const,

@@ -12,7 +12,7 @@
  * submit without making the user reach for a button.
  */
 
-import { useRef, type ChangeEvent, type ClipboardEvent, type KeyboardEvent } from 'react'
+import { useEffect, useRef, type ChangeEvent, type ClipboardEvent, type KeyboardEvent } from 'react'
 
 interface OtpInputProps {
   value: string
@@ -38,6 +38,12 @@ export function OtpInput({
   label = 'Verification code',
 }: OtpInputProps) {
   const boxes = useRef<(HTMLInputElement | null)[]>([])
+
+  useEffect(() => {
+    if (!disabled && boxes.current[0]) {
+      boxes.current[0].focus()
+    }
+  }, [disabled])
 
   const focusBox = (index: number) => {
     boxes.current[Math.max(0, Math.min(index, length - 1))]?.focus()

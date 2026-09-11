@@ -712,3 +712,563 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ---------------------------------------------------------------------------
+ * Site cards — Warehouses and Tailoring Centers
+ *
+ * Both lists are cards, not the `schools-table` row-per-record shape:
+ * neither is a plain record the way a school is, both carry live stats and
+ * a nested list of their own. Same 6px-radius, same colour palette as the
+ * rest of Locations — a different layout for a genuinely different shape
+ * of data, not a different visual language.
+ * ------------------------------------------------------------------------ */
+
+.site-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+@media (max-width: 900px) {
+  .site-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.site-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px 22px;
+}
+
+.site-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.site-card__top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-card__title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.site-card__address {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.site-card__meta-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 13px;
+  color: #475569;
+}
+
+.site-card__meta-line strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.site-card__stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .site-card__stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.site-card__stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 72px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  box-sizing: border-box;
+}
+
+.site-card__stat-label {
+  display: flex;
+  align-items: flex-start;
+  min-height: 25px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #64748b;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.site-card__stat-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+  margin: 6px 0 0 0;
+}
+
+.site-card__stat-value--alert {
+  color: #dc2626;
+}
+
+.site-card__stat-unit {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: #64748b;
+}
+
+.site-card__stat-value--alert .site-card__stat-unit {
+  color: #dc2626;
+}
+
+.site-card__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.site-card__actions .schools-modal-btn-primary,
+.site-card__actions .schools-modal-btn-secondary {
+  width: 100%;
+  height: 38px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.site-card__queue {
+  border-top: 1px solid #f1f5f9;
+  padding-top: 14px;
+}
+
+.site-card__queue-title {
+  margin: 0 0 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.site-card__queue-empty {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.site-card__queue-table-wrap {
+  overflow-x: auto;
+}
+
+.site-card__queue-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  text-align: left;
+}
+
+.site-card__queue-table th {
+  padding: 8px 10px;
+  font-weight: 600;
+  color: #94a3b8;
+  white-space: nowrap;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.site-card__queue-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.site-card__queue-row {
+  cursor: pointer;
+}
+
+.site-card__queue-row:hover {
+  background-color: #f8fafc;
+}
+
+.site-card__queue-row td:last-child {
+  white-space: normal;
+}
+
+.site-card__queue-more {
+  margin-top: 10px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #3d5a62;
+  cursor: pointer;
+}
+
+.site-card__queue-more:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------------------------
+ * Hub Console (Warehouse Detail) Styles
+ * ------------------------------------------------------------------------ */
+
+.hub-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-top: 18px;
+}
+
+@media (max-width: 960px) {
+  .hub-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .hub-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hub-kpi-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+
+.hub-kpi-card__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.hub-kpi-card__value {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+  margin-bottom: 6px;
+}
+
+.hub-kpi-card__caption {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.hub-grid-2x2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .hub-grid-2x2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hub-panel {
+  background: var(--surface);
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+.hub-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.hub-panel__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.hub-panel__link {
+  font-size: 13px;
+  font-weight: 600;
+  color: #5e8e8e;
+  text-decoration: none;
+}
+
+.hub-panel__link:hover {
+  text-decoration: underline;
+}
+
+.hub-card-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--surface);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  gap: 12px;
+  transition: border-color 120ms ease;
+}
+
+.hub-card-item:hover {
+  border-color: #cbd5e1;
+}
+
+.hub-card-item:last-child {
+  margin-bottom: 0;
+}
+
+.hub-card-item__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.hub-card-item__icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.hub-card-item__text {
+  min-width: 0;
+}
+
+.hub-card-item__title {
+  margin: 0 0 2px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub-card-item__subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #64748b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub-dispatch-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.hub-dispatch-item:last-child {
+  border-bottom: none;
+}
+
+.hub-dispatch-item__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hub-dispatch-item__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #5e8e8e;
+  flex-shrink: 0;
+}
+
+/* An empty queue or an overflow note — no row to style, just a line of
+   muted text. */
+.hub-panel__empty {
+  margin: 0;
+  padding: 12px 4px;
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ---------------------------------------------------------------------------
+ * Tailoring Center Full-Width Cards
+ * ------------------------------------------------------------------------ */
+
+.tc-card {
+  background: var(--surface);
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.tc-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.tc-card__title {
+  margin: 0 0 6px 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tc-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 13px;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.tc-card__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tc-card__chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tc-card__chip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 6px 14px;
+  text-align: center;
+  min-width: 84px;
+}
+
+.tc-card__chip-label {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.02em;
+  margin-bottom: 2px;
+}
+
+.tc-card__chip-value {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.tc-card__chip-value--blue {
+  color: #2563eb;
+}
+
+.tc-card__chip-value--green {
+  color: #16a34a;
+}
+
+.tc-card__queue-title {
+  margin: 16px 0 10px;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.tc-card__table-wrap {
+  overflow-x: auto;
+}
+
+.tc-card__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.tc-card__table thead tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tc-card__table th {
+  padding: 10px 14px;
+  font-weight: 600;
+  color: #475569;
+  font-size: 12.5px;
+  white-space: nowrap;
+  background: var(--surface);
+}
+
+.tc-card__table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+
+.tc-card__table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tc-card__table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+.tc-card__po-num {
+  font-weight: 600;
+  color: #5e8e8e;
+}
+
+.tc-card__batch-qty {
+  font-weight: 700;
+  color: #0f172a;
+}

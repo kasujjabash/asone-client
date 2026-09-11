@@ -16,5 +16,8 @@ export const paths = {
   schools: '/schools',
   schoolDetail: (id: number | string) => `/schools/${id}`,
   warehouses: '/warehouses',
+  warehouseDetail: (id: number | string) => `/warehouses/${id}`,
   tailoringCenters: '/tailoring-centers',
+  inventory: '/inventory',
+  productionOrders: '/production-orders',
 } as const

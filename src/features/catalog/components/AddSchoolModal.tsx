@@ -1,11 +1,11 @@
 /**
- * Add or edit a School — one modal for both, same pattern as
- * `AddWarehouseModal` / `AddTailoringCenterModal`.
+ * Add or edit a School — one modal for both.
  *
  * Editing used to be a separate full-page route (`/schools/:id/edit`,
- * `SchoolFormScreen` + `SchoolForm`), the one place in Locations that broke
- * from the modal pattern the other two screens established. Removed in
- * favour of this, so there is one way to add or edit a school, not two.
+ * `SchoolFormScreen` + `SchoolForm`). Removed in favour of this, so there is
+ * one way to add or edit a school, not two. Warehouses and Tailoring
+ * Centers had the same modal-add/edit pattern once; both screens are
+ * view-only now, so this is the only add/edit modal left in Locations.
  */
 
 import { ChevronDown } from 'lucide-react'

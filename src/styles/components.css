@@ -667,7 +667,7 @@ button.page-dots__dot {
   flex-direction: column;
   gap: var(--space-5);
   width: 100%;
-  max-width: 360px;
+  max-width: 440px;
 }
 
 @media (max-width: 900px) {
@@ -771,50 +771,114 @@ button.page-dots__dot {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--space-4);
+  gap: 16px;
   width: 100%;
-  max-width: 452px;
-  padding: var(--space-7) var(--space-6);
+  max-width: 440px;
+  padding: 40px 36px 36px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid #e5e7eb;
   border-radius: 16px;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
   text-align: center;
+  margin: auto;
 }
 
 .auth-card__halo {
   display: grid;
   place-items: center;
-  width: 70px;
-  height: 70px;
-  border-radius: var(--radius-pill);
-  background: var(--accent-halo);
-  color: var(--accent);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #d5faf1;
+  color: #355e5e;
+  margin-bottom: 2px;
 }
 
 .auth-card__title {
   margin: 0;
-  font-family: var(--font-brand);
-  font-size: 24px;
-  font-weight: var(--weight-bold);
+  font-family: inherit;
+  font-size: 22px;
+  font-weight: 700;
   line-height: 1.2;
-  color: var(--accent);
+  color: #355e5e;
   text-wrap: balance;
 }
 
 .auth-card__body {
   margin: 0;
-  max-width: 36ch;
-  font-size: 15px;
-  line-height: var(--leading-normal);
-  color: var(--text-secondary);
+  max-width: 34ch;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #64748b;
   text-wrap: pretty;
 }
 
 .auth-card__links {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.auth-card__verify-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 28px;
+  background: #50727b;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+  margin-top: 6px;
+}
+
+.auth-card__verify-btn:hover:not(:disabled) {
+  background: #3d5a62;
+}
+
+.auth-card__verify-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.auth-card__backup-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #50727b;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.auth-card__backup-link:hover {
+  text-decoration: underline;
+}
+
+.auth-card__back-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.auth-card__back-link:hover {
+  color: #0f172a;
+  text-decoration: underline;
 }
 
 /* ---------------------------------------------------------------------------
@@ -826,40 +890,40 @@ button.page-dots__dot {
 
 .otp {
   display: flex;
-  gap: var(--space-3);
+  gap: 10px;
   justify-content: center;
   width: 100%;
+  margin: 6px 0;
 }
 
-/* Boxes shrink to fit rather than overflowing the card: six fixed 52px boxes
-   plus gaps need 372px, which is wider than a 360px handset leaves once the
-   card's padding is taken off. They grow no larger than designed. */
 .otp__box {
   flex: 1 1 0;
   min-width: 0;
-  max-width: 52px;
-  aspect-ratio: 52 / 56;
-  height: auto;
+  max-width: 50px;
+  height: 56px;
   padding: 0;
   background: var(--surface);
-  border: 1px solid var(--field-border);
-  border-radius: var(--radius-md);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   font-family: inherit;
-  font-size: 24px;
-  font-weight: var(--weight-bold);
+  font-size: 22px;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: center;
-  color: var(--text-primary);
+  color: #0f172a;
+  outline: none;
+  transition: all 120ms ease;
 }
 
 .otp__box--filled {
-  background: var(--field-filled);
+  background: #f8fafc;
+  border-color: #e2e8f0;
 }
 
-.otp__box:focus-visible {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
+.otp__box:focus {
+  background: #ffffff;
+  border: 2px solid #50727b;
+  box-shadow: none;
 }
 
 .otp__box:disabled {
@@ -873,16 +937,16 @@ button.page-dots__dot {
 
 @media (max-width: 480px) {
   .otp {
-    gap: var(--space-2);
+    gap: 6px;
   }
 
   .otp__box {
-    font-size: var(--text-h2);
+    font-size: 20px;
+    height: 50px;
   }
 
-  /* Give the boxes back the room the card's padding was taking. */
   .auth-card {
-    padding: var(--space-6) var(--space-4);
+    padding: 32px 20px;
   }
 }
 
@@ -1064,6 +1128,82 @@ button.page-dots__dot {
 .panel__body > .skeleton-stack,
 .panel__body > .skeleton {
   flex: 0 0 auto;
+}
+
+/* ---------------------------------------------------------------------------
+ * Hub list — the warehouse hub console's four queue panels
+ * ------------------------------------------------------------------------ */
+
+.hub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.hub-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.hub-list__main {
+  min-width: 0;
+}
+
+.hub-list__title {
+  margin: 0;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub-list__subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub-list__figure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.hub-list__figure-value {
+  margin: 0;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.hub-list__figure-value--alert {
+  color: var(--error);
+}
+
+.hub-list__figure-caption {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
 /* ---------------------------------------------------------------------------

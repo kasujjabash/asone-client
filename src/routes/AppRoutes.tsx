@@ -38,6 +38,7 @@ import { ReceivingScreen } from '@/features/receiving/screens/ReceivingScreen'
 import { canReadSchoolOrders } from '@/domain/access'
 import { SchoolDetailScreen } from '@/features/catalog/screens/SchoolDetailScreen'
 import { SchoolsScreen } from '@/features/catalog/screens/SchoolsScreen'
+import { WarehouseDetailScreen } from '@/features/catalog/screens/WarehouseDetailScreen'
 import { WarehousesScreen } from '@/features/catalog/screens/WarehousesScreen'
 import { TailoringCentersScreen } from '@/features/catalog/screens/TailoringCentersScreen'
 import { ALL_NAV_ITEMS } from '@/features/shell/navigation'
@@ -162,6 +163,21 @@ export function AppRoutes() {
               <RequireAuth>
                 <RequireAccess requires="table_updates">
                   <SchoolDetailScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+
+          {/*
+            Reached from the Warehouses list's "View Dashboard", not the
+            sidebar — same reasoning and same guard as `/schools/:id` above.
+          */}
+          <Route
+            path="/warehouses/:id"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="table_updates">
+                  <WarehouseDetailScreen />
                 </RequireAccess>
               </RequireAuth>
             }
