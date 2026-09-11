@@ -15,7 +15,7 @@
  * navigation, no storage decisions beyond handing tokens to `tokens`.
  */
 
-import { get, post } from './http'
+import { get, patch, post } from './http'
 import { tokens } from './tokens'
 import type {
   Credentials,
@@ -92,6 +92,25 @@ export async function logout(): Promise<void> {
 /** The signed-in user. Reachable even while the password gate is up. */
 export function me(): Promise<CurrentUser> {
   return get<CurrentUser>('/auth/me/')
+}
+
+/**
+ * Edit your own contact details — the Settings screen.
+ *
+ * **First name, last name and email only.** Role and site are deliberately
+ * not editable here: a person must not be able to promote themselves or move
+ * site. Sending either is ignored rather than refused, so do not offer them
+ * as fields — a control that silently does nothing is worse than no control.
+ *
+ * Changing the email changes the address you sign in with. A 400 on `email`
+ * means somebody else already has it.
+ */
+export function updateMe(body: {
+  first_name?: string
+  last_name?: string
+  email?: string
+}): Promise<CurrentUser> {
+  return patch<CurrentUser>('/auth/me/', body)
 }
 
 /**

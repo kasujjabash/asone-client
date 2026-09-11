@@ -3436,11 +3436,22 @@ export interface components {
             date: string;
             orders: number;
         };
-        /** @description One SKU on an order: ordered, received so far, still to come. */
+        /**
+         * @description One SKU on an order: ordered, received so far, still to come.
+         *
+         *     `sku` is the id, because the receiving screen posts these rows straight
+         *     back as receipt lines — without it the client would have to match on the
+         *     SKU number, which is a display string.
+         */
         OutstandingRow: {
+            sku: number;
             sku_number: string;
             sku_description: string;
+            sku_size: string;
             ordered: number;
+            /** @description What the TC's packing lists claimed they sent, across posted receipts. */
+            shipped: number;
+            /** @description What was actually counted. */
             received: number;
             outstanding: number;
         };
@@ -4122,6 +4133,8 @@ export interface components {
             readonly tailoring_center_name?: string;
             /** @description From the TC's handwritten packing list, exactly as written. */
             packing_list_number?: string;
+            /** @description The carrier or driver who delivered it, as given at the gate. */
+            carrier_name?: string;
             /** Format: date */
             date_received?: string;
             notes?: string;
@@ -4330,9 +4343,14 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
             readonly lines: components["schemas"]["ProductionOrderLine"][];
+            /** @description How many SKUs are on it — the design's "6 SKUs" column. */
+            readonly line_count: number;
             readonly total_quantity: number;
             /** Format: decimal */
             readonly total_value: string;
+            readonly quantity_received: number;
+            readonly fulfilment_status: string;
+            readonly fulfilment_status_display: string;
         };
         /**
          * @description A line, reading. Includes the SKU's details so a client can render the
@@ -4408,6 +4426,8 @@ export interface components {
             readonly tailoring_center_name: string;
             /** @description From the TC's handwritten packing list, exactly as written. */
             packing_list_number: string;
+            /** @description The carrier or driver who delivered it, as given at the gate. */
+            carrier_name?: string;
             /** Format: date */
             date_received: string;
             notes?: string;
@@ -4457,6 +4477,8 @@ export interface components {
             production_order: number;
             /** @description From the TC's handwritten packing list, exactly as written. */
             packing_list_number: string;
+            /** @description The carrier or driver who delivered it, as given at the gate. */
+            carrier_name?: string;
             /** Format: date */
             date_received: string;
             notes?: string;

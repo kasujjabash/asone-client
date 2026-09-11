@@ -34,6 +34,7 @@
 
 .btn--sm { padding: var(--btn-pad-sm); font-size: var(--text-caption); }
 .btn--lg { padding: var(--btn-pad-lg); font-size: var(--text-h3); }
+.btn--full { width: 100%; }
 
 .btn--primary {
   background: var(--btn-primary-bg);
@@ -1201,4 +1202,37 @@ button.page-dots__dot {
 
 .btn--danger-outline:hover:not(:disabled) {
   background: var(--error-bg);
+}
+
+/* ---------------------------------------------------------------------------
+ * Numbered pagination
+ *
+ * The default control shows "2 / 9". Where a design asks for page buttons,
+ * `numbered` renders these instead — same component, same position line.
+ * ------------------------------------------------------------------------ */
+
+.pagination__number {
+  min-width: 34px;
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font: inherit;
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.pagination__number:hover { background: var(--surface-sunken); }
+
+.pagination__number--current {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-on-accent);
+  font-weight: var(--weight-bold);
+}
+
+.pagination__gap {
+  padding: 0 var(--space-1);
+  color: var(--text-muted);
 }

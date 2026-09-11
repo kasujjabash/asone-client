@@ -340,34 +340,9 @@
  * header repeated.
  * ------------------------------------------------------------------------ */
 
+/* Report printing is the system-wide behaviour in print.css. Only the
+   report-specific page setup stays here. */
 @media print {
-  .sidebar,
-  .topbar,
-  .exports,
-  .filters,
-  .pagination,
-  .panel__view-all {
-    display: none !important;
-  }
-
-  .shell { grid-template-columns: 1fr; }
-  .shell__content { padding: 0; }
-
-  body { background: #ffffff; }
-
-  .panel,
-  .kpi {
-    border-color: #cccccc;
-    box-shadow: none;
-    background: #ffffff !important;
-    break-inside: avoid;
-  }
-
-  /* Repeat the header on every page a long ledger spills onto. */
-  .ledger thead { display: table-header-group; }
-  .ledger tr { break-inside: avoid; }
-
-  .table-scroll { overflow: visible; }
 
   /* Panels are sized for a screen; on paper they should be their content. */
   .panel { min-height: 0 !important; }

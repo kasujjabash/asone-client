@@ -96,7 +96,24 @@
 
   --text-primary: var(--tone-slate);
   --text-secondary: #475569;
-  --text-muted: var(--asone-gray);
+  /*
+   * Muted, but still readable.
+   *
+   * Was `--asone-gray` (#828e9b), which is **3.34:1 on white** — under the
+   * 4.5:1 WCAG AA floor for normal text. Forty rules use this token, so
+   * every hint, caption and timestamp in the system was set in a grey that
+   * is technically present and practically unreadable. Field hints on the
+   * production-order screen were the ones somebody actually reported.
+   *
+   * #667283 is 4.88:1 and is not a new colour: it is the same value the
+   * dashboard design already uses for its KPI labels (`--kpi-label`), so
+   * this brings the two into line rather than inventing a third grey.
+   *
+   * `--asone-gray` itself is unchanged — it is still the brand neutral, and
+   * still what `--border-strong` is drawn from. A border has no contrast
+   * requirement to meet; a sentence does.
+   */
+  --text-muted: #667283;
   --text-on-dark: #ffffff;
   --text-on-accent: #ffffff;
 
@@ -177,6 +194,18 @@
   --leading-relaxed: 1.6;
 
   --weight-regular: 400;
+  /*
+   * Between regular and bold, for a figure that should carry a little more
+   * weight than its neighbours without shouting — a changed table row, a
+   * running total.
+   *
+   * Named here because two stylesheets were already referring to
+   * `--weight-medium` and it did not exist: an undefined custom property
+   * makes the whole `font-weight` declaration invalid, so it was dropped
+   * and those rules silently did nothing. 500 is loaded — the Inter import
+   * in fonts.css asks for 400, 500, 600 and 700.
+   */
+  --weight-medium: 500;
   --weight-bold: 700;
 
   --tracking-overline: 0.08em;

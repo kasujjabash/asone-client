@@ -28,4 +28,20 @@ export const keys = {
   backorders: () => ['orders', 'backorders'] as const,
   receipts: () => ['receipts'] as const,
   warehouses: () => ['warehouses'] as const,
+
+  // Locations. Listed separately rather than under one 'catalog' key so
+  // saving a school does not refetch every tailoring center.
+  tailoringCenters: () => ['tailoring-centers'] as const,
+  schools: () => ['schools'] as const,
+
+  // Users & Roles. `roles` is the fixed list of five and never changes, so
+  // it can be cached hard; `users` changes whenever a lead adds somebody.
+  users: (filters?: Record<string, unknown>) =>
+    filters ? (['users', filters] as const) : (['users'] as const),
+  user: (id: number) => ['users', id] as const,
+  roles: () => ['roles'] as const,
+
+  // Settings — the signed-in user. Invalidate after editing own details or
+  // changing a password, since the password change returns fresh tokens.
+  me: () => ['me'] as const,
 } as const

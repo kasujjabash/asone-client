@@ -47,6 +47,25 @@ export function sumMoney(values: readonly Money[]): Money {
 }
 
 /**
+ * A unit price times a whole quantity — a line total.
+ *
+ * Multiplied in minor units, so 3 × "8333.33" is exactly "24999.99" rather
+ * than whatever a float rounds to. `quantity` is a count and is truncated
+ * to an integer: there is no such thing as half a shirt, and letting a
+ * fraction through here would put one in a total.
+ */
+export function multiplyMoney(unit: Money, quantity: number): Money {
+  return fromMinorUnits(toMinorUnits(unit) * BigInt(Math.trunc(quantity)))
+}
+
+/** Exact total across lines of a unit price and a quantity. */
+export function sumLineTotals(
+  lines: readonly { unit: Money; quantity: number }[],
+): Money {
+  return sumMoney(lines.map((line) => multiplyMoney(line.unit, line.quantity)))
+}
+
+/**
  * "UGX 25,000". Whole shillings, because that is how prices are quoted —
  * the API's trailing ".00" is an artefact of DecimalField, not a subunit
  * anyone counts.
