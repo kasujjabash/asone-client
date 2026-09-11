@@ -49,4 +49,15 @@ export const keys = {
   tailoringCenters: () => ['tailoring-centers'] as const,
   tailoringCentersList: (page: number) => ['tailoring-centers', 'list', page] as const,
   tailoringCenter: (id: number) => ['tailoring-centers', 'detail', id] as const,
+
+  // Users & Roles. `roles` is the fixed list of five and never changes, so
+  // it can be cached hard; `users` changes whenever a lead adds somebody.
+  users: (filters?: Record<string, unknown>) =>
+    filters ? (['users', filters] as const) : (['users'] as const),
+  user: (id: number) => ['users', id] as const,
+  roles: () => ['roles'] as const,
+
+  // Settings — the signed-in user. Invalidate after editing own details or
+  // changing a password, since the password change returns fresh tokens.
+  me: () => ['me'] as const,
 } as const

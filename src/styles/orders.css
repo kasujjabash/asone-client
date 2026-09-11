@@ -563,22 +563,13 @@
  * everything else and shows only this.
  * ------------------------------------------------------------------------ */
 
-.packing-print { display: none; }
+/*
+ * Hidden on screen and shown on paper by `.print-only` — see print.css.
+ * This used to carry its own `body * { visibility: hidden }` block, which
+ * blanked every other printable document in the system.
+ */
 
 @media print {
-  /* Only the slips reach the paper. */
-  body * { visibility: hidden; }
-
-  .packing-print,
-  .packing-print * { visibility: visible; }
-
-  .packing-print {
-    display: block;
-    position: absolute;
-    inset: 0;
-    padding: 0;
-  }
-
   .slip {
     /* One slip per sheet: they travel with different boxes. */
     page-break-after: always;
