@@ -39,4 +39,14 @@ export const keys = {
     page: number,
   ) => ['schools', level, warehouseId, isActive, page] as const,
   school: (id: number) => ['schools', 'detail', id] as const,
+
+  // Warehouses and Tailoring Centers — master data, same reasoning as
+  // Schools. `warehouses()` above stays as the unfiltered "options" key
+  // pickers already use; these are the paginated list screen's own.
+  warehousesList: (tailoringCenterId: number | null, page: number) =>
+    ['warehouses', 'list', tailoringCenterId, page] as const,
+  warehouse: (id: number) => ['warehouses', 'detail', id] as const,
+  tailoringCenters: () => ['tailoring-centers'] as const,
+  tailoringCentersList: (page: number) => ['tailoring-centers', 'list', page] as const,
+  tailoringCenter: (id: number) => ['tailoring-centers', 'detail', id] as const,
 } as const

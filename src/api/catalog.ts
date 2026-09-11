@@ -3,10 +3,61 @@
  */
 
 import { get, patch, post } from './http'
-import type { Page, School, SchoolLevel, Sku, Warehouse } from './types'
+import type { Page, School, SchoolLevel, Sku, TailoringCenter, Warehouse } from './types'
 
-export function warehouses(params?: { page?: number }) {
+// ---------------------------------------------------------------------------
+// Tailoring Centers — F10
+// ---------------------------------------------------------------------------
+
+export function tailoringCenters(params?: { page?: number }) {
+  return get<Page<TailoringCenter>>('/catalog/tailoring-centers/', params ?? undefined)
+}
+
+export function tailoringCenter(id: number) {
+  return get<TailoringCenter>(`/catalog/tailoring-centers/${id}/`)
+}
+
+export interface TailoringCenterInput {
+  name: string
+  address?: string
+}
+
+export function createTailoringCenter(input: TailoringCenterInput) {
+  return post<TailoringCenter>('/catalog/tailoring-centers/', input)
+}
+
+export function updateTailoringCenter(id: number, input: Partial<TailoringCenterInput>) {
+  return patch<TailoringCenter>(`/catalog/tailoring-centers/${id}/`, input)
+}
+
+// ---------------------------------------------------------------------------
+// Warehouses — F11
+// ---------------------------------------------------------------------------
+
+export function warehouses(params?: { primary_tailoring_center?: number; page?: number }) {
   return get<Page<Warehouse>>('/catalog/warehouses/', params ?? undefined)
+}
+
+export function warehouse(id: number) {
+  return get<Warehouse>(`/catalog/warehouses/${id}/`)
+}
+
+export interface WarehouseInput {
+  name: string
+  address?: string
+  // `null`, not just `undefined`, matters here: PATCH omits an absent field
+  // (leaves whatever the warehouse already had), but only `null` actually
+  // clears it. A form that lets someone unset "no tailoring center yet"
+  // needs to send null explicitly, not merely leave the field out.
+  primary_tailoring_center?: number | null
+}
+
+export function createWarehouse(input: WarehouseInput) {
+  return post<Warehouse>('/catalog/warehouses/', input)
+}
+
+export function updateWarehouse(id: number, input: Partial<WarehouseInput>) {
+  return patch<Warehouse>(`/catalog/warehouses/${id}/`, input)
 }
 
 // ---------------------------------------------------------------------------

@@ -35,6 +35,8 @@ import { canReadSchoolOrders } from '@/domain/access'
 import { SchoolDetailScreen } from '@/features/catalog/screens/SchoolDetailScreen'
 import { SchoolFormScreen } from '@/features/catalog/screens/SchoolFormScreen'
 import { SchoolsScreen } from '@/features/catalog/screens/SchoolsScreen'
+import { WarehousesScreen } from '@/features/catalog/screens/WarehousesScreen'
+import { TailoringCentersScreen } from '@/features/catalog/screens/TailoringCentersScreen'
 import { ALL_NAV_ITEMS } from '@/features/shell/navigation'
 import { PlaceholderScreen } from '@/features/shell/screens/PlaceholderScreen'
 import { RequireAccess } from './RequireAccess'
@@ -52,6 +54,8 @@ const SCREENS: Record<string, ComponentType> = {
   '/reports': ReportsIndexScreen,
   '/orders': OrdersListScreen,
   '/schools': SchoolsScreen,
+  '/warehouses': WarehousesScreen,
+  '/tailoring-centers': TailoringCentersScreen,
 }
 
 export function AppRoutes() {
