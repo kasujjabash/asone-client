@@ -27,10 +27,16 @@ export function AddSchoolModal({
 }: AddSchoolModalProps) {
   const [name, setName] = useState('')
   const [level, setLevel] = useState<SchoolLevel | ''>('PS')
-  const [warehouseId, setWarehouseId] = useState(
-    warehouses[0] ? String(warehouses[0].id) : '',
-  )
+  // '' means "nothing chosen yet", not "no warehouses" — `warehouses` arrives
+  // from an async fetch that has often not resolved on first render, so
+  // seeding this from `warehouses[0]` at mount time would frequently seed it
+  // from an empty list. The effective value below falls back to the first
+  // warehouse once the list has actually loaded, computed at render time
+  // rather than synced back into state.
+  const [warehouseId, setWarehouseId] = useState('')
   const [address, setAddress] = useState('')
+
+  const effectiveWarehouseId = warehouseId || (warehouses[0] ? String(warehouses[0].id) : '')
 
   const save = useSaveSchool()
   const error = save.error ? toApiError(save.error) : null
@@ -39,7 +45,7 @@ export function AddSchoolModal({
   function handleReset() {
     setName('')
     setLevel('PS')
-    setWarehouseId(warehouses[0] ? String(warehouses[0].id) : '')
+    setWarehouseId('')
     setAddress('')
     save.reset()
   }
@@ -51,13 +57,13 @@ export function AddSchoolModal({
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    if (!name.trim() || !level || !warehouseId) return
+    if (!name.trim() || !level || !effectiveWarehouseId) return
 
     save.mutate(
       {
         name: name.trim(),
         level,
-        primary_warehouse: Number(warehouseId),
+        primary_warehouse: Number(effectiveWarehouseId),
         address: address.trim() || undefined,
       },
       {
@@ -130,7 +136,7 @@ export function AddSchoolModal({
               <select
                 id="modal-school-warehouse"
                 className="schools-form-select"
-                value={warehouseId}
+                value={effectiveWarehouseId}
                 onChange={(e) => setWarehouseId(e.target.value)}
                 required
               >
@@ -190,7 +196,7 @@ export function AddSchoolModal({
           <button
             type="submit"
             className="schools-modal-btn-primary"
-            disabled={save.isPending || !name.trim() || !level || !warehouseId}
+            disabled={save.isPending || !name.trim() || !level || !effectiveWarehouseId}
           >
             {save.isPending ? 'Adding School…' : 'Add School'}
           </button>
