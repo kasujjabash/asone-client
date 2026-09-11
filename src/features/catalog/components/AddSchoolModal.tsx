@@ -64,7 +64,10 @@ export function AddSchoolModal({
         name: name.trim(),
         level,
         primary_warehouse: Number(effectiveWarehouseId),
-        address: address.trim() || undefined,
+        // As-is, not `|| undefined` — see the same fix in SchoolForm.tsx.
+        // Harmless on this add-only modal today, but wrong the moment
+        // anything reuses it for editing.
+        address: address.trim(),
       },
       {
         onSuccess: (saved) => {

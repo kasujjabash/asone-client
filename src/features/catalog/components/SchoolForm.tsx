@@ -50,7 +50,11 @@ export function SchoolForm({
     onSubmit({
       name,
       level,
-      address: address || undefined,
+      // Sent as-is, including empty — not `|| undefined`. `address` is a
+      // plain optional string, and PATCH omits an absent key rather than
+      // clearing it: editing a school to blank out its address needs an
+      // explicit "", or the old value silently survives the save.
+      address,
       primary_warehouse: Number(warehouseId),
     })
   }
