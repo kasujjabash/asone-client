@@ -1334,7 +1334,7 @@ button.page-dots__dot {
   width: 100%;
   max-width: 520px;
   background: var(--surface);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: 12px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   overflow: hidden;
@@ -1357,7 +1357,7 @@ button.page-dots__dot {
   align-items: flex-start;
   justify-content: space-between;
   padding: 20px 24px 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--surface-sunken);
 }
 
 .modal-header__text {
@@ -1370,13 +1370,13 @@ button.page-dots__dot {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--text-primary);
 }
 
 .modal-subtitle {
   margin: 0;
   font-size: 13px;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .modal-close {
@@ -1389,14 +1389,14 @@ button.page-dots__dot {
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #64748b;
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 120ms ease;
 }
 
 .modal-close:hover {
-  background: #f1f5f9;
-  color: #0f172a;
+  background: var(--surface-sunken);
+  color: var(--text-primary);
 }
 
 .modal-close:focus-visible {
@@ -1416,8 +1416,8 @@ button.page-dots__dot {
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 24px;
-  background: #fafbfc;
-  border-top: 1px solid #f1f5f9;
+  background: var(--surface-sunken);
+  border-top: 1px solid var(--surface-sunken);
 }
 
 /* An outlined destructive action: present, findable, not shouting. */
