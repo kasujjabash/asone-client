@@ -2471,6 +2471,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/orders/shipments/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description What has left a warehouse — F41, read-only.
+         *
+         *     Every shipment is already created through an action elsewhere (`ship`
+         *     on a school order, `fill` on a backorder) — this is the resource those
+         *     actions leave behind, listable on its own for a warehouse's own recent
+         *     dispatch history rather than reached one order at a time.
+         *
+         *     Same matrix column as receiving: `CanReceiveAndShip`. Warehouse Staff see
+         *     their own site's despatches; the leads see every site's.
+         */
+        get: operations["orders_shipments_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/orders/shipments/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description What has left a warehouse — F41, read-only.
+         *
+         *     Every shipment is already created through an action elsewhere (`ship`
+         *     on a school order, `fill` on a backorder) — this is the resource those
+         *     actions leave behind, listable on its own for a warehouse's own recent
+         *     dispatch history rather than reached one order at a time.
+         *
+         *     Same matrix column as receiving: `CanReceiveAndShip`. Warehouse Staff see
+         *     their own site's despatches; the leads see every site's.
+         */
+        get: operations["orders_shipments_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/procurement/group-orders/": {
         parameters: {
             query?: never;
@@ -2922,7 +2976,7 @@ export interface components {
             /** @default  */
             notes: string;
         };
-        /** @description The six tiles across the top — F62. */
+        /** @description The tiles across the top — F62, plus the warehouse hub console's own. */
         DashboardSummary: {
             /** @description Units on hand and free to promise. */
             available_units: number;
@@ -2939,6 +2993,8 @@ export interface components {
             outstanding_backorders: number;
             /** @description SKUs at or under their reorder floor. */
             skus_below_minimum: number;
+            /** @description Units on shipments with today's date as shipped_on. */
+            units_shipped_today: number;
         };
         /** @description A parcel sent to this school that nobody has confirmed arrived. */
         DeliveryToConfirm: {
@@ -3913,6 +3969,7 @@ export interface components {
              */
             readonly order_date: string;
             readonly status: components["schemas"]["SchoolOrderStatusEnum"];
+            readonly status_display: string;
             /** Format: decimal */
             readonly total: string;
         };
@@ -4159,6 +4216,9 @@ export interface components {
             address?: string;
             primary_warehouse?: number;
             readonly primary_warehouse_name?: string;
+            /** @description Inactive schools stay in reports and past orders but cannot be assigned new ones. */
+            is_active?: boolean;
+            readonly active_orders_count?: number;
         };
         /** @description An order, reading. Doubles as the invoice — same number, same lines. */
         PatchedSchoolOrder: {
@@ -4223,6 +4283,8 @@ export interface components {
             readonly id?: number;
             name?: string;
             address?: string;
+            /** @description Inactive tailoring centers stay in reports but cannot be assigned new production orders. */
+            is_active?: boolean;
         };
         /**
          * @description A user as a lead sees them in the user management screens.
@@ -4266,6 +4328,8 @@ export interface components {
             address?: string;
             primary_tailoring_center?: number | null;
             readonly primary_tailoring_center_name?: string;
+            /** @description Inactive warehouses stay in reports and past orders but cannot receive new stock. */
+            is_active?: boolean;
         };
         PatchedWarehouseTransfer: {
             readonly id?: number;
@@ -4589,6 +4653,9 @@ export interface components {
             address?: string;
             primary_warehouse: number;
             readonly primary_warehouse_name: string;
+            /** @description Inactive schools stay in reports and past orders but cannot be assigned new ones. */
+            is_active?: boolean;
+            readonly active_orders_count: number;
         };
         /** @description Something the school ordered that the warehouse could not fill. */
         SchoolBackorder: {
@@ -4775,6 +4842,7 @@ export interface components {
             readonly number: string;
             readonly order: number;
             readonly order_number: string;
+            readonly order_school_name: string;
             /** @description Where this actually left from, which is not always the school's own warehouse. */
             readonly from_warehouse: number;
             readonly from_warehouse_name: string;
@@ -4901,6 +4969,8 @@ export interface components {
             readonly id: number;
             name: string;
             address?: string;
+            /** @description Inactive tailoring centers stay in reports but cannot be assigned new production orders. */
+            is_active?: boolean;
         };
         TokenRefresh: {
             readonly access: string;
@@ -5029,6 +5099,8 @@ export interface components {
             address?: string;
             primary_tailoring_center?: number | null;
             readonly primary_tailoring_center_name: string;
+            /** @description Inactive warehouses stay in reports and past orders but cannot receive new stock. */
+            is_active?: boolean;
         };
         /** @description One site's line in the "Inventory by Warehouse" panel. */
         WarehouseInventory: {
@@ -6522,6 +6594,7 @@ export interface operations {
     catalog_schools_list: {
         parameters: {
             query?: {
+                is_active?: boolean;
                 /**
                  * @description * `PS` - Primary School
                  *     * `HS` - High School
@@ -6962,6 +7035,7 @@ export interface operations {
     catalog_tailoring_centers_list: {
         parameters: {
             query?: {
+                is_active?: boolean;
                 /** @description A page number within the paginated result set. */
                 page?: number;
                 /** @description Number of results to return per page. */
@@ -7110,6 +7184,7 @@ export interface operations {
     catalog_warehouses_list: {
         parameters: {
             query?: {
+                is_active?: boolean;
                 /** @description A page number within the paginated result set. */
                 page?: number;
                 /** @description Number of results to return per page. */
@@ -8206,6 +8281,8 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                /** @description Narrow to one site. Ignored for Warehouse Staff, who are already scoped to their own; an all-locations role sees every site without it. */
+                warehouse?: number;
             };
             header?: never;
             path?: never;
@@ -8255,6 +8332,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8364,6 +8442,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8401,6 +8480,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8494,6 +8574,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8553,6 +8634,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8612,6 +8694,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8655,6 +8738,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8748,6 +8832,7 @@ export interface operations {
                 page?: number;
                 /** @description Number of results to return per page. */
                 page_size?: number;
+                school?: number;
                 /**
                  * @description * `HOLD` - On hold — awaiting payment
                  *     * `RELEASED` - Released to the warehouse
@@ -8773,6 +8858,54 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaginatedShipmentList"];
+                };
+            };
+        };
+    };
+    orders_shipments_list: {
+        parameters: {
+            query?: {
+                from_warehouse?: number;
+                order?: number;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedShipmentList"];
+                };
+            };
+        };
+    };
+    orders_shipments_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this shipment. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Shipment"];
                 };
             };
         };

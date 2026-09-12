@@ -151,8 +151,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-1);
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
   font-size: var(--text-overline);
   font-weight: var(--weight-bold);
   letter-spacing: 0.02em;
@@ -163,6 +163,7 @@
 .badge--warning { background: var(--warning-bg); color: var(--warning); }
 .badge--error   { background: var(--error-bg);   color: var(--error); }
 .badge--info    { background: var(--info-bg);    color: var(--info); }
+.badge--purple  { background: #f3e8ff;           color: #9333ea; }
 .badge--neutral { background: var(--surface-sunken); color: var(--text-secondary); }
 
 /* Label/value pairs — a record's detail panel. */
@@ -666,7 +667,7 @@ button.page-dots__dot {
   flex-direction: column;
   gap: var(--space-5);
   width: 100%;
-  max-width: 360px;
+  max-width: 440px;
 }
 
 @media (max-width: 900px) {
@@ -1066,6 +1067,82 @@ button.page-dots__dot {
 }
 
 /* ---------------------------------------------------------------------------
+ * Hub list — the warehouse hub console's four queue panels
+ * ------------------------------------------------------------------------ */
+
+.hub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.hub-list__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-sm);
+}
+
+.hub-list__main {
+  min-width: 0;
+}
+
+.hub-list__title {
+  margin: 0;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub-list__subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub-list__figure {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.hub-list__figure-value {
+  margin: 0;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.hub-list__figure-value--alert {
+  color: var(--error);
+}
+
+.hub-list__figure-caption {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
  * Messages
  *
  * Bottom-right, stacked, above everything. Errors stay until dismissed;
@@ -1164,6 +1241,47 @@ button.page-dots__dot {
 }
 
 /* ---------------------------------------------------------------------------
+ * Tabs
+ *
+ * A detail screen's sections — Orders, Students, and so on. Underline style,
+ * not pills: this sits directly under a page heading, and a row of filled
+ * pills there would compete with the KPI tiles below it for weight.
+ * ------------------------------------------------------------------------ */
+
+.tabs {
+  display: flex;
+  gap: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs__tab {
+  padding: var(--space-3) 0;
+  margin-bottom: -1px; /* Sits on top of the strip's own border. */
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  font: inherit;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.tabs__tab:hover {
+  color: var(--text-primary);
+}
+
+.tabs__tab--active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.tabs__tab:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* ---------------------------------------------------------------------------
  * Server unreachable
  * ------------------------------------------------------------------------ */
 
@@ -1191,6 +1309,115 @@ button.page-dots__dot {
   font-size: var(--text-body);
   color: var(--text-secondary);
   text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------------------
+ * Modal / Dialog Primitive
+ * ------------------------------------------------------------------------ */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: modal-fade-in 150ms ease-out;
+  overflow-y: auto;
+}
+
+.modal-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  animation: modal-scale-in 160ms cubic-bezier(0.16, 1, 0.3, 1);
+  margin: auto;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-scale-in {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--surface-sunken);
+}
+
+.modal-header__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.modal-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.modal-close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -4px -4px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 120ms ease;
+}
+
+.modal-close:hover {
+  background: var(--surface-sunken);
+  color: var(--text-primary);
+}
+
+.modal-close:focus-visible {
+  outline: 2px solid var(--border-focus);
+}
+
+.modal-body {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 16px 24px;
+  background: var(--surface-sunken);
+  border-top: 1px solid var(--surface-sunken);
 }
 
 /* An outlined destructive action: present, findable, not shouting. */
