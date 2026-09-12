@@ -771,114 +771,50 @@ button.page-dots__dot {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: var(--space-4);
   width: 100%;
-  max-width: 440px;
-  padding: 40px 36px 36px;
+  max-width: 452px;
+  padding: var(--space-7) var(--space-6);
   background: var(--surface);
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
   border-radius: 16px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  box-shadow: var(--shadow-md);
   text-align: center;
-  margin: auto;
 }
 
 .auth-card__halo {
   display: grid;
   place-items: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: #d5faf1;
-  color: #355e5e;
-  margin-bottom: 2px;
+  width: 70px;
+  height: 70px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-halo);
+  color: var(--accent);
 }
 
 .auth-card__title {
   margin: 0;
-  font-family: inherit;
-  font-size: 22px;
-  font-weight: 700;
+  font-family: var(--font-brand);
+  font-size: 24px;
+  font-weight: var(--weight-bold);
   line-height: 1.2;
-  color: #355e5e;
+  color: var(--accent);
   text-wrap: balance;
 }
 
 .auth-card__body {
   margin: 0;
-  max-width: 34ch;
-  font-size: 13.5px;
-  line-height: 1.5;
-  color: #64748b;
+  max-width: 36ch;
+  font-size: 15px;
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
   text-wrap: pretty;
 }
 
 .auth-card__links {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin-top: 6px;
-}
-
-.auth-card__verify-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 40px;
-  padding: 0 28px;
-  background: #50727b;
-  color: #ffffff;
-  border: none;
-  border-radius: 9999px;
-  font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 120ms ease;
-  margin-top: 6px;
-}
-
-.auth-card__verify-btn:hover:not(:disabled) {
-  background: #3d5a62;
-}
-
-.auth-card__verify-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.auth-card__backup-link {
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: #50727b;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.auth-card__backup-link:hover {
-  text-decoration: underline;
-}
-
-.auth-card__back-link {
-  background: none;
-  border: none;
-  padding: 0;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  color: #64748b;
-  cursor: pointer;
-  text-decoration: none;
-}
-
-.auth-card__back-link:hover {
-  color: #0f172a;
-  text-decoration: underline;
+  gap: var(--space-3);
 }
 
 /* ---------------------------------------------------------------------------
@@ -890,40 +826,40 @@ button.page-dots__dot {
 
 .otp {
   display: flex;
-  gap: 10px;
+  gap: var(--space-3);
   justify-content: center;
   width: 100%;
-  margin: 6px 0;
 }
 
+/* Boxes shrink to fit rather than overflowing the card: six fixed 52px boxes
+   plus gaps need 372px, which is wider than a 360px handset leaves once the
+   card's padding is taken off. They grow no larger than designed. */
 .otp__box {
   flex: 1 1 0;
   min-width: 0;
-  max-width: 50px;
-  height: 56px;
+  max-width: 52px;
+  aspect-ratio: 52 / 56;
+  height: auto;
   padding: 0;
   background: var(--surface);
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-md);
   font-family: inherit;
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: var(--weight-bold);
   font-variant-numeric: tabular-nums;
   text-align: center;
-  color: #0f172a;
-  outline: none;
-  transition: all 120ms ease;
+  color: var(--text-primary);
 }
 
 .otp__box--filled {
-  background: #f8fafc;
-  border-color: #e2e8f0;
+  background: var(--field-filled);
 }
 
-.otp__box:focus {
-  background: #ffffff;
-  border: 2px solid #50727b;
-  box-shadow: none;
+.otp__box:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 .otp__box:disabled {
@@ -937,16 +873,16 @@ button.page-dots__dot {
 
 @media (max-width: 480px) {
   .otp {
-    gap: 6px;
+    gap: var(--space-2);
   }
 
   .otp__box {
-    font-size: 20px;
-    height: 50px;
+    font-size: var(--text-h2);
   }
 
+  /* Give the boxes back the room the card's padding was taking. */
   .auth-card {
-    padding: 32px 20px;
+    padding: var(--space-6) var(--space-4);
   }
 }
 

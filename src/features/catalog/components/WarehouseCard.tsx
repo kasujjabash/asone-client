@@ -4,7 +4,10 @@
  *
  * The four stats are real, not mockup filler: they come straight from
  * `/api/dashboard/summary/?warehouse=`, the same endpoint the warehouse
- * hub console itself uses.
+ * hub console itself uses. Address and Primary Tailoring Center show what
+ * the server actually has — the server models a missing one as `null`,
+ * which is a legitimate state, not a gap to paper over with a guessed
+ * street name or a made-up tailoring centre.
  */
 
 import { Compass } from 'lucide-react'
@@ -19,27 +22,6 @@ interface WarehouseCardProps {
   onViewInventory: () => void
 }
 
-function getWarehouseTitle(name: string): string {
-  if (name.toLowerCase().includes('warehouse')) return name
-  return `${name} Warehouse`
-}
-
-function getWarehouseAddress(warehouse: Warehouse): string {
-  if (warehouse.address && warehouse.address.trim()) return warehouse.address
-  const lower = warehouse.name.toLowerCase()
-  if (lower.includes('serere') || lower.includes('seeta')) {
-    return 'Central Road, Serere Town Council'
-  }
-  return 'Lakeside Highway, Namayemba Center'
-}
-
-function getTailoringCenterName(name: string | null | undefined): string {
-  if (!name) return 'Idudi Tailoring Center'
-  if (name.toLowerCase().includes('tailoring')) return name
-  if (name.toLowerCase().includes('serere')) return `${name} East Tailoring Center`
-  return `${name} Tailoring Center`
-}
-
 export function WarehouseCard({
   warehouse,
   summary,
@@ -47,21 +29,17 @@ export function WarehouseCard({
   onViewDashboard,
   onViewInventory,
 }: WarehouseCardProps) {
-  const title = getWarehouseTitle(warehouse.name)
-  const address = getWarehouseAddress(warehouse)
-  const tailoringCenter = getTailoringCenterName(warehouse.primary_tailoring_center_name)
-
-  const availableUnits = summary?.available_units ?? 0
-  const pendingOrders = summary?.orders_awaiting_dispatch ?? 0
-  const backorders = summary?.outstanding_backorders ?? 0
-  const lowStockSkus = summary?.skus_below_minimum ?? 0
+  const availableUnits = summary?.available_units
+  const pendingOrders = summary?.orders_awaiting_dispatch
+  const backorders = summary?.outstanding_backorders
+  const lowStockSkus = summary?.skus_below_minimum
 
   return (
     <div className="site-card">
       <div className="site-card__top">
         <div>
-          <h2 className="site-card__title">{title}</h2>
-          <p className="site-card__address">{address}</p>
+          <h2 className="site-card__title">{warehouse.name}</h2>
+          {warehouse.address && <p className="site-card__address">{warehouse.address}</p>}
         </div>
         <Badge tone={warehouse.is_active ? 'success' : 'neutral'}>
           {warehouse.is_active ? 'Active' : 'Inactive'}
@@ -70,7 +48,7 @@ export function WarehouseCard({
 
       <p className="site-card__meta-line">
         <Compass size={15} color="#64748b" aria-hidden />
-        Primary Tailoring: <strong>{tailoringCenter}</strong>
+        Primary Tailoring: <strong>{warehouse.primary_tailoring_center_name || 'Not set'}</strong>
       </p>
 
       <div className="site-card__stats">
@@ -99,7 +77,9 @@ export function WarehouseCard({
           <span className="site-card__stat-label">LOW STOCK SKUS</span>
           <span
             className={`site-card__stat-value${
-              !loading && lowStockSkus > 0 ? ' site-card__stat-value--alert' : ''
+              !loading && lowStockSkus !== undefined && lowStockSkus > 0
+                ? ' site-card__stat-value--alert'
+                : ''
             }`}
           >
             <AnimatedNumber value={lowStockSkus} loading={loading} />
