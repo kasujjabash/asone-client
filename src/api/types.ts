@@ -238,6 +238,8 @@ export type OrderAvailabilityRow = S['OrderAvailabilityRow']
 export type OrderDemandRow = S['OrderDemandRow']
 export type OrderOnHold = S['OrderOnHold']
 export type PackingList = S['PackingList']
+/** An order picked but not yet despatched — F52/F54, the picking queue. */
+export type PartProcessedOrder = S['PartProcessedOrder']
 
 /**
  * One despatch against an order.
@@ -247,6 +249,12 @@ export type PackingList = S['PackingList']
  * is the school confirming it arrived — the fact that completes the order.
  */
 export type Shipment = S['Shipment']
+export type ShipmentLine = S['ShipmentLine']
+/** A row of the picking backlog — F38. */
+export type PickingQueueRow = S['PickingQueueRow']
+export type PickingSummary = S['PickingSummary']
+/** A school with orders picked and waiting — the despatch queue. */
+export type ReadyToDespatch = S['ReadyToDespatch']
 
 /**
  * What a school's dashboard shows — orders by state, what is owed, parcels

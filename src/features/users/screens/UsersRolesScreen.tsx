@@ -9,7 +9,7 @@
 
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import { Button } from '@/components'
+import { Button, TabBar } from '@/components'
 import { AppShell } from '@/features/shell/components/AppShell'
 import { AddUserModal } from '../components/AddUserModal'
 import { PermissionsMatrix } from '../components/PermissionsMatrix'
@@ -37,20 +37,12 @@ export function UsersRolesScreen() {
       {/* The design puts no heading on this screen: the top bar already
           names it, and the tabs share their row with the one action. */}
       <div className="users__toolbar">
-        <div className="tabbar" role="tablist">
-          {TABS.map((entry) => (
-            <button
-              key={entry}
-              type="button"
-              role="tab"
-              aria-selected={entry === tab}
-              className={`tabbar__tab${entry === tab ? ' tabbar__tab--active' : ''}`}
-              onClick={() => setTab(entry)}
-            >
-              {entry}
-            </button>
-          ))}
-        </div>
+        <TabBar
+          tabs={TABS.map((entry) => ({ key: entry, label: entry }))}
+          active={tab}
+          onSelect={(key) => setTab(key as Tab)}
+          label="Users and roles views"
+        />
 
         <Button size="sm" onClick={() => setModalOpen(true)}>
           <Plus size={16} aria-hidden />

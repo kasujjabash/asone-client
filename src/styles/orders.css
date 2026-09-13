@@ -75,37 +75,11 @@
  * Tabs
  * ------------------------------------------------------------------------ */
 
-.tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  margin-top: var(--space-4);
-  padding: var(--space-1);
-  background: var(--surface-sunken);
-  border-radius: var(--radius-lg);
-}
-
-.tabs__tab {
-  padding: var(--space-2) var(--space-4);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: none;
-  font: inherit;
-  font-size: var(--text-body);
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.tabs__tab--active {
-  background: var(--accent-subtle);
-  color: var(--accent-hover);
-  font-weight: var(--weight-bold);
-}
-
-.tabs__tab:focus-visible {
-  outline: 2px solid var(--border-focus);
-  outline-offset: -2px;
-}
+/*
+ * The tab strip lives in `components/TabBar.tsx`. A second, unused system
+ * (`.tabs`) sat here for weeks — removed rather than left to be picked up by
+ * the next person who greps for one.
+ */
 
 /* ---------------------------------------------------------------------------
  * Detail layout
@@ -273,8 +247,11 @@
 .tabbar {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-4);
+  gap: var(--space-1);
+  padding: var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
 }
 
 .tabbar__tab {
@@ -308,7 +285,6 @@
  * ------------------------------------------------------------------------ */
 
 .table-card {
-  margin-top: var(--space-4);
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);

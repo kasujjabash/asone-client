@@ -37,7 +37,15 @@ import { CreateProductionOrderScreen } from '@/features/production/screens/Creat
 import { ProductionOrderDetailScreen } from '@/features/production/screens/ProductionOrderDetailScreen'
 import { ProductionOrdersScreen } from '@/features/production/screens/ProductionOrdersScreen'
 import { ReceivingScreen } from '@/features/receiving/screens/ReceivingScreen'
+import { ShipmentDetailScreen } from '@/features/shipments/screens/ShipmentDetailScreen'
+import { PickingScreen } from '@/features/shipments/screens/PickingScreen'
+import { ShipmentsScreen } from '@/features/shipments/screens/ShipmentsScreen'
 import { canReadSchoolOrders } from '@/domain/access'
+import { SchoolDetailScreen } from '@/features/catalog/screens/SchoolDetailScreen'
+import { SchoolsScreen } from '@/features/catalog/screens/SchoolsScreen'
+import { WarehouseDetailScreen } from '@/features/catalog/screens/WarehouseDetailScreen'
+import { WarehousesScreen } from '@/features/catalog/screens/WarehousesScreen'
+import { TailoringCentersScreen } from '@/features/catalog/screens/TailoringCentersScreen'
 import { ALL_NAV_ITEMS } from '@/features/shell/navigation'
 import { PlaceholderScreen } from '@/features/shell/screens/PlaceholderScreen'
 import { RequireAccess } from './RequireAccess'
@@ -55,8 +63,14 @@ const SCREENS: Record<string, ComponentType> = {
   '/reports': ReportsIndexScreen,
   '/orders': OrdersListScreen,
   '/users': UsersRolesScreen,
+  '/schools': SchoolsScreen,
+  '/warehouses': WarehousesScreen,
+  '/tailoring-centers': TailoringCentersScreen,
   '/receiving': ReceivingScreen,
   '/production-orders': ProductionOrdersScreen,
+  // The landing view is the picking backlog; despatched shipments are the
+  // history behind it.
+  '/shipments': PickingScreen,
 }
 
 export function AppRoutes() {
@@ -95,6 +109,28 @@ export function AppRoutes() {
           />
 
           {/* Before the :orderId route, or "new" is parsed as an order id. */}
+          <Route
+            path="/shipments/history"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="warehouse_receiving_and_shipping">
+                  <ShipmentsScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/shipments/:shipmentId"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="warehouse_receiving_and_shipping">
+                  <ShipmentDetailScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+
           <Route
             path="/production-orders/new"
             element={
@@ -144,6 +180,40 @@ export function AppRoutes() {
               />
             )
           })}
+
+          {/*
+            The school detail screen is reached from the Schools list, not
+            the sidebar, so it is not an entry in `navigation.ts` and is not
+            covered by the loop above. It still needs the same guard as
+            `/schools` itself: `table_updates`. Add and edit are both a modal
+            on this screen and on the list — see `AddSchoolModal` — not
+            separate routes, so there is only this one to add.
+          */}
+          <Route
+            path="/schools/:id"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="table_updates">
+                  <SchoolDetailScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+
+          {/*
+            Reached from the Warehouses list's "View Dashboard", not the
+            sidebar — same reasoning and same guard as `/schools/:id` above.
+          */}
+          <Route
+            path="/warehouses/:id"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="table_updates">
+                  <WarehouseDetailScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
 
               <Route path="*" element={<Navigate to={paths.welcome} replace />} />
               </Routes>
