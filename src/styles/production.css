@@ -1,0 +1,342 @@
+/* ---------------------------------------------------------------------------
+ * Production orders — F17, F22
+ *
+ * The list with its filter band, the detail manifest, and the create dialog.
+ * Tables reuse `.ledger`; only what is genuinely new to these screens is
+ * defined here.
+ * ------------------------------------------------------------------------ */
+
+/* 01 / Filter band -------------------------------------------------------- */
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.filter-bar__search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1 1 240px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.filter-bar__search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+}
+
+.filter-bar__search input:focus-visible { outline: none; }
+
+.filter-bar__field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+}
+
+.filter-bar__field > span { color: var(--text-secondary); }
+
+.filter-bar__field select {
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+/* 02 / List table --------------------------------------------------------- */
+
+/*
+ * The design sets these headings in small caps. Scoped to this table rather
+ * than `.ledger` so the orders and reports tables are not restyled from
+ * under them.
+ */
+.ledger--production th {
+  font-size: var(--text-overline);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  background: var(--surface-sunken);
+}
+
+.ledger--production { min-width: 940px; }
+
+/* 03 / Detail head -------------------------------------------------------- */
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+.crumbs a { color: var(--accent-hover); text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; }
+.crumbs [aria-current] { color: var(--text-primary); font-weight: var(--weight-bold); }
+
+.detail-head__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.detail-head__actions { display: flex; gap: var(--space-3); }
+
+/* 04 / Fact cards --------------------------------------------------------- */
+
+.fact-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--space-4);
+  margin: var(--space-4) 0 var(--space-5);
+}
+
+.fact-card {
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.fact-card__label {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.fact-card__value {
+  margin: 0;
+  font-size: var(--text-h3);
+  font-weight: var(--weight-bold);
+  color: var(--accent-hover);
+}
+
+.fact-card__note {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+/* 05 / Detail columns ----------------------------------------------------- */
+
+.detail-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .detail-columns { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Outstanding units are the reason to read the manifest at all. */
+.ledger__num--owed {
+  color: var(--error);
+  font-weight: var(--weight-bold);
+}
+
+/* 06 / History log -------------------------------------------------------- */
+
+.history {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.history__item {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+.history__dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.history__dot--pending { background: var(--warning); }
+.history__dot--muted { background: var(--border-strong); }
+
+.history__title {
+  margin: 0;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.history__body {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.history__when {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+/* 07 / Compose page ------------------------------------------------------- */
+
+/*
+ * Order details beside the line table. The details column is fixed and
+ * narrow — five short fields — so the table gets every pixel that is left,
+ * which is the whole reason this is a page and not a dialog.
+ */
+.compose {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .compose { grid-template-columns: minmax(0, 1fr); }
+}
+
+/*
+ * The header sticks as the line table grows. With fifteen garments on
+ * screen the centre and destination scroll away, and those are exactly the
+ * two facts a lead re-checks before pressing Create.
+ */
+.compose__details {
+  position: sticky;
+  top: var(--space-4);
+}
+
+@media (max-width: 1000px) {
+  .compose__details { position: static; }
+}
+
+.compose__lines .ledger { min-width: 640px; }
+
+/* The garment picker needs room for "Blue Tunic · size 10". */
+.compose__lines .ledger td:first-child { min-width: 240px; }
+
+/*
+ * The action bar. Sticky at the foot of the viewport so the totals and the
+ * two buttons stay put however long the line table grows — with ten
+ * garments on screen, actions that trail the table are below the fold.
+ */
+.compose__bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 -6px 18px rgba(33, 35, 43, 0.06);
+}
+
+.compose__summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-5);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+/* The bar is the last thing read before committing, so it is set to be
+   read — not at caption size in a muted grey. */
+.compose__count {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+}
+
+/* What the lead is committing to — the figure worth showing before they
+   press the button, so it is the largest thing in the bar. */
+.compose__total {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.compose__total strong {
+  font-size: var(--text-h2);
+  font-weight: var(--weight-bold);
+  color: var(--accent-hover);
+}
+
+/*
+ * Actions sized to their labels, not stretched. They were full-width
+ * stacked blocks, which made Cancel as loud as the primary action.
+ */
+.compose__actions {
+  display: flex;
+  gap: var(--space-3);
+  flex: none;
+}
+
+/*
+ * The SKU code and list price under a chosen garment.
+ *
+ * Was 11px in --text-muted: a real figure a lead checks against what the
+ * centre quoted, set too small and too pale to read. Same contrast problem
+ * as `.field__hint`.
+ */
+.line-note {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}
+
+.line-note strong { color: var(--text-primary); }
+
+.callout--warning svg { vertical-align: -3px; margin-right: var(--space-2); }
+
+.card-panel__note--warning { color: var(--warning); }
+
+/* A note above the pagination, never in place of it. */
+.table-card__note {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+}

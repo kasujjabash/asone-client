@@ -1,9 +1,9 @@
 /**
- * Confirming the address a just-requested account was created against.
- *
- * Mirrors `VerifyCodeCard`'s shape (same card, same OTP input) since both
- * are "enter the 6-digit code we emailed you" moments — this one sits after
- * Create Account rather than after a password.
+ * Confirming the address a just-submitted registration request was made
+ * with. Mirrors `VerifyCodeCard`'s shape — both are "enter the 6-digit code
+ * we emailed you" moments — but this one sits right after Create Account,
+ * before any lead is involved: it unlocks the request for review, it does
+ * not create an account or sign anyone in.
  */
 
 import { Mail } from 'lucide-react'
@@ -14,20 +14,13 @@ import type { ApiError } from '@/api/errors'
 const CODE_LENGTH = 6
 
 interface VerifyEmailCardProps {
-  emailHint: string
+  email: string
   onSubmit: (code: string) => void
-  onResend: () => void
   pending: boolean
   error: ApiError | null
 }
 
-export function VerifyEmailCard({
-  emailHint,
-  onSubmit,
-  onResend,
-  pending,
-  error,
-}: VerifyEmailCardProps) {
+export function VerifyEmailCard({ email, onSubmit, pending, error }: VerifyEmailCardProps) {
   const [code, setCode] = useState('')
   const complete = code.length === CODE_LENGTH
 
@@ -40,7 +33,7 @@ export function VerifyEmailCard({
       <h1 className="auth-card__title">Verify Your Email</h1>
 
       <p className="auth-card__body">
-        We've sent a {CODE_LENGTH}-digit verification code to <strong>{emailHint}</strong>
+        We've sent a {CODE_LENGTH}-digit verification code to <strong>{email}</strong>
       </p>
 
       {error && <Alert tone="error">{error.message}</Alert>}
@@ -57,12 +50,6 @@ export function VerifyEmailCard({
       <Button size="lg" disabled={!complete || pending} onClick={() => onSubmit(code)}>
         {pending ? 'Verifying…' : 'Verify Code'}
       </Button>
-
-      <div className="auth-card__links">
-        <button type="button" className="link-quiet link-button" onClick={onResend} disabled={pending}>
-          Didn't receive the code? Resend Code
-        </button>
-      </div>
     </div>
   )
 }

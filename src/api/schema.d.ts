@@ -180,6 +180,140 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/register/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask for an account
+         * @description Open to anyone — there is no account yet to authenticate as. Name, email and phone number only: **not** a role, which only a lead may assign, and only once reviewing this request.
+         *
+         *     Creates nothing more than a request. Nobody can sign in from this alone — a lead must approve it first, at `POST /api/auth/registration-requests/{id}/approve/`, the same way `POST /api/auth/users/` creates an account today.
+         */
+        post: operations["auth_register_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/register/verify/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirm a registration request's address
+         * @description Confirms the code emailed immediately after `POST /auth/register/`. Open, the same way `/auth/verify-email/` is — the registrant has no account to authenticate with yet.
+         *
+         *     This does not create an account and does not sign anyone in. It unlocks the request for a lead to review: `approve` on `/auth/registration-requests/{id}/` is refused until this is done.
+         */
+        post: operations["auth_register_verify_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/registration-requests/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Review requests and decide them. Program Lead and Operations Manager
+         *     only, same as `UserViewSet` — approving one *is* creating a user.
+         *
+         *     Read-only at the ModelViewSet level: a request is never edited, only
+         *     approved or declined through the actions below.
+         */
+        get: operations["auth_registration_requests_list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/registration-requests/{id}/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * @description Review requests and decide them. Program Lead and Operations Manager
+         *     only, same as `UserViewSet` — approving one *is* creating a user.
+         *
+         *     Read-only at the ModelViewSet level: a request is never edited, only
+         *     approved or declined through the actions below.
+         */
+        get: operations["auth_registration_requests_retrieve"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/registration-requests/{id}/approve/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Approve a registration request
+         * @description Supplies the one thing a registrant could not: the role, and the warehouse or school it requires. Creates the account and emails the confirmation code exactly as `POST /api/auth/users/` does — this is that same operation, reached from a request instead of a blank form.
+         *
+         *     409 if the request was already approved or declined.
+         */
+        post: operations["auth_registration_requests_approve_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/registration-requests/{id}/decline/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decline a registration request
+         * @description Refuses the request. No account is created and nothing is emailed to the registrant — they simply see no reply and may submit the form again.
+         *
+         *     409 if the request was already approved or declined.
+         */
+        post: operations["auth_registration_requests_decline_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/roles/": {
         parameters: {
             query?: never;
@@ -2803,6 +2937,17 @@ export interface components {
             reference: string;
             description: string;
         };
+        /**
+         * @description POST /api/auth/registration-requests/{id}/approve/.
+         *
+         *     Exactly the part of account creation a registrant could not supply
+         *     themselves: the role, and the site that role requires.
+         */
+        ApproveRegistration: {
+            role: components["schemas"]["RoleEnum"];
+            warehouse?: number | null;
+            school?: number | null;
+        };
         /** @description Handing a backorder to a warehouse that has the stock — F45. */
         AssignBackorder: {
             /** @description A warehouse holding enough to fill it — never the one that ran short. */
@@ -2939,6 +3084,11 @@ export interface components {
             outstanding_backorders: number;
             /** @description SKUs at or under their reorder floor. */
             skus_below_minimum: number;
+        };
+        /** @description POST /api/auth/registration-requests/{id}/decline/. */
+        DeclineRegistration: {
+            /** @default  */
+            notes: string;
         };
         /** @description A parcel sent to this school that nobody has confirmed arrived. */
         DeliveryToConfirm: {
@@ -3436,11 +3586,22 @@ export interface components {
             date: string;
             orders: number;
         };
-        /** @description One SKU on an order: ordered, received so far, still to come. */
+        /**
+         * @description One SKU on an order: ordered, received so far, still to come.
+         *
+         *     `sku` is the id, because the receiving screen posts these rows straight
+         *     back as receipt lines — without it the client would have to match on the
+         *     SKU number, which is a display string.
+         */
         OutstandingRow: {
+            sku: number;
             sku_number: string;
             sku_description: string;
+            sku_size: string;
             ordered: number;
+            /** @description What the TC's packing lists claimed they sent, across posted receipts. */
+            shipped: number;
+            /** @description What was actually counted. */
             received: number;
             outstanding: number;
         };
@@ -4059,6 +4220,7 @@ export interface components {
              * @description Used to sign in. Must be unique across all staff.
              */
             email?: string;
+            phone_number?: string;
         };
         PatchedMinimumStockLevel: {
             readonly id?: number;
@@ -4122,6 +4284,8 @@ export interface components {
             readonly tailoring_center_name?: string;
             /** @description From the TC's handwritten packing list, exactly as written. */
             packing_list_number?: string;
+            /** @description The carrier or driver who delivered it, as given at the gate. */
+            carrier_name?: string;
             /** Format: date */
             date_received?: string;
             notes?: string;
@@ -4229,6 +4393,7 @@ export interface components {
             email?: string;
             first_name?: string;
             last_name?: string;
+            phone_number?: string;
             role?: components["schemas"]["RoleEnum"];
             readonly role_display?: string;
             warehouse?: number | null;
@@ -4330,9 +4495,14 @@ export interface components {
             /** Format: date-time */
             readonly created_at: string;
             readonly lines: components["schemas"]["ProductionOrderLine"][];
+            /** @description How many SKUs are on it — the design's "6 SKUs" column. */
+            readonly line_count: number;
             readonly total_quantity: number;
             /** Format: decimal */
             readonly total_value: string;
+            readonly quantity_received: number;
+            readonly fulfilment_status: string;
+            readonly fulfilment_status_display: string;
         };
         /**
          * @description A line, reading. Includes the SKU's details so a client can render the
@@ -4408,6 +4578,8 @@ export interface components {
             readonly tailoring_center_name: string;
             /** @description From the TC's handwritten packing list, exactly as written. */
             packing_list_number: string;
+            /** @description The carrier or driver who delivered it, as given at the gate. */
+            carrier_name?: string;
             /** Format: date */
             date_received: string;
             notes?: string;
@@ -4457,6 +4629,8 @@ export interface components {
             production_order: number;
             /** @description From the TC's handwritten packing list, exactly as written. */
             packing_list_number: string;
+            /** @description The carrier or driver who delivered it, as given at the gate. */
+            carrier_name?: string;
             /** Format: date */
             date_received: string;
             notes?: string;
@@ -4483,6 +4657,51 @@ export interface components {
             /** @description Ordered minus requested. Negative means the TCs were asked for less. */
             difference: number;
         };
+        /**
+         * @description A request as a lead sees it in the review list. Read-only — a lead
+         *     acts on one through `approve`/`decline`, never by PATCHing this.
+         */
+        RegistrationRequest: {
+            readonly id: number;
+            readonly first_name: string;
+            readonly last_name: string;
+            /** Format: email */
+            readonly email: string;
+            readonly phone_number: string;
+            readonly status: components["schemas"]["RegistrationRequestStatusEnum"];
+            readonly status_display: string;
+            /** Format: date-time */
+            readonly created_at: string;
+            /** Format: date-time */
+            readonly verified_at: string | null;
+            readonly is_email_verified: boolean;
+            /** Format: date-time */
+            readonly decided_at: string | null;
+            readonly decided_by_name: string;
+            readonly created_user_id: number;
+            readonly decision_notes: string;
+        };
+        /**
+         * @description POST /api/auth/register/ — open to anyone.
+         *
+         *     No `role`, no `password`, no site. Those are a lead's decision at
+         *     approval, not the registrant's to make — see RegistrationRequest.
+         */
+        RegistrationRequestCreate: {
+            readonly id: number;
+            first_name: string;
+            last_name: string;
+            /** Format: email */
+            email: string;
+            phone_number?: string;
+        };
+        /**
+         * @description * `PENDING` - Pending
+         *     * `APPROVED` - Approved
+         *     * `DECLINED` - Declined
+         * @enum {string}
+         */
+        RegistrationRequestStatusEnum: "PENDING" | "APPROVED" | "DECLINED";
         /**
          * @description Confirming payment on an order — F35.
          *
@@ -4903,6 +5122,7 @@ export interface components {
             readonly email: string;
             readonly first_name: string;
             readonly last_name: string;
+            readonly phone_number: string;
             readonly role: components["schemas"]["RoleEnum"];
             readonly role_display: string;
             readonly warehouse: components["schemas"]["WarehouseSummary"];
@@ -4944,6 +5164,7 @@ export interface components {
             email: string;
             first_name?: string;
             last_name?: string;
+            phone_number?: string;
             role: components["schemas"]["RoleEnum"];
             readonly role_display: string;
             warehouse?: number | null;
@@ -4983,6 +5204,7 @@ export interface components {
              * @description Used to sign in. Must be unique across all staff.
              */
             email: string;
+            phone_number?: string;
             role: components["schemas"]["RoleEnum"];
             warehouse?: number | null;
             school?: number | null;
@@ -4999,6 +5221,16 @@ export interface components {
             /** Format: uuid */
             challenge: string;
             /** @description The code from the email. */
+            code: string;
+        };
+        /**
+         * @description Confirming a registration request's address with the emailed code —
+         *     POST /api/auth/register/verify/. Same shape as EmailVerificationSerializer;
+         *     kept separate because it confirms a different kind of row.
+         */
+        VerifyRegistration: {
+            /** Format: email */
+            email: string;
             code: string;
         };
         Warehouse: {
@@ -5352,6 +5584,159 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["TokenRefresh"];
+                };
+            };
+        };
+    };
+    auth_register_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegistrationRequestCreate"];
+                "application/x-www-form-urlencoded": components["schemas"]["RegistrationRequestCreate"];
+                "multipart/form-data": components["schemas"]["RegistrationRequestCreate"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationRequest"];
+                };
+            };
+        };
+    };
+    auth_register_verify_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyRegistration"];
+                "application/x-www-form-urlencoded": components["schemas"]["VerifyRegistration"];
+                "multipart/form-data": components["schemas"]["VerifyRegistration"];
+            };
+        };
+        responses: {
+            /** @description Confirmed. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_registration_requests_list: {
+        parameters: {
+            query?: {
+                email?: string;
+                /** @description A page number within the paginated result set. */
+                page?: number;
+                /** @description Number of results to return per page. */
+                page_size?: number;
+                succeeded?: boolean;
+                user?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedLoginAttemptList"];
+                };
+            };
+        };
+    };
+    auth_registration_requests_retrieve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this login attempt. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LoginAttempt"];
+                };
+            };
+        };
+    };
+    auth_registration_requests_approve_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this login attempt. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ApproveRegistration"];
+                "application/x-www-form-urlencoded": components["schemas"]["ApproveRegistration"];
+                "multipart/form-data": components["schemas"]["ApproveRegistration"];
+            };
+        };
+        responses: {
+            /** @description Account created. */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_registration_requests_decline_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description A unique integer value identifying this login attempt. */
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["DeclineRegistration"];
+                "application/x-www-form-urlencoded": components["schemas"]["DeclineRegistration"];
+                "multipart/form-data": components["schemas"]["DeclineRegistration"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RegistrationRequest"];
                 };
             };
         };

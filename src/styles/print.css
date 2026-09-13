@@ -1,0 +1,96 @@
+/* ---------------------------------------------------------------------------
+ * Printing — one place, for the whole system
+ *
+ * There were three competing print blocks before this file, and together
+ * they printed a blank page. The worst of them lived in orders.css:
+ *
+ *     body * { visibility: hidden; }
+ *     .packing-print * { visibility: visible; }
+ *
+ * Written for the packing slip, applied to every screen. Any *other*
+ * document — the finalized receipt among them — was hidden by the first
+ * line and never revealed by the second, so Print produced an empty sheet.
+ *
+ * Two conventions replace it, and a screen picks whichever it needs:
+ *
+ *   .no-print       chrome that must not reach paper. Buttons, filters, a
+ *                   step rail — anything that is a control rather than
+ *                   content.
+ *
+ *   .print-only     a document that does not exist on screen at all and is
+ *                   rendered solely to be printed, like the packing slips.
+ *                   When one is present it becomes the only thing on the
+ *                   page; when there is none, the screen prints as it looks
+ *                   minus its chrome.
+ *
+ * Nothing here uses `visibility`. Hiding a subtree with `visibility: hidden`
+ * leaves it occupying space, which is how a "blank" page can still be three
+ * pages long.
+ * ------------------------------------------------------------------------ */
+
+/* Rendered only for the printer. */
+.print-only { display: none; }
+
+@media print {
+  /* ---------------------------------------------------------------------
+   * 01 / Chrome
+   *
+   * Real class names — `.sidebar` and `.topbar`, not `.app-shell__*`. The
+   * receiving stylesheet guessed the latter, which silently matched nothing.
+   * ------------------------------------------------------------------ */
+
+  .sidebar,
+  .topbar,
+  .snackbars,
+  .exports,
+  .filters,
+  .pagination,
+  .panel__view-all,
+  .page-back,
+  .no-print {
+    display: none !important;
+  }
+
+  .shell { display: block; }
+  .shell__main { display: block; }
+  .shell__content { padding: 0; overflow: visible; }
+
+  body {
+    background: #ffffff;
+    /* Let the paper decide the height. A fixed viewport height on screen
+       clips everything past the first sheet. */
+    height: auto;
+    overflow: visible;
+  }
+
+  /* ---------------------------------------------------------------------
+   * 02 / A print-only document takes the whole page
+   *
+   * Scoped with :has() so this applies only on a screen that actually has
+   * one. Everywhere else the content prints as it appears.
+   * ------------------------------------------------------------------ */
+
+  .print-only { display: block !important; }
+
+  .shell__content:has(> .print-only) > *:not(.print-only) {
+    display: none !important;
+  }
+
+  /* ---------------------------------------------------------------------
+   * 03 / Panels and tables on paper
+   * ------------------------------------------------------------------ */
+
+  .panel,
+  .kpi,
+  .card-panel {
+    border-color: #cccccc;
+    box-shadow: none;
+    background: #ffffff !important;
+    break-inside: avoid;
+  }
+
+  /* Repeat the header on every sheet a long table spills onto. */
+  .ledger thead { display: table-header-group; }
+  .ledger tr { break-inside: avoid; }
+  .table-scroll { overflow: visible; }
+}

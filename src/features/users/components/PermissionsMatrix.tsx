@@ -7,7 +7,7 @@
  * next to its label so this is visible in the UI, not just in code.
  */
 
-import { Check, X } from 'lucide-react'
+import { Ban, Check } from 'lucide-react'
 import { PERMISSIONS_MATRIX_ROWS, matrixCell } from '@/domain/permissionsMatrix'
 import type { RoleInfo } from '@/api/types'
 
@@ -49,7 +49,7 @@ export function PermissionsMatrix({ roles, loading }: PermissionsMatrixProps) {
                   {matrixCell(role, row) ? (
                     <Check size={16} className="matrix__yes" aria-label="Allowed" />
                   ) : (
-                    <X size={16} className="matrix__no" aria-label="Not allowed" />
+                    <Ban size={16} className="matrix__no" aria-label="Not allowed" />
                   )}
                 </td>
               ))}

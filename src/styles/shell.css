@@ -35,10 +35,10 @@
   background: var(--accent);
   border-right: 1px solid var(--border);
   color: var(--text-on-dark);
-  /* The nav is long; it scrolls independently of the content column. */
-  max-height: 100dvh;
-  position: sticky;
-  top: 0;
+  /* At least the viewport, but free to grow past it: the design shows the
+     whole rail at once, and a nav with its own scrollbar inside a page that
+     already scrolls gave two competing scroll areas. */
+  min-height: 100dvh;
 }
 
 .sidebar__brand {
@@ -52,7 +52,7 @@
   display: grid;
   place-items: center;
   padding: 6px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-pill);
 }
 
 .sidebar__wordmark {
@@ -63,29 +63,34 @@
   line-height: 1.2;
 }
 
-.sidebar__wordmark b { font-weight: var(--weight-regular); }
+.sidebar__wordmark b {
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
 
 .sidebar__wordmark small {
-  font-size: var(--text-caption);
+  font-size: var(--text-overline);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  opacity: 0.8;
 }
 
 .sidebar__groups {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
+  /* Takes the slack so the user card stays at the foot of the rail. No
+     overflow of its own — the page is the one scrolling surface. */
   flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  /* Room for the scrollbar so links do not sit under it. */
-  margin-right: calc(var(--space-1) * -1);
-  padding-right: var(--space-1);
 }
 
 .sidebar__group { display: flex; flex-direction: column; gap: var(--space-1); }
 
 .sidebar__group + .sidebar__group { margin-top: var(--space-2); }
+
+/* The group label, chevron and item list are styled in dashboard.css, which
+   is imported after this file and owns them. Adding a second copy here only
+   created rules the cascade silently discarded. */
 
 .sidebar__link {
   display: flex;
@@ -93,7 +98,7 @@
   gap: 10px;
   height: 40px;
   padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   color: var(--text-on-dark);
   font-size: var(--text-caption);
   text-decoration: none;
@@ -102,7 +107,22 @@
 
 .sidebar__link:hover { background: rgba(255, 255, 255, 0.1); }
 
-.sidebar__link--active { background: var(--tone-slate); }
+/* #21232B — the design's active pill is the near-black nav tone, deliberately
+   darker than the teal panel so the current page reads at a glance. */
+.sidebar__link--active {
+  background: var(--tone-slate);
+  font-weight: var(--weight-bold);
+}
+
+/* A destination this role cannot open. Present, so the rail matches the
+   design and nobody wonders where a screen went; dimmed and inert, so it
+   never leads anywhere that answers 403. */
+.sidebar__link--locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.sidebar__link--locked:hover { background: none; }
 
 .sidebar__link:focus-visible {
   outline: 2px solid var(--text-on-dark);
@@ -117,9 +137,9 @@
   align-items: center;
   gap: 10px;
   padding: var(--space-3);
-  background: var(--surface-container);
+  background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-lg);
   color: var(--text-primary);
 }
 
@@ -132,7 +152,7 @@
   line-height: 1.2;
 }
 
-.sidebar__user-text b { font-weight: var(--weight-regular); }
+.sidebar__user-text b { font-weight: var(--weight-bold); }
 
 .sidebar__user-text b,
 .sidebar__user-text small {
@@ -192,22 +212,26 @@
 .topbar__left { display: flex; align-items: center; gap: var(--space-4); }
 
 .topbar__chip {
-  padding: var(--space-2) var(--space-3);
-  background: var(--surface-container);
-  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border-radius: var(--radius-pill);
   color: var(--accent);
   font-size: var(--text-caption);
   font-weight: 600;
   white-space: nowrap;
 }
 
+/* A white pill like the chip beside it — the design gives the two the same
+   treatment, and a transparent control on the teal band read as a gap. */
 .topbar__site {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border: 1px solid var(--on-overlay-dim);
-  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border: 0;
+  border-radius: var(--radius-pill);
+  color: var(--accent);
   font-size: var(--text-caption);
   white-space: nowrap;
 }
@@ -218,11 +242,14 @@
   gap: var(--space-2);
   flex: 1;
   max-width: 315px;
-  margin-left: auto;
-  padding: var(--space-2) var(--space-3);
-  background: var(--surface-container);
-  border: 1px solid var(--surface);
-  border-radius: var(--radius-sm);
+  /* Centred in the bar, not shoved against the actions cluster — a lone
+     `margin-left: auto` absorbed every pixel of slack ahead of it. */
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface);
+  border: 0;
+  /* A rounded rectangle in the design, unlike the pills either side of it. */
+  border-radius: var(--radius-lg);
   color: var(--text-muted);
 }
 
@@ -249,8 +276,8 @@
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--surface-container);
-  color: var(--text-primary);
+  background: var(--surface);
+  color: var(--accent);
   cursor: pointer;
 }
 
@@ -391,7 +418,9 @@
 
 /* A narrowed filter reads as chosen, so an unchanged figure is not mistaken
    for a control that did nothing. */
-.topbar__site--active {
-  background: var(--tone-slate);
-  border-color: var(--tone-slate);
-}
+/* The inner <select> is styled in dashboard.css, which is imported after
+   this file; it takes `color: inherit`, so the pill above sets the colour.
+
+   A chosen warehouse is emphasis, not a colour change: the pill stays white
+   so it keeps matching the chip beside it. */
+.topbar__site--active select { font-weight: var(--weight-bold); }

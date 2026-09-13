@@ -1,8 +1,9 @@
 /**
  * The sidebar — Figma 2001:426.
  *
- * Draws whatever `visibleNavigation` hands it. It does not know which role is
- * signed in and contains no conditionals about one.
+ * Draws whatever `fullNavigation` hands it — every destination the design
+ * lists, each already marked as open to this user or not. The component does
+ * not know which role is signed in and contains no conditionals about one.
  *
  * The section labels are the collapse controls, as the design's chevrons
  * imply. Each is a real button so the keyboard can reach it, and it reports
@@ -15,7 +16,7 @@ import markUrl from '@/assets/brand/asone-mark.svg'
 import { Avatar } from '@/components'
 import { fullName, initials } from '@/domain/access'
 import type { CurrentUser } from '@/api/types'
-import { visibleNavigation } from '../visibleNavigation'
+import { fullNavigation } from '../visibleNavigation'
 import { useNavGroups } from '../hooks/useNavGroups'
 import { NavIcon } from './NavIcon'
 
@@ -25,7 +26,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ user, onSignOut }: SidebarProps) {
-  const groups = visibleNavigation(user)
+  const groups = fullNavigation(user)
   const { isOpen, toggle } = useNavGroups()
 
   return (
@@ -65,18 +66,36 @@ export function Sidebar({ user, onSignOut }: SidebarProps) {
               </button>
 
               <div className="sidebar__group-items" id={id} hidden={!open}>
-                {group.items.map((item) => (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    className={({ isActive }) =>
-                      `sidebar__link${isActive ? ' sidebar__link--active' : ''}`
-                    }
-                  >
-                    <NavIcon name={item.icon} />
-                    <span>{item.label}</span>
-                  </NavLink>
-                ))}
+                {group.items.map((item) =>
+                  item.allowed ? (
+                    <NavLink
+                      key={item.path}
+                      to={item.path}
+                      className={({ isActive }) =>
+                        `sidebar__link${isActive ? ' sidebar__link--active' : ''}`
+                      }
+                    >
+                      <NavIcon name={item.icon} />
+                      <span>{item.label}</span>
+                    </NavLink>
+                  ) : (
+                    /*
+                     * Shown, but not a link. The design draws the whole rail,
+                     * and a destination this role cannot open is worth seeing
+                     * exists — but making it clickable would only ever lead to
+                     * a 403, which is a worse answer than a quiet one.
+                     */
+                    <span
+                      key={item.path}
+                      className="sidebar__link sidebar__link--locked"
+                      aria-disabled="true"
+                      title={`${item.label} is not available to your role.`}
+                    >
+                      <NavIcon name={item.icon} />
+                      <span>{item.label}</span>
+                    </span>
+                  ),
+                )}
               </div>
             </div>
           )

@@ -8,7 +8,7 @@
  */
 
 import { useState } from 'react'
-import { UserPlus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components'
 import { AppShell } from '@/features/shell/components/AppShell'
 import { AddUserModal } from '../components/AddUserModal'
@@ -34,33 +34,28 @@ export function UsersRolesScreen() {
 
   return (
     <AppShell title="Users & Roles">
-      <header className="page-head page-head--split">
-        <div>
-          <h1 className="page-head__title">Users & Roles</h1>
-          <p className="page-head__subtitle">
-            Manage staff accounts, their roles, and what each role may do.
-          </p>
+      {/* The design puts no heading on this screen: the top bar already
+          names it, and the tabs share their row with the one action. */}
+      <div className="users__toolbar">
+        <div className="tabbar" role="tablist">
+          {TABS.map((entry) => (
+            <button
+              key={entry}
+              type="button"
+              role="tab"
+              aria-selected={entry === tab}
+              className={`tabbar__tab${entry === tab ? ' tabbar__tab--active' : ''}`}
+              onClick={() => setTab(entry)}
+            >
+              {entry}
+            </button>
+          ))}
         </div>
 
-        <Button onClick={() => setModalOpen(true)}>
-          <UserPlus size={16} aria-hidden />
+        <Button size="sm" onClick={() => setModalOpen(true)}>
+          <Plus size={16} aria-hidden />
           Add User
         </Button>
-      </header>
-
-      <div className="tabbar" role="tablist">
-        {TABS.map((entry) => (
-          <button
-            key={entry}
-            type="button"
-            role="tab"
-            aria-selected={entry === tab}
-            className={`tabbar__tab${entry === tab ? ' tabbar__tab--active' : ''}`}
-            onClick={() => setTab(entry)}
-          >
-            {entry}
-          </button>
-        ))}
       </div>
 
       {justAdded && (
@@ -75,17 +70,17 @@ export function UsersRolesScreen() {
         </div>
       )}
 
-      {(tab === 'Roles' || tab === 'Permissions') && (
-        <div className="panel">
-          <header className="panel__head">
+      <div className="panel users__matrix">
+        <header className="panel__head panel__head--stacked">
+          <div>
             <h2 className="panel__title">Role Permissions Matrix Preview</h2>
-          </header>
-          <p className="panel__subtitle">System functions authorized by user role profiles.</p>
-          <div className="panel__body">
-            <PermissionsMatrix roles={roles} loading={rolesQuery.isLoading} />
+            <p className="panel__subtitle">System functions authorized by user role profiles.</p>
           </div>
+        </header>
+        <div className="panel__body">
+          <PermissionsMatrix roles={roles} loading={rolesQuery.isLoading} />
         </div>
-      )}
+      </div>
 
       {modalOpen && (
         <AddUserModal

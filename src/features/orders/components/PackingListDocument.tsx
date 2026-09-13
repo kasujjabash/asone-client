@@ -17,7 +17,7 @@ import type { PackingList } from '@/api/types'
 
 export function PackingListDocument({ lists }: { lists: PackingList[] }) {
   return (
-    <div className="packing-print" aria-hidden>
+    <div className="packing-print print-only" aria-hidden>
       {lists.map((list) => (
         <article className="slip" key={list.shipment_number}>
           <header className="slip__head">

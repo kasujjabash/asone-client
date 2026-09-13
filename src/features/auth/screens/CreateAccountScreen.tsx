@@ -1,22 +1,23 @@
 /**
- * Create Account — both steps, one route, same shape as `SignInScreen`.
+ * Create Account — three states, one route.
  *
- * Step one collects the account request; step two confirms the emailed
- * code. A code screen reachable on its own URL could be landed on with
- * nothing to verify, so which step shows is local state here rather than
- * two routes.
- *
- * Fully mocked: see `requestAccount`/`confirmAccount` in `api/auth.ts` for
- * why. Once a real registration endpoint exists, this screen's shape does
- * not need to change — only what it calls.
+ * 1. The form: name, email, phone. Submitting immediately emails a code —
+ *    `POST /auth/register/` sends it the moment the request is created.
+ * 2. Verify Email: the registrant proves they hold that address. This does
+ *    not create an account or sign anyone in — it unlocks the request for
+ *    a lead to review.
+ * 3. Submitted: confirmation that a lead's review is next. A second,
+ *    separate code follows later, by email, once a lead approves and
+ *    assigns a role — the same confirmation `POST /auth/users/` sends
+ *    today.
  */
 
 import { useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import * as authApi from '@/api/auth'
 import { toApiError, type ApiError } from '@/api/errors'
-import type { LoginChallenge } from '@/api/types'
-import { BrandMark, LoadingScreen, ServerUnreachable, snackbar } from '@/components'
+import type { RegistrationRequest } from '@/api/types'
+import { BrandMark, Button, LoadingScreen, ServerUnreachable } from '@/components'
 import { paths } from '@/routes/paths'
 import { CreateAccountForm } from '../components/CreateAccountForm'
 import { SplitAuthLayout } from '../components/SplitAuthLayout'
@@ -25,7 +26,8 @@ import { useAuth } from '../hooks/useAuth'
 
 export function CreateAccountScreen() {
   const { status, retry } = useAuth()
-  const [challenge, setChallenge] = useState<LoginChallenge | null>(null)
+  const [registration, setRegistration] = useState<RegistrationRequest | null>(null)
+  const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<ApiError | null>(null)
   const [pending, setPending] = useState(false)
 
@@ -39,9 +41,8 @@ export function CreateAccountScreen() {
     setPending(true)
     setError(null)
     try {
-      const issued = await authApi.requestAccount(input)
-      setChallenge(issued)
-      snackbar.info('Check your email', `We sent a verification code to ${issued.email_hint}.`)
+      const created = await authApi.requestAccount(input)
+      setRegistration(created)
     } catch (cause) {
       setError(toApiError(cause))
     } finally {
@@ -50,12 +51,12 @@ export function CreateAccountScreen() {
   }
 
   async function handleVerify(code: string) {
-    if (!challenge) return
+    if (!registration) return
     setPending(true)
     setError(null)
     try {
-      await authApi.confirmAccount({ email: challenge.email_hint, code })
-      snackbar.success('Account created', 'You can now sign in.')
+      await authApi.confirmRegistration({ email: registration.email, code })
+      setSubmitted(true)
     } catch (cause) {
       setError(toApiError(cause))
     } finally {
@@ -63,13 +64,28 @@ export function CreateAccountScreen() {
     }
   }
 
-  if (challenge) {
+  if (submitted && registration) {
+    return (
+      <SplitAuthLayout>
+        <div className="auth-card">
+          <h1 className="auth-card__title">Request submitted</h1>
+          <p className="auth-card__body">
+            Your email is confirmed. AsOne's team will review your request and assign you a
+            role — you'll hear from them at <strong>{registration.email}</strong> once that's
+            done.
+          </p>
+          <Button onClick={() => (window.location.href = paths.signIn)}>Back to sign in</Button>
+        </div>
+      </SplitAuthLayout>
+    )
+  }
+
+  if (registration) {
     return (
       <SplitAuthLayout>
         <VerifyEmailCard
-          emailHint={challenge.email_hint}
+          email={registration.email}
           onSubmit={handleVerify}
-          onResend={() => snackbar.info('Code resent', `Check ${challenge.email_hint} again.`)}
           pending={pending}
           error={error}
         />

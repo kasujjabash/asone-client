@@ -7,7 +7,7 @@
  */
 
 import { Users as UsersIcon } from 'lucide-react'
-import { Badge, EmptyState, SkeletonRows } from '@/components'
+import { EmptyState, SkeletonRows } from '@/components'
 import type { UserAdmin } from '@/api/types'
 
 interface UsersTableProps {
@@ -69,7 +69,10 @@ export function UsersTable({ users, loading }: UsersTableProps) {
               </td>
               <td>{user.email}</td>
               <td>
-                <Badge tone="info">{user.role_display}</Badge>
+                {/* Not a status, so not a <Badge>: the role is a label on the
+                    person, and the design gives it the neutral surface rather
+                    than one of the badge tones. */}
+                <span className="role-chip">{user.role_display}</span>
               </td>
               <td>{siteFor(user)}</td>
               <td>

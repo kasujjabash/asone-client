@@ -9,7 +9,17 @@
 
 import { can } from '@/domain/access'
 import type { CurrentUser } from '@/api/types'
-import { NAVIGATION, type NavGroup, type NavRequirement } from './navigation'
+import { NAVIGATION, type NavGroup, type NavItem, type NavRequirement } from './navigation'
+
+/** A destination plus whether this user may actually open it. */
+export interface NavItemView extends NavItem {
+  allowed: boolean
+}
+
+export interface NavGroupView {
+  label: string
+  items: NavItemView[]
+}
 
 /**
  * Does this user meet a requirement?
@@ -36,4 +46,24 @@ export function visibleNavigation(user: CurrentUser | null): NavGroup[] {
     // A section label with nothing under it is noise — drop the whole group.
     (group) => group.items.length > 0,
   )
+}
+
+/**
+ * Every destination, with the ones this user may not open marked rather
+ * than removed — the full rail the design draws.
+ *
+ * The server still refuses a forbidden route, and `RequireAccess` still
+ * guards it; a disabled item cannot be clicked through to a 403. What this
+ * changes is only whether somebody can see that the destination exists.
+ */
+export function fullNavigation(user: CurrentUser | null): NavGroupView[] {
+  if (!user) return []
+
+  return NAVIGATION.map((group) => ({
+    label: group.label,
+    items: group.items.map((item) => ({
+      ...item,
+      allowed: meetsRequirement(user, item.requires),
+    })),
+  }))
 }

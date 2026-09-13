@@ -23,7 +23,7 @@ export function CreateAccountForm({ onSubmit, pending, error }: CreateAccountFor
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
   const [phoneNumber, setPhoneNumber] = useState('')
-  const [agreed, setAgreed] = useState(true)
+  const [agreed, setAgreed] = useState(false)
 
   const fieldError = (name: string) => error?.fields?.[name]?.[0]
   const complete = fullName.trim() && email.trim() && phoneNumber.trim() && agreed
@@ -31,7 +31,17 @@ export function CreateAccountForm({ onSubmit, pending, error }: CreateAccountFor
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
     if (!complete) return
-    onSubmit({ full_name: fullName, email, phone_number: phoneNumber })
+
+    // The design shows one Full Name field; the server wants first and last
+    // separately. Split on the first space so "Warehouse Manager" becomes
+    // first="Warehouse", last="Manager" — a single word goes entirely into
+    // first_name, since the server requires both non-blank.
+    const trimmed = fullName.trim()
+    const spaceIndex = trimmed.indexOf(' ')
+    const first_name = spaceIndex === -1 ? trimmed : trimmed.slice(0, spaceIndex)
+    const last_name = spaceIndex === -1 ? trimmed : trimmed.slice(spaceIndex + 1).trim()
+
+    onSubmit({ first_name, last_name: last_name || first_name, email, phone_number: phoneNumber })
   }
 
   return (
@@ -44,7 +54,7 @@ export function CreateAccountForm({ onSubmit, pending, error }: CreateAccountFor
         required
         autoFocus
         value={fullName}
-        error={fieldError('full_name')}
+        error={fieldError('first_name') ?? fieldError('last_name')}
         onChange={(event) => setFullName(event.target.value)}
       />
 
@@ -76,15 +86,15 @@ export function CreateAccountForm({ onSubmit, pending, error }: CreateAccountFor
         </span>
       </label>
 
-      <div className="signin__actions">
-        <Button type="submit" size="lg" disabled={!complete || pending}>
+      <div className="signin__actions signin__actions--compact">
+        <Button type="submit" size="md" disabled={!complete || pending}>
           {pending ? 'Creating account…' : 'Create Account'}
         </Button>
       </div>
 
       <p className="signin__request">
         Already have an account?{' '}
-        <Link className="link-quiet" to={paths.signIn}>
+        <Link className="link-accent" to={paths.signIn}>
           Sign In
         </Link>
       </p>

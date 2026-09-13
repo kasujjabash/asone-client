@@ -33,6 +33,10 @@ import { StockReportScreen } from '@/features/reports/screens/StockReportScreen'
 import { OrderDetailScreen } from '@/features/orders/screens/OrderDetailScreen'
 import { OrdersListScreen } from '@/features/orders/screens/OrdersListScreen'
 import { UsersRolesScreen } from '@/features/users/screens/UsersRolesScreen'
+import { CreateProductionOrderScreen } from '@/features/production/screens/CreateProductionOrderScreen'
+import { ProductionOrderDetailScreen } from '@/features/production/screens/ProductionOrderDetailScreen'
+import { ProductionOrdersScreen } from '@/features/production/screens/ProductionOrdersScreen'
+import { ReceivingScreen } from '@/features/receiving/screens/ReceivingScreen'
 import { canReadSchoolOrders } from '@/domain/access'
 import { ALL_NAV_ITEMS } from '@/features/shell/navigation'
 import { PlaceholderScreen } from '@/features/shell/screens/PlaceholderScreen'
@@ -51,6 +55,8 @@ const SCREENS: Record<string, ComponentType> = {
   '/reports': ReportsIndexScreen,
   '/orders': OrdersListScreen,
   '/users': UsersRolesScreen,
+  '/receiving': ReceivingScreen,
+  '/production-orders': ProductionOrdersScreen,
 }
 
 export function AppRoutes() {
@@ -83,6 +89,29 @@ export function AppRoutes() {
               <RequireAuth>
                 <RequireAccess requires={canReadSchoolOrders}>
                   <OrderDetailScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+
+          {/* Before the :orderId route, or "new" is parsed as an order id. */}
+          <Route
+            path="/production-orders/new"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="production_orders">
+                  <CreateProductionOrderScreen />
+                </RequireAccess>
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/production-orders/:orderId"
+            element={
+              <RequireAuth>
+                <RequireAccess requires="production_orders">
+                  <ProductionOrderDetailScreen />
                 </RequireAccess>
               </RequireAuth>
             }

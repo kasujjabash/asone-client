@@ -1,0 +1,481 @@
+/* ---------------------------------------------------------------------------
+ * Receiving — F19, F20, F21
+ *
+ * The step rail, the validation matrix and the printable manifest. Tables
+ * reuse `.ledger` from reports.css rather than defining a parallel one, so
+ * a column heading lines up with its figures here for the same reason it
+ * does everywhere else.
+ * ------------------------------------------------------------------------ */
+
+/* 01 / Step rail ---------------------------------------------------------- */
+
+.step-rail-frame {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-5);
+}
+
+.step-rail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex-wrap: wrap;
+}
+
+.step-rail__step {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  font-size: var(--text-body);
+}
+
+/* The connector between steps. On the item rather than a separate element
+   so the markup stays an ordered list of steps and nothing else. */
+.step-rail__step + .step-rail__step::before {
+  content: '';
+  width: 48px;
+  height: 1px;
+  background: var(--border);
+  margin-right: var(--space-3);
+}
+
+.step-rail__marker {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--surface-dim);
+  color: var(--text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-bold);
+  flex: none;
+}
+
+.step-rail__step--active { color: var(--accent-hover); font-weight: var(--weight-bold); }
+.step-rail__step--active .step-rail__marker {
+  background: var(--accent);
+  color: var(--text-on-accent);
+}
+
+.step-rail__step--done { color: var(--text-secondary); }
+.step-rail__step--done .step-rail__marker {
+  background: transparent;
+  color: var(--success);
+}
+
+/* 02 / Layout ------------------------------------------------------------- */
+
+.receiving__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+  gap: var(--space-5);
+  align-items: start;
+}
+
+/* The compare step leads with the matrix, so it gets the wide column. */
+.receiving__columns--wide {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 380px);
+}
+
+.receiving__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+@media (max-width: 1100px) {
+  .receiving__columns,
+  .receiving__columns--wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* 03 / Stacked fields ----------------------------------------------------- */
+
+/*
+ * The design labels these in sentence case above the box, not as the
+ * uppercase overline `.field` uses elsewhere. A modifier rather than a new
+ * component: the spacing and error slot are the same.
+ */
+.field--stacked { margin-bottom: var(--space-4); }
+
+.field--stacked > label {
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--text-primary);
+}
+
+/*
+ * A hint under a field, and it has to be readable: these carry the rule the
+ * person needs ("leave this blank to use the price list"), not decoration.
+ *
+ * `--text-muted` is #828e9b, which is 3.36:1 on white — under the 4.5:1
+ * WCAG AA floor for normal text. At 12px it was there and unreadable, which
+ * is the same as not being there. `--text-secondary` is 7.6:1.
+ */
+.field__hint {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-body);
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+.input--area {
+  resize: vertical;
+  min-height: 110px;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+/* Sized for four digits so a column of them stays narrow. */
+.input--count {
+  width: 76px;
+  padding: var(--space-1) var(--space-2);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A price is wider than a count and left-aligned reads as text, so it keeps
+   the count's tabular figures and gains room for thousands. */
+.input--price { width: 96px; }
+
+/* A panel title with a badge opposite it. */
+.card-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.card-panel__head .card-panel__title { margin: 0; }
+
+/* A page heading with its primary action opposite. */
+.page-head--split {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+/* 04 / Pills and chips ---------------------------------------------------- */
+
+.pill {
+  display: inline-block;
+  padding: 3px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-overline);
+  white-space: nowrap;
+}
+
+.pill--mint { background: var(--accent-halo); color: var(--accent-hover); }
+.pill--amber { background: var(--warning-bg); color: var(--warning); }
+
+.chip {
+  display: inline-block;
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-overline);
+}
+
+.chip--matched { background: var(--success-bg); color: var(--success); }
+.chip--shortage { background: transparent; color: var(--warning); }
+.chip--surplus { background: transparent; color: var(--warning); }
+
+/* 05 / Validation matrix -------------------------------------------------- */
+
+/*
+ * Six columns including two inputs, so the table gets a floor and scrolls
+ * inside `.table-scroll` rather than crushing the count field to nothing.
+ */
+.validation { min-width: 720px; }
+
+/*
+ * A description column that gives way. The garment names run long — "Primary
+ * White Shirt (Short Sleeve)" — and the design truncates them rather than
+ * wrapping a table row to three lines. `max-width` is what makes
+ * `text-overflow` work at all: without it the cell just grows.
+ */
+.ledger__wrap {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * A discrepancy tints its whole row. Set on the row rather than the cells so
+ * the tint survives the `:hover` rule on `.ledger tbody tr`, which would
+ * otherwise wipe it as soon as a clerk moved the mouse to the input.
+ */
+.validation__row--shortage,
+.validation__row--surplus,
+.ledger tbody tr.validation__row--shortage:hover,
+.ledger tbody tr.validation__row--surplus:hover {
+  background: var(--warning-bg);
+}
+
+.validation__row--shortage td,
+.validation__row--surplus td { font-weight: var(--weight-medium); }
+
+.validation__diff--shortage,
+.validation__diff--surplus {
+  color: var(--warning);
+  font-weight: var(--weight-bold);
+}
+
+.validation__diff--matched { color: var(--text-secondary); }
+
+.panel__sub {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+}
+
+/* 06 / Fact rows and callouts --------------------------------------------- */
+
+.fact-rows { margin: 0; }
+
+.fact-rows > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--table-rule);
+}
+
+.fact-rows > div:last-child { border-bottom: 0; }
+
+.fact-rows dt {
+  font-size: var(--text-body);
+  color: var(--text-secondary);
+}
+
+.fact-rows dd {
+  margin: 0;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+.fact-rows__value--warning { color: var(--warning); }
+
+.callout {
+  margin: var(--space-3) 0 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+
+.callout--warning {
+  background: var(--warning-bg);
+  color: #92400e;
+}
+
+.callout h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-body);
+  color: var(--warning);
+}
+
+.callout p { margin: 0; }
+
+/* 07 / The finalized manifest --------------------------------------------- */
+
+.manifest-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.manifest {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: var(--space-6);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.manifest__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--table-rule);
+}
+
+.manifest__brand { display: flex; align-items: center; gap: var(--space-3); }
+
+.manifest__org {
+  margin: 0;
+  font-family: var(--font-brand);
+  font-weight: var(--weight-bold);
+  color: var(--accent-hover);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  font-size: var(--text-caption);
+}
+
+.manifest__org-sub {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-primary);
+  font-weight: var(--weight-bold);
+}
+
+.manifest__stamps {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* The rubber stamp. Rotated and outlined rather than a filled badge, so it
+   reads as applied to the paper rather than printed with it. */
+.manifest__stamp {
+  transform: rotate(-6deg);
+  border: 2px solid var(--success);
+  color: var(--success);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-3);
+  font-family: var(--font-brand);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-overline);
+  opacity: 0.55;
+  white-space: nowrap;
+}
+
+.manifest__title {
+  margin: var(--space-5) 0 var(--space-4);
+  font-size: var(--text-h1);
+  color: var(--text-primary);
+}
+
+.manifest__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-2) var(--space-5);
+  margin: 0 0 var(--space-5);
+  padding: var(--space-4);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+
+.manifest__meta > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.manifest__meta dt { color: var(--text-secondary); font-size: var(--text-caption); }
+.manifest__meta dd {
+  margin: 0;
+  font-weight: var(--weight-bold);
+  font-size: var(--text-caption);
+  text-align: right;
+}
+
+.manifest__table tfoot td {
+  background: var(--surface-sunken);
+  font-weight: var(--weight-bold);
+  border-bottom: 0;
+}
+
+.manifest__notes { margin-top: var(--space-5); }
+
+.manifest__foot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--table-rule);
+}
+
+.manifest__sync {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-weight: var(--weight-bold);
+  color: var(--success);
+}
+
+.manifest__sync-body {
+  margin: 0;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.manifest__timestamp {
+  margin: var(--space-2) 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-hover);
+}
+
+.manifest__sign { align-self: start; }
+
+.manifest__sign-label {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-overline);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.manifest__sign-name {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  font-size: var(--text-h3);
+  color: var(--accent-hover);
+}
+
+.manifest__sign-note {
+  margin: var(--space-2) 0 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+@media (max-width: 800px) {
+  .manifest__foot { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* 08 / Printing ----------------------------------------------------------- */
+
+/* The chrome is hidden by `.no-print` in the markup — see print.css. */
+@media print {
+  .manifest {
+    max-width: none;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .manifest__table thead { display: table-header-group; }
+  .manifest__table tr { break-inside: avoid; }
+}

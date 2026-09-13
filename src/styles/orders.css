@@ -268,31 +268,32 @@
  * pill rather than an underline.
  * ------------------------------------------------------------------------ */
 
+/* No card behind the tabs — the design sits them straight on the canvas,
+   and the bordered box made them read as a second toolbar. */
 .tabbar {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--space-2);
   margin-top: var(--space-4);
-  padding: var(--space-2);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
 }
 
 .tabbar__tab {
   padding: var(--space-2) var(--space-4);
-  border: 0;
-  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
   background: none;
   font: inherit;
-  font-size: var(--text-h3);
+  font-size: var(--text-body);
   font-weight: 500;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
+.tabbar__tab:hover { color: var(--text-primary); }
+
 .tabbar__tab--active {
-  background: var(--accent-halo);
+  background: var(--surface);
+  border-color: var(--accent);
   color: var(--accent-hover);
   font-weight: var(--weight-bold);
 }
@@ -563,22 +564,13 @@
  * everything else and shows only this.
  * ------------------------------------------------------------------------ */
 
-.packing-print { display: none; }
+/*
+ * Hidden on screen and shown on paper by `.print-only` — see print.css.
+ * This used to carry its own `body * { visibility: hidden }` block, which
+ * blanked every other printable document in the system.
+ */
 
 @media print {
-  /* Only the slips reach the paper. */
-  body * { visibility: hidden; }
-
-  .packing-print,
-  .packing-print * { visibility: visible; }
-
-  .packing-print {
-    display: block;
-    position: absolute;
-    inset: 0;
-    padding: 0;
-  }
-
   .slip {
     /* One slip per sheet: they travel with different boxes. */
     page-break-after: always;

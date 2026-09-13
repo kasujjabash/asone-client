@@ -52,9 +52,11 @@ export function WelcomeScreen() {
           inventory allocations all in one unified logistics dashboard.
         </p>
 
-        <Button size="lg" onClick={() => navigate(paths.createAccount)}>
-          Get Started Onboarding
-        </Button>
+        <div className="welcome__cta">
+          <Button size="lg" onClick={() => navigate(paths.createAccount)}>
+            Get Started Onboarding
+          </Button>
+        </div>
 
         <p className="signin__request">
           Already have an account?{' '}

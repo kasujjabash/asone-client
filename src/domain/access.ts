@@ -104,6 +104,21 @@ export function canReadSchoolOrders(user: CurrentUser | null): boolean {
 }
 
 /**
+ * Who may raise a production order on a Tailoring Center — F17.
+ *
+ * The **Table Updates** column, which AsOne gives to the two leads alone.
+ * Warehouse staff and Finance read the queue — a clerk receives against it —
+ * but neither may create one: what to ask a TC to make is a programme
+ * decision, not a warehouse one.
+ *
+ * Mirrors the write half of `accounts/permissions.py::MasterDataAccess`,
+ * which is why this is `can(user, 'table_updates')` and not a role check.
+ */
+export function canRaiseProductionOrder(user: CurrentUser | null): boolean {
+  return can(user, 'table_updates')
+}
+
+/**
  * Who may place, amend or cancel a school order — F30-F33, F36.
  *
  * **School Staff, and nobody else.** AsOne's p.9 matrix leaves the School

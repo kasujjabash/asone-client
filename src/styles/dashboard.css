@@ -158,7 +158,7 @@
 
 .panel__title {
   margin: 0;
-  font-size: var(--text-caption);
+  font-size: var(--text-h3);
   font-weight: var(--weight-bold);
   color: var(--text-primary);
 }
@@ -347,18 +347,23 @@
   gap: var(--space-2);
   width: 100%;
   height: 32px;
-  padding: var(--space-2) 0;
+  padding: var(--space-2) var(--space-3);
   border: 0;
   background: none;
-  color: var(--text-on-dark);
+  /* Muted against the panel: the labels group the nav, they are not
+     destinations themselves, and full white made them compete with the
+     links underneath. */
+  color: rgba(255, 255, 255, 0.66);
   font: inherit;
-  font-size: var(--text-caption);
+  font-size: var(--text-overline);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-overline);
   text-transform: uppercase;
   text-align: left;
   cursor: pointer;
 }
 
-.sidebar__group-label:hover { color: var(--accent-tint); }
+.sidebar__group-label:hover { color: var(--text-on-dark); }
 
 .sidebar__group-label:focus-visible {
   outline: 2px solid var(--text-on-dark);
@@ -372,14 +377,13 @@
 }
 
 /*
- * The design points the chevron DOWN when a group is open and UP when it is
- * closed — the opposite of the usual convention, so it is worth stating: the
- * arrow shows which way the group will move, not where its contents are.
- * Base glyph is ChevronDown, so the rotation goes on the closed state.
+ * Chevron down when the group is open, right when it is closed — pointing
+ * at the contents when they are showing, and along the label when they are
+ * not. Base glyph is ChevronDown, so the rotation goes on the closed state.
  */
 .sidebar__chevron {
   flex-shrink: 0;
-  transform: rotate(180deg);
+  transform: rotate(-90deg);
   transition: transform 150ms ease;
 }
 

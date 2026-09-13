@@ -15,7 +15,7 @@
  * navigation, no storage decisions beyond handing tokens to `tokens`.
  */
 
-import { get, post } from './http'
+import { get, patch, post } from './http'
 import { tokens } from './tokens'
 import type {
   AccountRequest,
@@ -25,10 +25,9 @@ import type {
   LoginAttempt,
   LoginChallenge,
   Page,
+  RegistrationRequest,
   RoleInfo,
   Session,
-  UserAdmin,
-  UserCreate,
   VerifyLoginCode,
 } from './types'
 
@@ -76,54 +75,30 @@ export function verifyEmail(input: EmailVerification): Promise<{ detail: string 
 }
 
 /**
- * "Get Started Onboarding" — request an account.
+ * "Get Started Onboarding" — ask for an account.
  *
- * MOCKED: there is no self-service registration endpoint on the server.
- * Accounts are created by a Program Lead or Operations Manager through
- * `POST /auth/users/`, and self-registration may not be something AsOne
- * wants at all (every transaction records who performed it). This stub
- * exists so the screen the design calls for can be built and reviewed now;
- * swap the body for a real `post()` call once that decision is made and an
- * endpoint exists.
+ * Open: there is no account yet to authenticate as. Immediately emails a
+ * confirmation code — call `confirmRegistration` with it next. Creates
+ * nothing more than a pending request; nothing here can be signed into. A
+ * Program Lead or Operations Manager reviews it once the address is
+ * confirmed, and either approves it (which creates the account and emails
+ * a *second*, separate code — the same as `POST /auth/users/` does today)
+ * or declines it.
  */
-export function requestAccount(input: AccountRequest): Promise<LoginChallenge> {
-  return new Promise((resolve) => {
-    setTimeout(
-      () =>
-        resolve({
-          challenge: 'mock-challenge',
-          expires_at: new Date(Date.now() + 10 * 60_000).toISOString(),
-          detail: 'A verification code has been sent.',
-          email_hint: maskEmail(input.email),
-        }),
-      600,
-    )
-  })
-}
-
-function maskEmail(email: string): string {
-  const [name, domain] = email.split('@')
-  if (!name || !domain) return email
-  return `${name[0]}${'•'.repeat(Math.max(name.length - 2, 1))}${name.slice(-1)}@${domain}`
+export function requestAccount(input: AccountRequest): Promise<RegistrationRequest> {
+  return post<RegistrationRequest>('/auth/register/', input)
 }
 
 /**
- * Confirm the code sent to a requested account's address.
+ * Confirm the code sent the moment `requestAccount` was submitted.
  *
- * MOCKED alongside `requestAccount` — the server has no registration flow
- * for this to complete. Accepts any 6-digit code so the screen can be
- * reviewed end to end.
+ * Does not create an account and does not sign anyone in — it unlocks the
+ * request for a lead to review. Expired, already used and too-many-attempts
+ * all come back as the same 400, deliberately not saying which — so the
+ * screen must offer "start again" rather than "try another code".
  */
-export function confirmAccount(input: EmailVerification): Promise<{ detail: string }> {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (input.code.length === 6) {
-        resolve({ detail: 'Email confirmed.' })
-      } else {
-        reject(new Error('Enter the 6-digit code.'))
-      }
-    }, 600)
-  })
+export function confirmRegistration(input: EmailVerification): Promise<{ detail: string }> {
+  return post<{ detail: string }>('/auth/register/verify/', input)
 }
 
 /**
@@ -146,6 +121,25 @@ export async function logout(): Promise<void> {
 /** The signed-in user. Reachable even while the password gate is up. */
 export function me(): Promise<CurrentUser> {
   return get<CurrentUser>('/auth/me/')
+}
+
+/**
+ * Edit your own contact details — the Settings screen.
+ *
+ * **First name, last name and email only.** Role and site are deliberately
+ * not editable here: a person must not be able to promote themselves or move
+ * site. Sending either is ignored rather than refused, so do not offer them
+ * as fields — a control that silently does nothing is worse than no control.
+ *
+ * Changing the email changes the address you sign in with. A 400 on `email`
+ * means somebody else already has it.
+ */
+export function updateMe(body: {
+  first_name?: string
+  last_name?: string
+  email?: string
+}): Promise<CurrentUser> {
+  return patch<CurrentUser>('/auth/me/', body)
 }
 
 /**
@@ -185,24 +179,4 @@ export function loginAttempts(params?: {
   return get('/auth/login-attempts/', params)
 }
 
-/**
- * Staff accounts — the Users tab of Users & Roles.
- *
- * Program Lead and Operations Manager only; the server enforces this and a
- * 403 here means the role does not hold `table_updates`, not a bug.
- */
-export function listUsers(params?: { page?: number }): Promise<Page<UserAdmin>> {
-  return get<Page<UserAdmin>>('/auth/users/', params)
-}
-
-/**
- * "+ Add User" — provisioning a new staff account.
- *
- * There is no self-service sign-up (see `requestAccount`): every account is
- * created by a lead through this endpoint. The password is generated unless
- * one is typed and is returned once in the response — never emailed — so the
- * caller must show it to the person who will pass it on.
- */
-export function createUser(input: UserCreate): Promise<UserAdmin> {
-  return post<UserAdmin>('/auth/users/', input)
-}
+// Listing and creating staff accounts lives in `api/users.ts`, not here.

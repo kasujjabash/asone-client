@@ -25,12 +25,21 @@ type Size = 'sm' | 'md' | 'lg'
 interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'className'> {
   variant?: Variant
   size?: Size
+  /** Fills its container — for the primary action at the foot of a form. */
+  full?: boolean
   children: ReactNode
 }
 
-export function Button({ variant = 'primary', size = 'md', children, ...rest }: ButtonProps) {
+export function Button({
+  variant = 'primary',
+  size = 'md',
+  full = false,
+  children,
+  ...rest
+}: ButtonProps) {
   const classes = ['btn', `btn--${variant}`]
   if (size !== 'md') classes.push(`btn--${size}`)
+  if (full) classes.push('btn--full')
 
   return (
     <button className={classes.join(' ')} {...rest}>

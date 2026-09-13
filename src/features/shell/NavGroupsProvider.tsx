@@ -1,23 +1,29 @@
 /**
- * Owns which navigation group is open, for the life of the session.
+ * Owns which navigation groups are open, for the life of the session.
  *
- * An accordion: one group at a time. Overview starts open, clicking another
- * header moves the open one, and clicking the open header closes it so the
- * rail can be fully collapsed.
+ * Every group starts open, as the design draws them, and each collapses
+ * independently — not an accordion. A warehouse clerk moving between
+ * Receiving and Inventory should not have one close because they opened the
+ * other, and the whole rail fits without scrolling at the sizes this runs on.
  */
 
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { NavGroupsContext, type NavGroupsState } from './NavGroupsContext'
 
-const OPEN_BY_DEFAULT = 'Overview'
-
 export function NavGroupsProvider({ children }: { children: ReactNode }) {
-  const [openLabel, setOpenLabel] = useState<string | null>(OPEN_BY_DEFAULT)
+  /** Only the groups a person has deliberately closed. Absent means open, so
+   *  a group added later opens by default without being listed here. */
+  const [closed, setClosed] = useState<ReadonlySet<string>>(() => new Set())
 
-  const isOpen = useCallback((label: string) => openLabel === label, [openLabel])
+  const isOpen = useCallback((label: string) => !closed.has(label), [closed])
 
   const toggle = useCallback((label: string) => {
-    setOpenLabel((current) => (current === label ? null : label))
+    setClosed((current) => {
+      const next = new Set(current)
+      if (next.has(label)) next.delete(label)
+      else next.add(label)
+      return next
+    })
   }, [])
 
   const value = useMemo<NavGroupsState>(() => ({ isOpen, toggle }), [isOpen, toggle])

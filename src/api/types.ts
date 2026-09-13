@@ -135,17 +135,19 @@ export type VerifyLoginCode = S['VerifyLoginCode']
 export type EmailVerification = S['EmailVerification']
 
 /**
- * "Get Started Onboarding" — request an account.
+ * "Get Started Onboarding" — the request body for `POST /auth/register/`.
  *
- * MOCKED — no server type backs this; see `requestAccount` in `api/auth.ts`.
- * Shaped to match the design's Create Account fields until a real
- * registration endpoint exists to generate a type from.
+ * SCHEMA GAP — same shape as `UserCreate`: the generated type includes `id`
+ * as required, because the server names one serializer for both the
+ * request and the 201 response. Ask for a request-only serializer and
+ * delete this override.
  */
-export interface AccountRequest {
-  full_name: string
-  email: string
-  phone_number: string
-}
+export type AccountRequest = Omit<S['RegistrationRequestCreate'], 'id'>
+
+/** What `POST /auth/register/` returns — a pending request, nothing more.
+ * No email is sent and nothing here can be signed into until a lead
+ * approves it. */
+export type RegistrationRequest = S['RegistrationRequest']
 
 /**
  * What `POST /auth/login/verify/` returns — the tokens and the whole user,

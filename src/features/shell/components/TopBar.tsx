@@ -1,19 +1,20 @@
 /**
  * The top bar — Figma 2001:765.
  *
- * Three things in the design are deliberately not built here:
- *
- *   The "Online · Synced just now" indicator is the offline/sync feature,
- *   which is deferred. Showing a sync state the app does not track would be
- *   a lie on every screen, so it is omitted rather than hardcoded.
+ * One thing in the design is deliberately not built here:
  *
  *   Search is inert until `SearchFilter` is added to the server's
  *   DEFAULT_FILTER_BACKENDS — every `search_fields` declaration in the
  *   catalog is currently dead, so the input would return everything.
+ *
+ * The "Online" indicator is real, not decorative — see `SyncStatus` and
+ * `api/syncStatus.ts`. It reflects a confirmed server outage, not a guess,
+ * and stays on "Sync failed" until a request actually succeeds again.
  */
 
 import { HelpCircle, Search } from 'lucide-react'
 import { NotificationBell } from './NotificationBell'
+import { SyncStatus } from './SyncStatus'
 import { WarehouseSwitcher } from './WarehouseSwitcher'
 
 interface TopBarProps {
@@ -36,6 +37,7 @@ export function TopBar({ title }: TopBarProps) {
       </label>
 
       <div className="topbar__actions">
+        <SyncStatus />
         <NotificationBell />
         <button type="button" className="topbar__icon-btn" aria-label="Help">
           <HelpCircle size={18} aria-hidden />

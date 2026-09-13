@@ -64,3 +64,30 @@ export function relativeTime(iso: string, now = Date.now()): string {
   const days = Math.round(hours / 24)
   return `${days} day${days === 1 ? '' : 's'} ago`
 }
+
+
+/**
+ * Today, as the person at the keyboard means it.
+ *
+ * Not `new Date().toISOString().slice(0, 10)`, which is what this replaced
+ * in two places. `toISOString()` is UTC, and Uganda is UTC+3 all year — so
+ * between midnight and 03:00 in Kampala that expression returns
+ * **yesterday**.
+ *
+ * Two things acted on it. A delivery keyed at 01:30 was filed a day early,
+ * and nothing on the receiving screen showed the date to catch it. And a
+ * production order's `order_date` is the date the server costs its lines
+ * against, so a day early can pick up a superseded price — or a date the
+ * garment has no price on at all, which is a 400 after the whole order has
+ * been typed.
+ */
+export function todayISO(now: Date = new Date()): string {
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
+
+/** True when `a` falls strictly before `b`. Both `YYYY-MM-DD`. */
+export function isBefore(a: string, b: string): boolean {
+  // String comparison is correct for zero-padded ISO dates, and avoids
+  // building two Dates that would each be parsed as UTC midnight.
+  return Boolean(a) && Boolean(b) && a < b
+}
