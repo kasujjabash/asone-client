@@ -33,7 +33,11 @@ import type {
  * its code but not that code's direction, so the table is what says whether
  * a quantity of 5 means five more or five fewer.
  */
-export function reasonCodes(params?: { is_active?: boolean }) {
+export function reasonCodes(params?: {
+  is_active?: boolean
+  page?: number
+  page_size?: number
+}) {
   return get<Page<ReasonCode>>('/inventory/reason-codes/', params ?? undefined)
 }
 

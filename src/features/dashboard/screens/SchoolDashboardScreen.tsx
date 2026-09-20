@@ -154,10 +154,22 @@ export function SchoolDashboardScreen() {
             ) : (
               <ul className="attention">
                 {shownDeliveries.map((delivery) => (
-                  <li className="attention__item" key={delivery.id}>
+                  <li
+                    className="attention__item attention__item--clickable"
+                    key={delivery.id}
+                  >
+                    {/*
+                      The whole row, not just the order number. Only the six
+                      characters of "SO-20024" responded to a click, so the
+                      padding around them and the student's name beside them
+                      were dead — which is the commonest thing people report
+                      as "the link doesn't work". Same `.attention__hit` the
+                      warehouse console uses.
+                    */}
+                    <Link className="attention__hit" to={`/orders/${delivery.order_id}`}>
                     <span className="attention__label">
                       <PackageCheck size={18} aria-hidden />
-                      <Link to={`/orders/${delivery.order_id}`}>{delivery.order_number}</Link>
+                      {delivery.order_number}
                       {' · '}
                       {delivery.student_name}
                     </span>
@@ -175,6 +187,7 @@ export function SchoolDashboardScreen() {
                         ? 'SENT TODAY'
                         : `${delivery.days_in_transit} DAYS`}
                     </span>
+                    </Link>
                   </li>
                 ))}
               </ul>

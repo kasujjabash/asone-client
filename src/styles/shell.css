@@ -226,6 +226,26 @@ dialog {
   color: var(--text-primary);
 }
 
+/* The card's own hit area: everything but the sign-out button. */
+.sidebar__user-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.sidebar__user-link:hover .sidebar__user-text b { text-decoration: underline; }
+
+.sidebar__user-link:focus-visible { outline: 2px solid var(--accent); }
+
+/* The card is already distinct from the rail; a second highlight on top of
+   it would read as a separate selected item rather than as "you are here". */
+.sidebar__user-link--active .sidebar__user-text b { font-weight: var(--weight-bold); }
+
 .sidebar__user-text {
   display: flex;
   flex-direction: column;

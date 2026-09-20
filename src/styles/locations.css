@@ -817,102 +817,19 @@
  * everything they were hand-rolling.
  */
 
-.hub-card-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  gap: var(--space-3);
-  transition: border-color 120ms ease;
-}
 
-.hub-card-item:hover {
-  border-color: var(--border);
-}
 
-.hub-card-item:last-child {
-  margin-bottom: 0;
-}
 
-.hub-card-item__left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  min-width: 0;
-}
 
-.hub-card-item__icon {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--surface-sunken);
-  color: var(--text-muted);
-  flex-shrink: 0;
-}
 
-.hub-card-item__text {
-  min-width: 0;
-}
 
-.hub-card-item__title {
-  margin: 0 0 2px;
-  font-size: var(--text-body);
-  font-weight: var(--weight-bold);
-  color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.hub-card-item__subtitle {
-  margin: 0;
-  font-size: var(--text-caption);
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
-.hub-dispatch-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 4px;
-  border-bottom: 1px solid var(--surface-sunken);
-}
 
-.hub-dispatch-item:last-child {
-  border-bottom: none;
-}
 
-.hub-dispatch-item__left {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  /* Without this a long school name cannot shrink and shoves the status
-     badge past the edge of the panel. `.hub-card-item__left` had it; this
-     one was missed. */
-  min-width: 0;
-}
 
 /* The text column inside it, same reason. */
-.hub-dispatch-item__left > div {
-  min-width: 0;
-}
 
-.hub-dispatch-item__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  flex-shrink: 0;
-}
 
 /* An empty queue or an overflow note — no row to style, just a line of
    muted text. */
@@ -1017,46 +934,12 @@
 }
 
 /* Dispatch log rows. Was inline styles with hardcoded hex and px. */
-.hub-dispatch-item__title {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: 0;
-  font-weight: var(--weight-bold);
-  color: var(--text-primary);
-  font-size: var(--text-caption);
-}
 
-.hub-dispatch-item__meta {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin: var(--space-1) 0 0;
-  color: var(--text-muted);
-  font-size: var(--text-caption);
-}
 
 /* The figure on the right of a hub row — a level against its floor.
    Replaces four inline styles carrying raw hexes and pixel sizes. */
-.hub-card-item__figure {
-  text-align: right;
-  flex: none;
-}
 
-.hub-card-item__figure-value {
-  margin: 0;
-  font-weight: var(--weight-bold);
-  font-size: var(--text-body);
-  /* Below its floor is the whole reason the row is here. */
-  color: var(--error);
-  font-variant-numeric: tabular-nums;
-}
 
-.hub-card-item__figure-note {
-  margin: 2px 0 0;
-  font-size: var(--text-overline);
-  color: var(--text-muted);
-}
 /* Cards stacked with the same rhythm the rest of the app uses between
    blocks, rather than an inline margin on the wrapper. */
 .tc-list {
@@ -1064,3 +947,10 @@
   flex-direction: column;
   gap: var(--space-4);
 }
+
+/*
+ * `.hub-card-item*` and `.hub-dispatch-item*` were removed with the markup
+ * that used them. The warehouse console's panels now draw `.attention` and
+ * `.timeline` — the dashboard's own row shapes — rather than a parallel set
+ * that said the same things a size heavier.
+ */

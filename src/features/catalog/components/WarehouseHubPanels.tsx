@@ -17,7 +17,8 @@
  *   than linking somewhere unfinished.
  */
 
-import { FileText, Package } from 'lucide-react'
+import { AlertTriangle, FileText, Package } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Badge, Panel, SkeletonRows } from '@/components'
 import { formatQuantity } from '@/domain/money'
 import { fulfilmentTone } from '@/domain/production'
@@ -26,9 +27,22 @@ import type { PartProcessedOrder, ProductionOrder, ReorderAlert, Shipment } from
 
 const ROWS_SHOWN = 6
 
+/**
+ * What an order contains, in one line.
+ *
+ * Every description joined together ran to four wrapped lines on a
+ * six-SKU order, which made one row taller than the three below it and the
+ * column ragged. The first SKU and a count of the rest says the same thing
+ * in a line that always fits — the full manifest is one click away on the
+ * order itself, which is where somebody reading it in detail is going.
+ */
 function lineSummary(order: ProductionOrder): string {
-  const descriptions = order.lines.map((line) => line.sku_description).join(', ')
-  return `${descriptions} (${formatQuantity(order.total_quantity)} items)`
+  const [first, ...rest] = order.lines.map((line) => line.sku_description)
+  const items = `${formatQuantity(order.total_quantity)} items`
+
+  if (!first) return items
+  if (rest.length === 0) return `${first} · ${items}`
+  return `${first} +${rest.length} more · ${items}`
 }
 
 function formatDate(value: string | null | undefined): string {
@@ -52,10 +66,14 @@ export function IncomingProductionPanel({ orders, total, loading }: IncomingProd
       title="Incoming Production from TCs"
       busy={loading}
       meta={
+        /* `.panel__count`, the same plain count the dashboard's panels use.
+           This was a `<Badge>`, which is the component for a *status* on a
+           row — using it for a panel's tally made the heading of every hub
+           panel louder than the same heading at home. */
         !loading && total > 0 ? (
-          <Badge tone="info">
+          <span className="panel__count">
             {total} ACTIVE PO{total === 1 ? '' : 'S'}
-          </Badge>
+          </span>
         ) : undefined
       }
       viewAll={
@@ -69,24 +87,22 @@ export function IncomingProductionPanel({ orders, total, loading }: IncomingProd
       ) : orders.length === 0 ? (
         <p className="panel__clear">No production orders are open on this warehouse.</p>
       ) : (
-        orders.slice(0, ROWS_SHOWN).map((order) => (
-          <div className="hub-card-item" key={order.id}>
-            <div className="hub-card-item__left">
-              <div className="hub-card-item__icon">
-                <FileText size={16} />
-              </div>
-              <div className="hub-card-item__text">
-                <p className="hub-card-item__title">
-                  #{order.number} - {order.tailoring_center_name}
-                </p>
-                <p className="hub-card-item__subtitle">{lineSummary(order)}</p>
-              </div>
-            </div>
-            <Badge tone={fulfilmentTone(order.fulfilment_status)}>
-              {order.fulfilment_status_display}
-            </Badge>
-          </div>
-        ))
+        <ul className="attention">
+          {orders.slice(0, ROWS_SHOWN).map((order) => (
+            <li className="attention__item attention__item--clickable" key={order.id}>
+              <Link className="attention__hit" to={`${paths.productionOrders}/${order.id}`}>
+                <span className="attention__label">
+                  <FileText size={18} aria-hidden />
+                  {order.number} · {order.tailoring_center_name}
+                  <span className="attention__detail">{lineSummary(order)}</span>
+                </span>
+                <Badge tone={fulfilmentTone(order.fulfilment_status)}>
+                  {order.fulfilment_status_display}
+                </Badge>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
 
     </Panel>
@@ -107,7 +123,9 @@ export function LowStockAlertsPanel({ alerts, loading }: LowStockAlertsPanelProp
       busy={loading}
       meta={
         !loading && alerts.length > 0 ? (
-          <Badge tone="error">{alerts.length} Critical</Badge>
+          <span className="panel__count">
+            {alerts.length} CRITICAL
+          </span>
         ) : undefined
       }
       /* Inventory, where Low stock only narrows to exactly these rows. The
@@ -123,22 +141,44 @@ export function LowStockAlertsPanel({ alerts, loading }: LowStockAlertsPanelProp
       ) : alerts.length === 0 ? (
         <p className="panel__clear">Nothing is below its reorder floor at this warehouse.</p>
       ) : (
-        shown.map((alert) => (
-          <div className="hub-card-item" key={alert.sku_number}>
-            <div className="hub-card-item__text">
-              <p className="hub-card-item__title">{alert.sku_number}</p>
-              <p className="hub-card-item__subtitle">{alert.sku_description}</p>
-            </div>
-            <div className="hub-card-item__figure">
-              <p className="hub-card-item__figure-value">
-                {formatQuantity(alert.level)} units
-              </p>
-              <p className="hub-card-item__figure-note">
-                Safety Limit: {formatQuantity(alert.minimum)}
-              </p>
-            </div>
-          </div>
-        ))
+        /*
+          `.attention`, the dashboard's own Needs Attention list — not a
+          second row shape saying the same thing. This was `.hub-card-item`,
+          which set its title at body size and bold where the dashboard's
+          equivalent is caption weight normal, so the same alert read heavier
+          here than at home.
+        */
+        <ul className="attention">
+          {shown.map((alert) => (
+            <li className="attention__item attention__item--clickable" key={alert.sku_number}>
+              {/*
+                Inventory, the same place this panel's "view all" goes.
+                Stock History for that one SKU would answer "why is this at
+                zero" better, but `ReorderAlert` carries the SKU *number* and
+                not its id, and the history filters by id — so linking there
+                would mean guessing, and a link to the wrong SKU's ledger is
+                worse than a link to the right screen.
+              */}
+              <Link className="attention__hit" to={paths.inventory}>
+              <span className="attention__label">
+                <AlertTriangle size={18} aria-hidden />
+                {alert.sku_number} · {alert.sku_description}
+                {/* Spelled out. The tag used to carry "0 / 120", which is two
+                    numbers and no way to tell which is which. */}
+                <span className="attention__detail">
+                  {formatQuantity(alert.level)} in stock · floor is{' '}
+                  {formatQuantity(alert.minimum)}
+                </span>
+              </span>
+              {/* A word, like the dashboard's tags — "out" reads at a glance
+                  where a figure has to be compared with another figure. */}
+              <span className="attention__tag attention__tag--error">
+                {alert.level === 0 ? 'OUT' : 'LOW'}
+              </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
 
     </Panel>
@@ -167,22 +207,20 @@ export function PickingQueuePanel({ orders, total, loading }: PickingQueuePanelP
       ) : orders.length === 0 ? (
         <p className="panel__clear">Nothing picked is waiting on a shipment.</p>
       ) : (
-        orders.slice(0, ROWS_SHOWN).map((order) => (
-          <div className="hub-card-item" key={order.id}>
-            <div className="hub-card-item__left">
-              <div className="hub-card-item__icon">
-                <Package size={16} />
-              </div>
-              <div className="hub-card-item__text">
-                <p className="hub-card-item__title">
-                  #{order.number} • {order.school_name}
-                </p>
-                <p className="hub-card-item__subtitle">Student: {order.student_name}</p>
-              </div>
-            </div>
-            <Badge tone="success">{order.status_display}</Badge>
-          </div>
-        ))
+        <ul className="attention">
+          {orders.slice(0, ROWS_SHOWN).map((order) => (
+            <li className="attention__item attention__item--clickable" key={order.id}>
+              <Link className="attention__hit" to={`${paths.orders}/${order.id}`}>
+                <span className="attention__label">
+                  <Package size={18} aria-hidden />
+                  {order.number} · {order.school_name}
+                  <span className="attention__detail">{order.student_name}</span>
+                </span>
+                <Badge tone="success">{order.status_display}</Badge>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
     </Panel>
   )
@@ -215,31 +253,41 @@ export function DispatchLogPanel({ shipments, total, loading }: DispatchLogPanel
       ) : shipments.length === 0 ? (
         <p className="panel__clear">Nothing has shipped from this warehouse yet.</p>
       ) : (
-        shown.map((shipment) => (
-          <div className="hub-dispatch-item" key={shipment.id}>
-            <div className="hub-dispatch-item__left">
-              <div className="hub-dispatch-item__dot" />
-              <div>
+        /*
+          `.timeline`, the dashboard's Recent Activity markup. A despatch log
+          *is* an activity feed — things that happened, newest first — and it
+          was drawn as a third row shape with its own dot, its own title
+          weight and its own meta line.
+
+          The dot colour carries the state, the way it does on the dashboard:
+          confirmed deliveries are settled, everything else is still moving.
+        */
+        <ol className="timeline">
+          {shown.map((shipment) => (
+            <li className="timeline__entry timeline__entry--clickable" key={shipment.id}>
+              <span
+                className={`timeline__dot timeline__dot--${shipment.received_at ? 'success' : 'info'}`}
+                aria-hidden
+              />
+              <Link className="timeline__hit" to={`/shipments/${shipment.id}`}>
+              <span className="timeline__body">
                 {/*
                   A van is addressed to a school and carries several orders
                   (F42), so it is named by its own number and its consignee.
-                  This used to read `order_number` and `order_school_name`,
-                  which a shipment has never had.
                 */}
-                <p className="hub-dispatch-item__title">
+                <b>
                   {shipment.number} — {shipment.school_name}
-                </p>
-                <p className="hub-dispatch-item__meta">
-                  {formatDate(shipment.shipped_on)} ·{' '}
-                  {shipment.order_count} order{shipment.order_count === 1 ? '' : 's'}
-                </p>
-              </div>
-            </div>
-            <Badge tone={shipment.received_at ? 'success' : 'info'}>
-              {shipment.received_at ? 'Delivered' : 'In Transit'}
-            </Badge>
-          </div>
-        ))
+                </b>
+                <small>
+                  {formatDate(shipment.shipped_on)} · {shipment.order_count} order
+                  {shipment.order_count === 1 ? '' : 's'} ·{' '}
+                  {shipment.received_at ? 'delivered' : 'in transit'}
+                </small>
+              </span>
+              </Link>
+            </li>
+          ))}
+        </ol>
       )}
 
     </Panel>

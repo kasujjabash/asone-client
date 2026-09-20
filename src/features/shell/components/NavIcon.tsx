@@ -23,6 +23,7 @@ import {
   Receipt,
   School,
   Settings,
+  UserCircle,
   Shirt,
   SlidersHorizontal,
   Tags,
@@ -60,6 +61,7 @@ const GLYPHS: Record<string, LucideIcon> = {
   School,
   Warehouse,
   Users,
+  UserCircle,
   Settings,
 }
 

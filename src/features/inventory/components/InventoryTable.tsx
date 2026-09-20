@@ -26,11 +26,14 @@ interface InventoryTableProps {
   onSelectRow: (row: InventoryRow) => void
   selectedSkuId: number | null
   onCreate: () => void
+  /** False for a role that reads the catalogue but may not add to it. */
+  canCreate: boolean
   isCompact?: boolean
 }
 
 export function InventoryTable({
   rows,
+  canCreate,
   loading,
   page,
   onPageChange,
@@ -55,7 +58,10 @@ export function InventoryTable({
         icon={Boxes}
         title="No SKUs match this filter"
         body="Try a different level, size, or status — or create the first SKU for this filter."
-        action={{ label: '+ Create New SKU', onClick: onCreate }}
+        /* Only for a role that may create one. The catalogue is master data,
+           so this offered a school and a warehouse clerk the one action on
+           the screen they are refused. */
+        action={canCreate ? { label: '+ Create New SKU', onClick: onCreate } : undefined}
       />
     )
   }

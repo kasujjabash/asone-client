@@ -124,20 +124,23 @@ export function me(): Promise<CurrentUser> {
 }
 
 /**
- * Edit your own contact details — the Settings screen.
+ * Edit your own contact details — the My Profile screen.
  *
- * **First name, last name and email only.** Role and site are deliberately
- * not editable here: a person must not be able to promote themselves or move
- * site. Sending either is ignored rather than refused, so do not offer them
- * as fields — a control that silently does nothing is worse than no control.
+ * **Name and phone number only.** Role and site are deliberately not editable
+ * here: a person must not be able to promote themselves or move site. Sending
+ * either is ignored rather than refused, so do not offer them as fields — a
+ * control that silently does nothing is worse than no control.
  *
- * Changing the email changes the address you sign in with. A 400 on `email`
- * means somebody else already has it.
+ * **Email is not editable either, by anyone.** It is the address you sign in
+ * with *and* where your sign-in code is sent, so a typo locks the account out
+ * of the only channel that could correct it. The server dropped it from this
+ * endpoint's allow-list and made it read-only for leads too; changing one is
+ * an out-of-band operation. Sending `email` here is ignored, same as `role`.
  */
 export function updateMe(body: {
   first_name?: string
   last_name?: string
-  email?: string
+  phone_number?: string
 }): Promise<CurrentUser> {
   return patch<CurrentUser>('/auth/me/', body)
 }

@@ -220,7 +220,12 @@ export const NAVIGATION: readonly NavGroup[] = [
     items: [
       // /auth/users/ is Program Lead and Operations Manager only.
       { label: 'Users & Roles', path: '/users', requires: 'table_updates', icon: 'Users' },
-      // Your own account — everyone has one.
+      // Your own name and contact details. Everyone has one, and it is the
+      // only screen where a person edits themselves — role and site are a
+      // lead's to set, from Users & Roles above.
+      { label: 'My Profile', path: '/profile', requires: null, icon: 'UserCircle' },
+      // Organisation-wide configuration, readable by all and editable by the
+      // leads. Not the same thing as the profile above, which is personal.
       { label: 'Settings', path: '/settings', requires: null, icon: 'Settings' },
     ],
   },

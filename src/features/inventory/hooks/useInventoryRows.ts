@@ -31,11 +31,29 @@ import { useQueries } from '@tanstack/react-query'
 import * as catalogApi from '@/api/catalog'
 import * as inventoryApi from '@/api/inventory'
 import { keys } from '@/api/keys'
+import {
+  canEditOrgSettings,
+  canReadMinimumStockLevels,
+  canReadStockHistory,
+  canReadWarehouses,
+} from '@/domain/access'
+import { sumMoney } from '@/domain/money'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useWarehouseFilter } from '@/features/shell/hooks/useWarehouseFilter'
 import { useWarehouseOptions } from '@/features/catalog/hooks/useWarehouseOptions'
 import type { Garment, GarmentSchoolLevel, Money, Sku } from '@/api/types'
 
 const MAX_SHIPPED_PAGES = 20
+
+/*
+ * The stand-in site for a role that may read stock but not the warehouse
+ * list — a school clerk. Id `0` because no real warehouse has one, so it can
+ * never collide with a key built from a real `warehouse_id`, and because the
+ * SKU detail panel and the minimum editor both key off a real id and are
+ * closed to this role anyway.
+ */
+const ALL_SITES_ID = 0
+const ALL_SITES = [{ id: ALL_SITES_ID, name: 'All AsOne warehouses' }]
 
 /** Every SHIPMENT ledger row for the warehouse(s) in scope, summed per SKU per warehouse. */
 async function fetchShippedTotals(warehouseId: number | null): Promise<Map<string, number>> {
@@ -119,9 +137,28 @@ function matchesQuery(row: InventoryRow, needle: string): boolean {
 }
 
 export function useInventoryRows(filters: InventoryFilters): InventoryResult {
+  const { user } = useAuth()
   const { warehouseId } = useWarehouseFilter()
   const { warehouses: allWarehouses } = useWarehouseOptions()
   const { level, sizeId, isActive, lowStockOnly, query } = filters
+
+  /*
+   * Two of these tables are narrower than this screen.
+   *
+   * Inventory is open to every role — SKUs and stock levels are readable by
+   * all of them — but **garments are leads-only** and minimums are warehouse
+   * staff and Finance, both deliberately, per AsOne's matrix (see
+   * `catalog/tests/test_api.py::READ_AUDIENCE`, which states the garment case
+   * is odd on its face and kept because the matrix says so).
+   *
+   * Asked anyway, they came back 403 on every load for the roles without
+   * them — five failed requests per visit for a school clerk. The rows below
+   * already read every garment field through `garment?.` and fall back, so
+   * nothing is lost by not asking: the screen degrades to the SKU's own
+   * description, which is what those roles were seeing regardless.
+   */
+  const mayReadGarments = canEditOrgSettings(user)
+  const mayReadMinimums = canReadMinimumStockLevels(user)
 
   const [skusQuery, garmentsQuery, stockQuery, minimumsQuery, shippedQuery] = useQueries({
     queries: [
@@ -139,6 +176,7 @@ export function useInventoryRows(filters: InventoryFilters): InventoryResult {
         queryKey: keys.garments(),
         queryFn: () => catalogApi.garments({ page_size: 200 }),
         staleTime: 10 * 60 * 1000,
+        enabled: mayReadGarments,
       },
       {
         queryKey: keys.stockLevels(warehouseId),
@@ -148,10 +186,15 @@ export function useInventoryRows(filters: InventoryFilters): InventoryResult {
         queryKey: keys.minimumStockLevels(warehouseId),
         queryFn: () =>
           catalogApi.minimumStockLevels({ warehouse: warehouseId ?? undefined, page_size: 200 }),
+        enabled: mayReadMinimums,
       },
       {
         queryKey: keys.shippedTotals(warehouseId),
         queryFn: () => fetchShippedTotals(warehouseId),
+        /* The ledger is the audit trail, and a school is refused it — see
+           `canReadStockHistory`. Their Shipped column reads 0, which is what
+           it read before, without the 403 on the way. */
+        enabled: canReadStockHistory(user),
       },
     ],
   })
@@ -162,17 +205,53 @@ export function useInventoryRows(filters: InventoryFilters): InventoryResult {
   const minimums = minimumsQuery.data?.results ?? []
   const shippedByKey = shippedQuery.data ?? new Map<string, number>()
 
-  // The warehouses these rows should cover: the one the shell has picked, or
-  // every warehouse the signed-in role may see if it hasn't picked one.
-  const warehouses =
-    warehouseId !== null
+  /*
+   * The warehouses these rows should cover: the one the shell has picked, or
+   * every warehouse the signed-in role may see if it hasn't picked one.
+   *
+   * For a school clerk that list is **empty**, and not by accident — AsOne's
+   * matrix refuses them `catalog:warehouse-list` (see `canReadWarehouses`),
+   * so `useWarehouseOptions` never asks. The row loop below is `SKU ×
+   * warehouse`, so an empty list silently produced an empty table: a school
+   * saw "No SKUs match this filter" over 35 readable SKUs and 30 readable
+   * stock rows, with no error to explain it.
+   *
+   * `ALL_SITES` is the answer rather than widening the permission, because
+   * the permission is right. A school does not order from a warehouse — it
+   * orders from AsOne, and which site fills the order is AsOne's allocation
+   * decision. What a school needs from this screen is "does this exist and
+   * can I get it", which is one row per SKU with the stock summed across
+   * every site. Naming the sites would be both a permission they lack and an
+   * answer to a question they are not asking.
+   */
+  const perSite = canReadWarehouses(user)
+  const warehouses = !perSite
+    ? ALL_SITES
+    : warehouseId !== null
       ? allWarehouses.filter((w) => w.id === warehouseId)
       : allWarehouses
 
   const garmentById = new Map<number, Garment>(garments.map((g) => [g.id, g]))
-  const stockByKey = new Map(
-    stockLevels.map((s) => [`${s.sku_id}-${s.warehouse_id}`, s]),
-  )
+  /*
+   * Keyed by SKU *and* site normally; by SKU alone, with the sites added
+   * together, for a role that cannot tell one site from another. `sumMoney`
+   * rather than `+` because value is a decimal string — see `money.ts`.
+   */
+  const stockByKey = new Map<string, { level: number; reserved: number; value: Money }>()
+  for (const entry of stockLevels) {
+    const key = perSite ? `${entry.sku_id}-${entry.warehouse_id}` : `${entry.sku_id}-${ALL_SITES_ID}`
+    const running = stockByKey.get(key)
+    stockByKey.set(
+      key,
+      running
+        ? {
+            level: running.level + entry.level,
+            reserved: running.reserved + entry.reserved,
+            value: sumMoney([running.value, entry.value]),
+          }
+        : { level: entry.level, reserved: entry.reserved, value: entry.value },
+    )
+  }
   const minimumByKey = new Map(
     minimums.map((m) => [`${m.sku}-${m.warehouse}`, m]),
   )

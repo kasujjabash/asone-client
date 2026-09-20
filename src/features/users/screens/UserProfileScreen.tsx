@@ -340,7 +340,6 @@ interface EditDetailsProps {
 function EditDetails({ person, roles, pending, error, onClose, onSave }: EditDetailsProps) {
   const [firstName, setFirstName] = useState(person.first_name ?? '')
   const [lastName, setLastName] = useState(person.last_name ?? '')
-  const [email, setEmail] = useState(person.email)
   const [phone, setPhone] = useState(person.phone_number ?? '')
   const [role, setRole] = useState<string>(person.role)
   const [siteId, setSiteId] = useState<string>(
@@ -360,8 +359,7 @@ function EditDetails({ person, roles, pending, error, onClose, onSave }: EditDet
   const sites =
     siteKind === 'warehouse' ? warehouses : siteKind === 'school' ? (schools?.results ?? []) : []
 
-  const ready =
-    firstName.trim() && lastName.trim() && email.trim() && (!siteKind || siteId)
+  const ready = firstName.trim() && lastName.trim() && (!siteKind || siteId)
 
   return (
     <Modal
@@ -381,7 +379,6 @@ function EditDetails({ person, roles, pending, error, onClose, onSave }: EditDet
               onSave({
                 first_name: firstName.trim(),
                 last_name: lastName.trim(),
-                email: email.trim(),
                 phone_number: phone.trim(),
                 role: role as UserAdmin['role'],
                 // Exactly one of these, and null for the other — the server
@@ -417,14 +414,17 @@ function EditDetails({ person, roles, pending, error, onClose, onSave }: EditDet
         />
       </div>
 
-      <TextField
-        label="Email Address"
-        type="email"
-        required
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-      />
+      {/*
+        No email field, and not because a lead lacks the permission — the
+        server has taken it off `UserAdminSerializer` entirely. The address is
+        the credential *and* the delivery route for the sign-in code, so a
+        lead retyping it is the likeliest way an account goes dark: the person
+        cannot sign in, the code goes somewhere nobody reads, and the account
+        that would fix it is the one locked out.
 
+        It is the subtitle of this modal instead — visible while editing,
+        which is what somebody actually needs it for.
+      */}
       <TextField
         label="Phone Number"
         type="tel"

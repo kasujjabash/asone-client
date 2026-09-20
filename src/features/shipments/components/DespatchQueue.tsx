@@ -41,6 +41,27 @@ export function DespatchQueue() {
   const despatch = useDespatch()
 
   if (!mayDespatch) return null
+
+  /*
+   * A van leaves from one warehouse, so an all-locations role has to say
+   * which before this can answer. Asked without one the endpoint 400s, and
+   * the empty state below would then read "no van is ready" — a claim the
+   * screen is in no position to make.
+   */
+  if (warehouseId === null) {
+    return (
+      <section className="despatch">
+        <header className="despatch__head">
+          <h2 className="despatch__title">Ready to Despatch</h2>
+          <p className="panel__clear">
+            Choose a warehouse above to load a van. A shipment leaves from one
+            site, so there is no all-warehouses view of this.
+          </p>
+        </header>
+      </section>
+    )
+  }
+
   if (queue.isLoading) return <SkeletonRows rows={2} />
 
   const rows = queue.data ?? []

@@ -17,7 +17,7 @@
  */
 
 import { useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import { HelpCircle } from 'lucide-react'
 import { Modal } from '@/components'
 import { helpFor } from '../help'
@@ -25,7 +25,10 @@ import { helpFor } from '../help'
 export function HelpButton() {
   const [open, setOpen] = useState(false)
   const { pathname } = useLocation()
-  const topic = helpFor(pathname)
+  /* `?tab=` so a screen whose tabs are different subjects can have a help
+     entry each — see `helpFor`. */
+  const [params] = useSearchParams()
+  const topic = helpFor(pathname, params.get('tab'))
 
   return (
     <>

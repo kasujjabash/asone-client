@@ -31,7 +31,8 @@
 
 import { useState, type FormEvent } from 'react'
 import { Plus } from 'lucide-react'
-import { Badge, Button, SkeletonRows, TextField } from '@/components'
+import { Alert, Badge, Button, Pagination, SkeletonRows, TextField } from '@/components'
+import { LIST_PAGE_SIZE } from '@/api/pageSize'
 import {
   useAllReasonCodes,
   useCreateReasonCode,
@@ -46,7 +47,8 @@ interface ReasonCodesSectionProps {
 const BLANK = { code: '', name: '', description: '', direction: 'DECREASE' as const }
 
 export function ReasonCodesSection({ canEdit }: ReasonCodesSectionProps) {
-  const codes = useAllReasonCodes()
+  const [page, setPage] = useState(1)
+  const codes = useAllReasonCodes(page)
   const create = useCreateReasonCode()
   const setActive = useSetReasonCodeActive()
 
@@ -59,6 +61,7 @@ export function ReasonCodesSection({ canEdit }: ReasonCodesSectionProps) {
   }>(BLANK)
 
   const rows = codes.data?.results ?? []
+  const total = codes.data?.count ?? 0
 
   function submit(event: FormEvent) {
     event.preventDefault()
@@ -83,13 +86,19 @@ export function ReasonCodesSection({ canEdit }: ReasonCodesSectionProps) {
 
   return (
     <section className="settings-section settings-section--plain">
-      <h2 className="settings-section__title settings-section__title--plain">
-        Adjustment Reason Codes
-      </h2>
-      <p className="settings-section__hint settings-section__hint--lead">
-        Why stock moved, and which way. Whoever posts an adjustment picks a
-        reason; the code carries the direction, so nobody types a minus sign.
-      </p>
+      {/*
+        One line, not the whole explanation. The rules that matter — the
+        direction is permanent, nothing is deleted — are long enough to be a
+        wall of text above a seven-row table, and this app already has a place
+        for that: the help button. Kept here is the single thing somebody
+        needs *before* touching a row.
+      */}
+      <Alert tone="warning">
+        <strong>A code&rsquo;s effect on stock is permanent once saved.</strong> One
+        pointing the wrong way is retired and replaced, never edited &mdash;
+        changing it would reverse every adjustment already posted against it.
+      </Alert>
+
 
       {codes.isLoading ? (
         <SkeletonRows rows={3} />
@@ -109,7 +118,23 @@ export function ReasonCodesSection({ canEdit }: ReasonCodesSectionProps) {
               {rows.map((row) => (
                 <tr key={row.id}>
                   <td className="ledger__code">{row.code}</td>
-                  <td className="ledger__wrap">{row.name}</td>
+                  <td className="ledger__wrap">
+                    {row.name}
+                    {/*
+                      The description the creator wrote. Captured since the
+                      model was written and never displayed anywhere, which
+                      made "when to use it" guidance nobody could read — its
+                      own help text says it is "for whoever is choosing one".
+                    */}
+                    {row.description && (
+                      /* `title` because the cell truncates: the guidance is
+                         the point of the field, so the full text has to be
+                         reachable even when the column cannot show it. */
+                      <span className="line-note line-note--clip" title={row.description}>
+                        {row.description}
+                      </span>
+                    )}
+                  </td>
                   <td className="ledger__nowrap">
                     <Badge tone={row.direction === 'INCREASE' ? 'success' : 'warning'}>
                       {row.direction === 'INCREASE' ? 'Adds' : 'Removes'}
@@ -138,6 +163,19 @@ export function ReasonCodesSection({ canEdit }: ReasonCodesSectionProps) {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!codes.isLoading && total > 0 && (
+        <div className="table-card__footer">
+          <Pagination
+            page={page}
+            pageCount={Math.max(1, Math.ceil(total / LIST_PAGE_SIZE))}
+            totalItems={total}
+            pageSize={LIST_PAGE_SIZE}
+            onChange={setPage}
+            noun="reason codes"
+          />
         </div>
       )}
 

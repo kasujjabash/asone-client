@@ -256,6 +256,83 @@ export function canPostAdjustments(user: CurrentUser | null): boolean {
 }
 
 /**
+ * Who may read the adjustment reason-code table.
+ *
+ * Finance and the two leads. **Not warehouse or school staff** — the server
+ * refuses them, and the Settings screen was showing all five roles a tab that
+ * fetched a 403 on open.
+ *
+ * Read and write are different audiences here, which is why this is separate
+ * from {@link canEditOrgSettings}: Finance *uses* these codes on every
+ * adjustment they post but does not maintain the table, and the leads
+ * maintain it without being able to post against it.
+ *
+ * Mirrors `inventory/views.py::ReasonCodeViewSet.read_roles` together with
+ * `MasterDataAccess`, which adds the leads to whatever a viewset names.
+ */
+export function canReadReasonCodes(user: CurrentUser | null): boolean {
+  if (!user) return false
+  return (
+    user.role === 'FINANCE' ||
+    user.role === 'PROGRAM_LEAD' ||
+    user.role === 'OPERATIONS_MANAGER'
+  )
+}
+
+/**
+ * Who may read the minimum stock levels table.
+ *
+ * Warehouse staff and Finance, plus the leads — Finance because they post
+ * the corrections and write-offs these thresholds are the context for.
+ *
+ * School staff are refused, and the Inventory screen they *can* open was
+ * asking for it anyway on every load.
+ *
+ * Mirrors `catalog/views.py::MinimumStockLevelViewSet.read_roles`.
+ */
+export function canReadMinimumStockLevels(user: CurrentUser | null): boolean {
+  if (!user) return false
+  return (
+    user.role === 'WAREHOUSE_STAFF' ||
+    user.role === 'FINANCE' ||
+    user.role === 'PROGRAM_LEAD' ||
+    user.role === 'OPERATIONS_MANAGER'
+  )
+}
+
+/**
+ * Who may read the sizes table.
+ *
+ * Finance and the leads. AsOne's matrix keeps garments and sizes with the
+ * leads; Finance was added because they post the count corrections the
+ * Inventory screen's size filter narrows to.
+ *
+ * Mirrors `catalog/views.py::SizeViewSet.read_roles`.
+ */
+export function canReadSizes(user: CurrentUser | null): boolean {
+  if (!user) return false
+  return (
+    user.role === 'FINANCE' ||
+    user.role === 'PROGRAM_LEAD' ||
+    user.role === 'OPERATIONS_MANAGER'
+  )
+}
+
+/**
+ * Who may list the warehouses.
+ *
+ * The leads, warehouse staff and Finance. **Not a school** — their warehouse
+ * is fixed by the school they belong to, so there is no list for them to pick
+ * from and the server refuses them one.
+ *
+ * Mirrors `catalog/views.py::WarehouseViewSet.read_roles`.
+ */
+export function canReadWarehouses(user: CurrentUser | null): boolean {
+  if (!user) return false
+  return user.role !== 'SCHOOL_STAFF'
+}
+
+/**
  * True while the account is held at the password gate.
  *
  * The backend answers 403 on almost everything in this state — only

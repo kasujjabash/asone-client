@@ -577,6 +577,30 @@ button.page-dots__dot {
   line-height: 1;
   color: var(--field-label);
   pointer-events: none;
+  /*
+   * Above the control, not behind it.
+   *
+   * The label is absolutely positioned and sits *on* the frame's top border,
+   * which is what notches the outline. Without a z-index it paints in DOM
+   * order — and a `<select>` is a replaced element the browser gives its own
+   * opaque background, so the control covered the half of the label that
+   * overlaps it and every dropdown on a form rendered with its label struck
+   * through. Worst when the field is disabled, where the browser's grey is
+   * most opaque, which is how a read-only role saw it first.
+   *
+   * `<input>` was fine because its background is transparent, which is why
+   * only the selects were affected.
+   */
+  z-index: 1;
+}
+
+/*
+ * Transparent, so the frame's own background shows through and the label has
+ * nothing to fight. Belt and braces with the z-index above: some engines
+ * paint a disabled control's background regardless of stacking.
+ */
+.textfield__select {
+  background-color: transparent;
 }
 
 .textfield__input {

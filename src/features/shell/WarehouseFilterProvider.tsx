@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query'
 import * as catalog from '@/api/catalog'
 import { keys } from '@/api/keys'
 import { homeWarehouseId, scopeOf, seesAllLocations } from '@/domain/access'
+import { useOrgSettings } from '@/features/settings/hooks/useOrgSettings'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { WarehouseFilterContext, type WarehouseFilter } from './WarehouseFilterContext'
 
@@ -46,8 +47,33 @@ export function WarehouseFilterProvider({ children }: { children: ReactNode }) {
   const canSwitch = seesAllLocations(user)
   const pinned = homeWarehouseId(user)
 
-  // All warehouses by default. A pinned role starts — and stays — on theirs.
+  /*
+   * Where an all-locations session starts.
+   *
+   * `null` is "all warehouses". Settings carries a **Default Warehouse Hub**,
+   * which is the setting's entire purpose — "the site a new session's
+   * warehouse filter starts on", per its own help text — and until now
+   * nothing read it, so a lead who set it went on landing on All warehouses
+   * every morning.
+   *
+   * `touched` is what stops the default fighting the person. Seeding straight
+   * into `selected` would put them back on the default the moment the
+   * settings query resolved, even if they had already switched; and it would
+   * make "All warehouses" unreachable, since choosing it sets `null` and null
+   * is exactly what the seeding looks for. Once they have touched the picker
+   * at all, including to choose All, this leaves them alone for the session.
+   */
   const [selected, setSelected] = useState<number | null>(null)
+  const [touched, setTouched] = useState(false)
+
+  /*
+   * Only for a signed-in role that can switch. This provider wraps the public
+   * routes as well, so an unguarded read fired a 401 on the sign-in screen —
+   * and `canSwitch` is false without a user, which is also exactly when
+   * `startOn` would be unused anyway.
+   */
+  const { data: settings } = useOrgSettings(canSwitch)
+  const startOn = canSwitch && !touched ? (settings?.default_warehouse ?? null) : null
 
   const { data } = useQuery({
     queryKey: keys.warehouses(),
@@ -63,13 +89,14 @@ export function WarehouseFilterProvider({ children }: { children: ReactNode }) {
   const select = useCallback(
     (warehouseId: number | null) => {
       if (!canSwitch) return
+      setTouched(true)
       setSelected(warehouseId)
     },
     [canSwitch],
   )
 
   const value = useMemo<WarehouseFilter>(() => {
-    const warehouseId = canSwitch ? selected : pinned
+    const warehouseId = canSwitch ? (selected ?? startOn) : pinned
     const name = canSwitch
       ? (options.find((warehouse) => warehouse.id === warehouseId)?.name ?? null)
       : (user?.warehouse?.name ?? null)
@@ -82,7 +109,7 @@ export function WarehouseFilterProvider({ children }: { children: ReactNode }) {
       canSwitch,
       select,
     }
-  }, [canSwitch, selected, pinned, options, user, select])
+  }, [canSwitch, selected, startOn, pinned, options, user, select])
 
   return (
     <WarehouseFilterContext.Provider value={value}>{children}</WarehouseFilterContext.Provider>

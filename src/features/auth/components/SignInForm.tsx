@@ -10,6 +10,20 @@
  * unreachable server — is one sentence above the form, in the server's
  * words. Sign-in answers 401 identically for a wrong password and an unknown
  * address, so nothing here may imply which it was.
+ *
+ * ---------------------------------------------------------------------------
+ * Why this checks the fields itself
+ * ---------------------------------------------------------------------------
+ * `noValidate` turns off the browser's own required-field enforcement, which
+ * is deliberate — the native bubbles are unstyled, untranslatable and vanish
+ * on the next keystroke. But nothing replaced it, so an empty form was sent
+ * to the API, which had no address to look up and answered **"You do not
+ * have access to this system. Ask AsOne Central Office to create an account
+ * for you."**
+ *
+ * Somebody who had simply not typed anything was told they had no account.
+ * The server now answers 400 for a blank field, and this stops the request
+ * being made at all — an empty form is not a question worth asking.
  */
 
 import { useState, type FormEvent } from 'react'
@@ -28,12 +42,26 @@ interface SignInFormProps {
 export function SignInForm({ onSubmit, pending, error }: SignInFormProps) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  /*
+   * Only after a submit is attempted. Marking a field red before anybody has
+   * had the chance to fill it in tells people off for not having typed yet.
+   */
+  const [missing, setMissing] = useState<{ email?: string; password?: string }>({})
 
-  const fieldError = (name: string) => error?.fields?.[name]?.[0]
+  const fieldError = (name: 'email' | 'password') =>
+    missing[name] ?? error?.fields?.[name]?.[0]
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    onSubmit({ email, password })
+
+    const blank: typeof missing = {}
+    if (!email.trim()) blank.email = 'Enter your email address.'
+    if (!password.trim()) blank.password = 'Enter your password.'
+
+    setMissing(blank)
+    if (blank.email || blank.password) return
+
+    onSubmit({ email: email.trim(), password })
   }
 
   return (
@@ -49,7 +77,12 @@ export function SignInForm({ onSubmit, pending, error }: SignInFormProps) {
         autoFocus
         value={email}
         error={fieldError('email')}
-        onChange={(event) => setEmail(event.target.value)}
+        onChange={(event) => {
+          setEmail(event.target.value)
+          // Clears as they type, rather than waiting for another submit to
+          // tell them they have fixed it.
+          if (missing.email) setMissing((m) => ({ ...m, email: undefined }))
+        }}
       />
 
       <PasswordField
@@ -57,7 +90,10 @@ export function SignInForm({ onSubmit, pending, error }: SignInFormProps) {
         required
         value={password}
         error={fieldError('password')}
-        onChange={(event) => setPassword(event.target.value)}
+        onChange={(event) => {
+          setPassword(event.target.value)
+          if (missing.password) setMissing((m) => ({ ...m, password: undefined }))
+        }}
       />
 
       <div className="signin__forgot">

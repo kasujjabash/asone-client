@@ -4800,16 +4800,17 @@ export interface components {
          *     `password` are all absent, so a school clerk cannot PATCH themselves into
          *     Finance or reassign themselves to another site. Anything added to this
          *     tuple becomes self-service — add nothing without meaning to.
+         *
+         *     `email` is absent too, and for a different reason. It is not a contact
+         *     detail here, it is the **credential**: the address a person signs in with
+         *     and the one their sign-in code is sent to. Changing it is one typo away
+         *     from locking an account out of a system that has no way to mail the
+         *     correction anywhere the person can still read. AsOne changes an address
+         *     out of band — see `UserAdminSerializer`, where it is read-only as well.
          */
         PatchedMeUpdate: {
             first_name?: string;
             last_name?: string;
-            /**
-             * Email address
-             * Format: email
-             * @description Used to sign in. Must be unique across all staff.
-             */
-            email?: string;
             phone_number?: string;
         };
         PatchedMinimumStockLevel: {
@@ -5037,7 +5038,7 @@ export interface components {
              * Format: email
              * @description Used to sign in. Must be unique across all staff.
              */
-            email?: string;
+            readonly email?: string;
             first_name?: string;
             last_name?: string;
             phone_number?: string;
@@ -5991,7 +5992,7 @@ export interface components {
              * Format: email
              * @description Used to sign in. Must be unique across all staff.
              */
-            email: string;
+            readonly email: string;
             first_name?: string;
             last_name?: string;
             phone_number?: string;

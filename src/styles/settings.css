@@ -248,3 +248,35 @@
   width: 16px;
   height: 16px;
 }
+
+/*
+ * No `.settings-warning` here.
+ *
+ * It existed briefly, as a paragraph with its own amber left rule — which is
+ * the shared `<Alert tone="warning">` reimplemented, and the same mistake the
+ * section card nearly made against `.panel`. Every other screen in this app
+ * states a caution with `Alert`; so does this one.
+ */
+
+/*
+ * The "when to use it" line under a reason code's name.
+ *
+ * `.ledger td` sets text-overflow, but that only applies to the cell's own
+ * inline content — a block child like this one ignored it and was sliced
+ * mid-word ("no longer sellabl"). It truncates itself, with the full text on
+ * the element's title.
+ */
+.line-note--clip {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The name column carries two lines of text where every other carries one,
+   so it gets the width back that the codes and badges do not need. */
+.settings-section--plain .ledger td:nth-child(2),
+.settings-section--plain .ledger th:nth-child(2) {
+  max-width: 340px;
+  min-width: 260px;
+}

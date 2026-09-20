@@ -13,10 +13,19 @@ import type { OrgSettings } from '@/api/types'
 
 const KEY = ['organization', 'settings'] as const
 
-export function useOrgSettings() {
+/**
+ * `enabled` because this provider sits above the *public* routes too.
+ *
+ * The warehouse filter wraps sign-in and welcome as well as the app, and
+ * reading settings from there fired an unauthenticated request on the
+ * sign-in screen — a 401 before anybody had typed anything. Callers that
+ * only run behind auth can leave it alone.
+ */
+export function useOrgSettings(enabled = true) {
   return useQuery({
     queryKey: KEY,
     queryFn: () => organizationApi.retrieve(),
+    enabled,
     /*
      * Long-lived. This is org-wide master data that changes a few times a
      * year, and the sidebar reads it on every screen — refetching it as

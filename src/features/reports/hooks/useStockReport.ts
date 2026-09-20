@@ -32,6 +32,8 @@ import { useQueries } from '@tanstack/react-query'
 import * as catalogApi from '@/api/catalog'
 import * as inventoryApi from '@/api/inventory'
 import { sumMoney } from '@/domain/money'
+import { canReadMinimumStockLevels } from '@/domain/access'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useWarehouseFilter } from '@/features/shell/hooks/useWarehouseFilter'
 import type { Money } from '@/api/types'
 import {
@@ -67,6 +69,7 @@ export interface StockReport {
 }
 
 export function useStockReport({ asOf }: StockReportFilters = {}): StockReport {
+  const { user } = useAuth()
   const { warehouseId } = useWarehouseFilter()
 
   const [stock, alerts, skus] = useQueries({
@@ -85,6 +88,10 @@ export function useStockReport({ asOf }: StockReportFilters = {}): StockReport {
       {
         queryKey: ['reorder-alerts', 'report', asOf, warehouseId],
         queryFn: () => inventoryApi.reorderAlerts({ as_of: asOf, warehouse: warehouseId }),
+        /* Warehouse staff, Finance and the leads. A school holds no stock, so
+           it has no reorder floor to breach — and was fetching a 403 here on
+           every visit. */
+        enabled: canReadMinimumStockLevels(user),
       },
       {
         queryKey: ['skus', 'all'],

@@ -180,6 +180,14 @@ export function InventoryScreen() {
                 </SplitButton>
                 )}
 
+                {/*
+                  Creating a SKU is master data — the leads', like garments
+                  and sizes in its own menu. This was shown to every role, so
+                  a school clerk and a warehouse clerk were both offered a
+                  button that answers 403: the catalogue is something they
+                  read, not something they add to.
+                */}
+                {mayEditCatalogue && (
                 <SplitButton
                   menuLabel="More create options"
                   onClick={() => setIsCreateOpen(true)}
@@ -203,6 +211,7 @@ export function InventoryScreen() {
                   <Plus size={16} aria-hidden />
                   Create New SKU
                 </SplitButton>
+                )}
               </div>
             )}
           </header>
@@ -241,6 +250,7 @@ export function InventoryScreen() {
           <InventoryTable
             rows={rows}
             loading={isLoading}
+            canCreate={mayEditCatalogue}
             page={page}
             onPageChange={setPage}
             onSelectRow={(row) => setSelectedSkuId(row.skuId)}

@@ -36,11 +36,12 @@
  */
 
 import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { Button, LoadingScreen, Select, TextField } from '@/components'
+import { Alert, Button, LoadingScreen, Select, TabBar, TextField } from '@/components'
 import { AppShell } from '@/features/shell/components/AppShell'
 import { useAuth } from '@/features/auth/hooks/useAuth'
-import { canEditOrgSettings } from '@/domain/access'
+import { canEditOrgSettings, canReadReasonCodes } from '@/domain/access'
 import * as catalogApi from '@/api/catalog'
 import { ReasonCodesSection } from '../components/ReasonCodesSection'
 import { useOrgSettings, useUpdateOrgSettings } from '../hooks/useOrgSettings'
@@ -62,6 +63,12 @@ type Draft = Pick<
   | 'packing_list_layout'
 >
 
+const TABS = [
+  { key: 'system', label: 'System Settings' },
+  { key: 'reason-codes', label: 'Adjustment Reason Codes' },
+] as const
+type TabKey = (typeof TABS)[number]['key']
+
 function draftFrom(settings: OrgSettings): Draft {
   return {
     organization_name: settings.organization_name,
@@ -82,6 +89,9 @@ function draftFrom(settings: OrgSettings): Draft {
 export function SettingsScreen() {
   const { user } = useAuth()
   const canEdit = canEditOrgSettings(user)
+  /* Warehouse and school staff are refused the reason-code table outright, so
+     they get no tab for it — the tab was fetching a 403 on open. */
+  const seesReasonCodes = canReadReasonCodes(user)
 
   const { data: settings, isLoading } = useOrgSettings()
   const updateSettings = useUpdateOrgSettings()
@@ -89,7 +99,28 @@ export function SettingsScreen() {
   const { data: warehouses } = useQuery({
     queryKey: ['warehouses', 'all'],
     queryFn: () => catalogApi.warehouses(),
+    /*
+     * Only for the roles that can change the setting this fills. The
+     * warehouse list is leads-only on the server, so every other role was
+     * fetching a 403 on a screen they are entitled to read — and the Default
+     * Warehouse picker they were loading it for is disabled for them anyway.
+     */
+    enabled: canEdit,
   })
+
+  /*
+   * The tab lives in the URL, not in component state. Three things follow
+   * from that: it survives a refresh, it can be linked to, and the Help
+   * button can tell the two tabs apart — they are different subjects, and one
+   * help entry covering both would be two explanations stapled together.
+   */
+  const [params, setParams] = useSearchParams()
+  const tab: TabKey = params.get('tab') === 'reason-codes' ? 'reason-codes' : 'system'
+
+  function selectTab(key: TabKey) {
+    // `replace` so flipping tabs does not fill the back button with them.
+    setParams(key === 'system' ? {} : { tab: key }, { replace: true })
+  }
 
   const [draft, setDraft] = useState<Draft | null>(null)
 
@@ -129,180 +160,212 @@ export function SettingsScreen() {
       <header className="page-head">
         <h1 className="page-head__title">Settings</h1>
         <p className="page-head__subtitle">
-          Organization defaults, inventory parameters, and alert preferences.
-          {!canEdit && ' Read-only for your role — Program Lead or Operations Manager can edit.'}
+          Organization defaults, inventory parameters, alert preferences, and
+          the reason codes behind every stock adjustment.
         </p>
       </header>
 
-      {/* Paired for the same reason as the row below: neither section is
-          wide enough to earn a band of its own. */}
-      <div className="settings-row-2col settings-row-2col--stretch">
-        <fieldset className="settings-section" disabled={!canEdit}>
-          <legend className="settings-section__title">General Settings</legend>
-          <div className="settings-grid">
-            <TextField
-              label="Organization Name"
-              value={draft.organization_name}
-              onChange={(event) => update('organization_name', event.target.value)}
-            />
-            <Select
-              label="Default Warehouse Hub"
-              value={draft.default_warehouse ?? ''}
-              onChange={(event) =>
-                update('default_warehouse', event.target.value ? Number(event.target.value) : null)
-              }
-            >
-              <option value="">None</option>
-              {(warehouses?.results ?? []).map((warehouse) => (
-                <option key={warehouse.id} value={warehouse.id}>
-                  {warehouse.name}
-                </option>
-              ))}
-            </Select>
-            <Select
-              label="Timezone"
-              value={draft.timezone}
-              onChange={(event) => update('timezone', event.target.value as Draft['timezone'])}
-            >
-              <option value="Africa/Kampala">East Africa Time (EAT) / Kampala (UTC+3)</option>
-            </Select>
-            <Select
-              label="Currency"
-              value={draft.currency}
-              onChange={(event) => update('currency', event.target.value as Draft['currency'])}
-            >
-              <option value="UGX">Ugandan Shilling (UGX)</option>
-            </Select>
-          </div>
-        </fieldset>
+      {/*
+        An Alert, not a clause on the end of the subtitle.
+        "Read-only for your role" is the single most useful thing on the
+        screen for somebody who cannot edit it — it explains why every field
+        below refuses them — and as the tail of a descriptive sentence it read
+        as more description and was missed.
+      */}
+      {!canEdit && (
+        <Alert tone="info">
+          <strong>Read-only for your role.</strong> You can see everything here,
+          but a Program Lead or Operations Manager makes the changes.
+        </Alert>
+      )}
 
-        <fieldset className="settings-section" disabled={!canEdit}>
-          <legend className="settings-section__title">Inventory Parameters</legend>
-          <TextField
-            label="Default Minimum Stock Alert Threshold (Units)"
-            type="number"
-            min={0}
-            value={draft.default_minimum_stock_threshold}
-            onChange={(event) => update('default_minimum_stock_threshold', Number(event.target.value))}
-          />
-          <p className="settings-section__hint">
-            Pre-fills the minimum when a new SKU is created. Minimums already set
-            are per SKU per warehouse and are not changed by this.
-          </p>
+      {/*
+        Two tabs, not one long page. System settings are a form committed
+        by one Save; reason codes are a table that saves as you go. Stacked,
+        the Save button sat in the middle of the screen with more editable
+        content below it, which made one button look like it committed
+        everything.
+      */}
+      <TabBar
+        label="Settings views"
+        active={tab}
+        onSelect={(key) => selectTab(key as TabKey)}
+        tabs={seesReasonCodes ? TABS : TABS.filter((entry) => entry.key === 'system')}
+      />
 
-          {/*
-            Split out and labelled, rather than sitting beside a control that
-            works. A ticked box reading "auto-trigger tailoring center reorder"
-            is a statement of fact, and it is not a true one — nothing raises a
-            production order automatically. Leaving it looking live was the most
-            misleading thing on this screen.
-          */}
-          <div className="settings-subsection">
-            <p className="settings-section__note">
-              Stored for a future automatic-reorder feature. Nothing reads these
-              values today — production orders are raised by hand.
-            </p>
+      {tab === 'system' || !seesReasonCodes ? (
+        <>
+        {/* Paired for the same reason as the row below: neither section is
+            wide enough to earn a band of its own. */}
+        <div className="settings-row-2col settings-row-2col--stretch">
+          <fieldset className="settings-section" disabled={!canEdit}>
+            <legend className="settings-section__title">General Settings</legend>
+            <div className="settings-grid">
+              <TextField
+                label="Organization Name"
+                value={draft.organization_name}
+                onChange={(event) => update('organization_name', event.target.value)}
+              />
+              <Select
+                label="Default Warehouse Hub"
+                value={draft.default_warehouse ?? ''}
+                onChange={(event) =>
+                  update('default_warehouse', event.target.value ? Number(event.target.value) : null)
+                }
+              >
+                <option value="">None</option>
+                {(warehouses?.results ?? []).map((warehouse) => (
+                  <option key={warehouse.id} value={warehouse.id}>
+                    {warehouse.name}
+                  </option>
+                ))}
+              </Select>
+              <Select
+                label="Timezone"
+                value={draft.timezone}
+                onChange={(event) => update('timezone', event.target.value as Draft['timezone'])}
+              >
+                <option value="Africa/Kampala">East Africa Time (EAT) / Kampala (UTC+3)</option>
+              </Select>
+              <Select
+                label="Currency"
+                value={draft.currency}
+                onChange={(event) => update('currency', event.target.value as Draft['currency'])}
+              >
+                <option value="UGX">Ugandan Shilling (UGX)</option>
+              </Select>
+            </div>
+          </fieldset>
+
+          <fieldset className="settings-section" disabled={!canEdit}>
+            <legend className="settings-section__title">Inventory Parameters</legend>
             <TextField
-              label="Critical Safety Buffer Level (%)"
+              label="Default Minimum Stock Alert Threshold (Units)"
               type="number"
               min={0}
-              max={100}
-              value={draft.critical_safety_buffer_percent}
-              onChange={(event) => update('critical_safety_buffer_percent', Number(event.target.value))}
+              value={draft.default_minimum_stock_threshold}
+              onChange={(event) => update('default_minimum_stock_threshold', Number(event.target.value))}
             />
+            <p className="settings-section__hint">
+              Pre-fills the minimum when a new SKU is created. Minimums already set
+              are per SKU per warehouse and are not changed by this.
+            </p>
+
+            {/*
+              Split out and labelled, rather than sitting beside a control that
+              works. A ticked box reading "auto-trigger tailoring center reorder"
+              is a statement of fact, and it is not a true one — nothing raises a
+              production order automatically. Leaving it looking live was the most
+              misleading thing on this screen.
+            */}
+            <div className="settings-subsection">
+              <p className="settings-section__note">
+                Stored for a future automatic-reorder feature. Nothing reads these
+                values today — production orders are raised by hand.
+              </p>
+              <TextField
+                label="Critical Safety Buffer Level (%)"
+                type="number"
+                min={0}
+                max={100}
+                value={draft.critical_safety_buffer_percent}
+                onChange={(event) => update('critical_safety_buffer_percent', Number(event.target.value))}
+              />
+              <label className="settings-checkbox">
+                <input
+                  type="checkbox"
+                  checked={draft.auto_trigger_tailoring_center_reorder}
+                  onChange={(event) => update('auto_trigger_tailoring_center_reorder', event.target.checked)}
+                />
+                Auto-trigger tailoring center reorder when safety stock breached
+              </label>
+            </div>
+          </fieldset>
+        </div>
+
+        {/*
+          Two short sections side by side. Both are lists of a few controls
+          that read at a glance — full width each, they would be two wide bands
+          of mostly empty card. The row collapses to one column below 900px.
+        */}
+        <div className="settings-row-2col settings-row-2col--stretch">
+          <fieldset className="settings-section" disabled={!canEdit}>
+            <legend className="settings-section__title">System Alerts</legend>
             <label className="settings-checkbox">
               <input
                 type="checkbox"
-                checked={draft.auto_trigger_tailoring_center_reorder}
-                onChange={(event) => update('auto_trigger_tailoring_center_reorder', event.target.checked)}
+                checked={draft.low_stock_alerts_enabled}
+                onChange={(event) => update('low_stock_alerts_enabled', event.target.checked)}
               />
-              Auto-trigger tailoring center reorder when safety stock breached
+              Low stock warnings digest
             </label>
-          </div>
-        </fieldset>
-      </div>
-
-      {/*
-        Two short sections side by side. Both are lists of a few controls
-        that read at a glance — full width each, they would be two wide bands
-        of mostly empty card. The row collapses to one column below 900px.
-      */}
-      <div className="settings-row-2col settings-row-2col--stretch">
-        <fieldset className="settings-section" disabled={!canEdit}>
-          <legend className="settings-section__title">System Alerts</legend>
-          <label className="settings-checkbox">
-            <input
-              type="checkbox"
-              checked={draft.low_stock_alerts_enabled}
-              onChange={(event) => update('low_stock_alerts_enabled', event.target.checked)}
-            />
-            Low stock warnings digest
-          </label>
-          <label className="settings-checkbox">
-            <input
-              type="checkbox"
-              checked={draft.receipt_discrepancy_alerts_enabled}
-              onChange={(event) => update('receipt_discrepancy_alerts_enabled', event.target.checked)}
-            />
-            Receipt discrepancies instant alert
-          </label>
-          <label className="settings-checkbox">
-            <input
-              type="checkbox"
-              checked={draft.backorder_allocation_alerts_enabled}
-              onChange={(event) => update('backorder_allocation_alerts_enabled', event.target.checked)}
-            />
-            Backorder allocation notifications
-          </label>
-        </fieldset>
+            <label className="settings-checkbox">
+              <input
+                type="checkbox"
+                checked={draft.receipt_discrepancy_alerts_enabled}
+                onChange={(event) => update('receipt_discrepancy_alerts_enabled', event.target.checked)}
+              />
+              Receipt discrepancies instant alert
+            </label>
+            <label className="settings-checkbox">
+              <input
+                type="checkbox"
+                checked={draft.backorder_allocation_alerts_enabled}
+                onChange={(event) => update('backorder_allocation_alerts_enabled', event.target.checked)}
+              />
+              Backorder allocation notifications
+            </label>
+          </fieldset>
 
 
-        <fieldset className="settings-section" disabled={!canEdit}>
-          <legend className="settings-section__title">Printing Preferences</legend>
-          <p className="settings-section__note">
-            Stored for a future print/export feature. Nothing reads these values today.
-          </p>
-          <div className="settings-grid">
-            <Select
-              label="Default Paper Size"
-              value={draft.default_paper_size}
-              onChange={(event) => update('default_paper_size', event.target.value as Draft['default_paper_size'])}
-            >
-              <option value="A4">A4 (Standard Ugandan Format)</option>
-              <option value="LETTER">US Letter</option>
-            </Select>
-            <Select
-              label="Packing List Layout"
-              value={draft.packing_list_layout}
-              onChange={(event) =>
-                update('packing_list_layout', event.target.value as Draft['packing_list_layout'])
-              }
-            >
-              <option value="SKU_GROUPED">Standard SKU-Grouped</option>
-              <option value="ORDER_GROUPED">Grouped by Order</option>
-            </Select>
-          </div>
-        </fieldset>
-      </div>
-
-      {/*
-        Below the Save/Discard pair on purpose. Everything above is one
-        document committed by one button; reason codes are their own table
-        that saves as you go, and folding them into that Save would have made
-        one button mean two different things.
-      */}
-      {canEdit && (
-        <div className="settings-actions">
-          <Button variant="secondary" onClick={handleDiscard} disabled={updateSettings.isPending}>
-            Discard Changes
-          </Button>
-          <Button onClick={handleSave} disabled={updateSettings.isPending}>
-            {updateSettings.isPending ? 'Saving…' : 'Save Settings'}
-          </Button>
+          <fieldset className="settings-section" disabled={!canEdit}>
+            <legend className="settings-section__title">Printing Preferences</legend>
+            <p className="settings-section__note">
+              Stored for a future print/export feature. Nothing reads these values today.
+            </p>
+            <div className="settings-grid">
+              <Select
+                label="Default Paper Size"
+                value={draft.default_paper_size}
+                onChange={(event) => update('default_paper_size', event.target.value as Draft['default_paper_size'])}
+              >
+                <option value="A4">A4 (Standard Ugandan Format)</option>
+                <option value="LETTER">US Letter</option>
+              </Select>
+              <Select
+                label="Packing List Layout"
+                value={draft.packing_list_layout}
+                onChange={(event) =>
+                  update('packing_list_layout', event.target.value as Draft['packing_list_layout'])
+                }
+              >
+                <option value="SKU_GROUPED">Standard SKU-Grouped</option>
+                <option value="ORDER_GROUPED">Grouped by Order</option>
+              </Select>
+            </div>
+          </fieldset>
         </div>
-      )}
 
-      <ReasonCodesSection canEdit={canEdit} />
+        {/*
+          Below the Save/Discard pair on purpose. Everything above is one
+          document committed by one button; reason codes are their own table
+          that saves as you go, and folding them into that Save would have made
+          one button mean two different things.
+        */}
+        {canEdit && (
+          <div className="settings-actions">
+            <Button variant="secondary" onClick={handleDiscard} disabled={updateSettings.isPending}>
+              Discard Changes
+            </Button>
+            <Button onClick={handleSave} disabled={updateSettings.isPending}>
+              {updateSettings.isPending ? 'Saving…' : 'Save Settings'}
+            </Button>
+          </div>
+        )}
+        </>
+      ) : (
+        <ReasonCodesSection canEdit={canEdit} />
+      )}
     </AppShell>
   )
 }

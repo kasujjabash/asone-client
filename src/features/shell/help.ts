@@ -16,6 +16,14 @@
 export interface HelpTopic {
   /** Route prefix this covers. Longest match wins, so detail beats list. */
   path: string
+  /**
+   * The `?tab=` this covers, for a screen whose tabs are different subjects.
+   *
+   * Omit it and the topic is the screen's default — which is what almost
+   * every entry here is. Only reach for this where one help entry would have
+   * to explain two unrelated things.
+   */
+  tab?: string
   title: string
   /** One idea per entry. Kept short — this is read standing up. */
   points: string[]
@@ -235,11 +243,138 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
     ],
   },
   {
+    path: '/orders/new',
+    title: 'Place an Order',
+    points: [
+      'One order is for one student, by name. The school is the customer \u2014 students have no accounts \u2014 so the name here is what the school uses to hand the right uniform to the right child when the parcel arrives.',
+      'You can order a Uniform Kit, individual garments, or both on the same order. A kit becomes its component garments for the warehouse to pick, so a kit and the same items ordered separately arrive identically.',
+      'Only garments on your own price list appear. A garment marked for the other school level is not offered, and one with no price on today is not offered either \u2014 if something is missing, it needs pricing, not searching for.',
+      'The total updates as you add lines, at today\u2019s prices. That is the figure the invoice carries.',
+      'Saving creates the order on Hold and gives it a number. That number is the invoice number \u2014 there is no second series \u2014 and it is what a parent quotes when they pay.',
+      'Nothing reaches the warehouse until Finance confirms payment. Until then the order can still be cancelled; afterwards it cannot.',
+    ],
+  },
+  {
+    path: '/production-orders/new',
+    title: 'Raise a Production Order',
+    points: [
+      'This is a warehouse\u2019s order on a Tailoring Centre: what to make, how many, and by when.',
+      'Choose the Tailoring Centre, the warehouse the goods are for, and a due date. The warehouse matters \u2014 it is where the stock lands when the van arrives, and a clerk can only receive against orders for their own site.',
+      'Add a line per SKU. The unit price is what AsOne has agreed to pay that centre, and it is what the stock is valued at in the ledger forever \u2014 not today\u2019s price list.',
+      'Header and lines are written together. There is no half-saved order to find later.',
+      'The order opens as Open and stays there while deliveries come in against it. Nobody sets it to Received \u2014 that is worked out from the receipts.',
+      'Raise one when something is at or below its minimum. The Low Stock figure on your dashboard is the trigger this exists to answer.',
+    ],
+  },
+  {
+    path: '/adjustments/new',
+    title: 'Post an Adjustment',
+    points: [
+      'Two different jobs on one screen. A count correction is for after a stock take; an adjustment with a reason code is for a return, damage or a loss.',
+      'For a count correction you type only what was physically counted. The system compares that with what it believes is on hand and posts the difference itself \u2014 you never work out or type the difference, which is what stops it going in backwards.',
+      'If the count matches, nothing is posted at all and it says so. No document is created, because nothing happened.',
+      'For everything else, the reason code you pick carries the direction. \u201cDamaged\u201d can only reduce stock; \u201cReturn\u201d can only add. You choose a reason, not a sign.',
+      'The figure shown before you type is what the ledger currently sums to. It is a moment ago\u2019s truth, and the server checks again at the instant you post.',
+      'Posting is permanent. A wrong adjustment is corrected by posting an offsetting one, never by editing or deleting \u2014 both are refused, by the server as well as by this screen.',
+    ],
+  },
+  {
+    path: '/transfers/new',
+    title: 'Move Stock Between Warehouses',
+    points: [
+      'A transfer moves stock from one warehouse to another. Nothing is bought or sold, so total inventory value is identical before and after \u2014 only its location changes.',
+      'It writes two ledger rows, one out of the sending site and one into the receiving one, at the value the stock is already carried at. Moving stock never revalues it.',
+      'You cannot send more than the sending warehouse actually has available. Stock already reserved for an order somebody is picking is not available to move.',
+      'Use this when one site is short and the other is not \u2014 it is usually faster than waiting for a Tailoring Centre.',
+      'If a whole school order is what is short, transferring the order to the other warehouse is often better than moving the stock. That is on the Backorders screen.',
+    ],
+  },
+  {
+    path: '/kits/new',
+    title: 'Build a Uniform Kit',
+    points: [
+      'A kit is a bundle a school can order as one line \u2014 \u201cPS Starter Kit\u201d rather than six separate garments.',
+      'Give it a number and a name, say which school level it is for, then add each component SKU and how many of it the kit contains.',
+      'A kit belongs to one school level and appears on that price list only. Unlike a garment, there is no \u201cboth\u201d.',
+      'You never type a price. A kit is worth the sum of its components at their price on the day, calculated every time \u2014 so it can never drift out of step with the garments in it.',
+      'Which means a kit cannot be priced at all until every component has a price. One unpriced garment keeps the whole kit off the price list, and the Price Lists report names which.',
+      'Ordering a kit creates demand for its component SKUs. The warehouse picks garments, never kits.',
+    ],
+  },
+  {
+    path: '/reports/inventory',
+    title: 'Inventory Report',
+    points: [
+      'Stock on hand across every warehouse you can see, with what it is worth.',
+      'Set a date to see the position as it was then. The figures are summed from the ledger, so a past date is a real answer rather than an estimate.',
+      'Value is Available stock at unit value. Stock reserved for an order being picked is not counted \u2014 worth knowing before comparing this with a shelf.',
+      'Filtering by SKU narrows the table, the totals and the export together, so the CSV always matches what you are looking at.',
+      'Export CSV writes the unrounded figures, so a spreadsheet can total them.',
+    ],
+  },
+  {
+    path: '/reports/procurement-costs',
+    title: 'Procurement Costs',
+    points: [
+      'Two figures over the same period: what was committed to the Tailoring Centres on group orders, and what they actually delivered.',
+      'They are shown side by side and deliberately not subtracted. A production order does not need a group order behind it \u2014 reorders through the year have none \u2014 so receipts routinely exceed group-order value and the difference would mean nothing.',
+      'Everything is priced at the day it was agreed, never at today\u2019s price list. Stock is worth what was paid for it.',
+      'Received is valued at what was counted in, not what the order asked for or the packing list claimed. A short delivery is worth less, and that shows here.',
+      'Cancelled group orders are excluded by default \u2014 a withdrawn commitment is not a cost. The toggle includes them when the question is what was cancelled.',
+      'Leave both dates empty for everything on record. Unlike a stock figure, a cost report opens on the whole history rather than a recent window.',
+    ],
+  },
+  {
+    path: '/shipments/history',
+    title: 'Despatched Shipments',
+    points: [
+      'Every van that has left, newest first. This is a record \u2014 nothing is sent from here.',
+      'To load a van, use the To Pick tab. Vans are despatched from there, one per school, carrying every order of that school\u2019s that is picked.',
+      'In Transit means it left the warehouse and the school has not yet confirmed it arrived. Delivered means they have.',
+      'Anything sitting In Transit for a long time is the point of this screen. A parcel that never arrived looks exactly like one that did until somebody confirms it.',
+      'Only the receiving school can confirm a delivery. The warehouse cannot do it on their behalf \u2014 that would defeat the check.',
+      'Opening a shipment shows what was on it and lets you print the packing list that travelled with the goods.',
+    ],
+  },
+  {
+    path: '/profile',
+    title: 'My Profile',
+    points: [
+      'Your own record \u2014 your name, the address you sign in with, and how to reach you. Everybody has one.',
+      'Changing your email changes where your sign-in code is sent as well as what you sign in with. They are the same address.',
+      'Your role and your site are shown but cannot be changed here, by anybody \u2014 the server refuses it outright, not just this screen.',
+      'A Program Lead or Operations Manager changes a role or a site, from Users & Roles. Nobody changes their own, including them: that is the separation working, not a missing button.',
+      'Save appears once you have actually changed something, so there is no button that does nothing.',
+      'This is not Settings. Settings is organisation-wide configuration everyone can read; this is only about you.',
+    ],
+  },
+  {
     path: '/settings',
     title: 'Settings',
     points: [
-      'Not built yet \u2014 this screen has no design.',
-      'Your own password is changed here once it lands. Until then, ask a lead to reset it for you.',
+      'Two tabs. System Settings is one document \u2014 change anything, then Save Settings commits the whole screen and Discard Changes puts it all back.',
+      'Only a Program Lead or Operations Manager can change any of it. Everyone else sees the same screen read-only, because the organisation name is worth being able to look up.',
+      'Organization Name is the name shown in the sidebar. Changing it changes it for everybody.',
+      'Default Minimum pre-fills the figure when a new SKU is created. It does not change a minimum already set \u2014 those are per SKU per warehouse, and are edited from the SKU itself.',
+      'Anything under an amber note is stored but not acted on. Nothing reads the printing preferences or the automatic-reorder fields today: they save and read back correctly, and that is all they do.',
+      'System Alerts are the exception. Those three take effect the moment they save, for everyone \u2014 turning one off removes that kind of alert from every dashboard and every bell in the organisation.',
+      'There is no Synchronization panel, although the design draws one. AsOne chose online-only working: a site without internet waits for it to come back rather than queueing data to sync later.',
+    ],
+  },
+  {
+    path: '/settings',
+    tab: 'reason-codes',
+    title: 'Adjustment Reason Codes',
+    points: [
+      'A reason code is the \u201cwhy\u201d on a stock adjustment. When Finance corrects a count, takes returned goods back into stock or writes off damage, they pick one of these.',
+      'It stays on that movement permanently. Months later the stock history can still say what happened and who decided it \u2014 which is the whole reason the table exists.',
+      'The code carries the direction, not the person posting. Each one either adds to stock or removes from it, so nobody ever types a minus sign: choosing \u201cDamaged\u201d can only ever reduce stock.',
+      'That is what stops an adjustment going in backwards \u2014 the commonest and least visible mistake in stock keeping.',
+      'Which is why the effect cannot be changed once a code is saved. Flipping it would reverse the meaning of every adjustment already posted against it, including last year\u2019s.',
+      'A code set up the wrong way is retired and replaced, never corrected. Retiring takes it out of the choices for new adjustments and leaves it on every one already posted.',
+      'Nothing here is ever deleted, and the server refuses to as well. An audit trail that cannot say why a movement happened is not an audit trail.',
+      '\u201cWhen to use it\u201d is optional and worth filling in \u2014 it is the only guidance the person choosing a code will see.',
+      'Only a Program Lead or Operations Manager can add or retire a code. Finance, who actually post the adjustments, read this table but do not maintain it.',
     ],
   },
 ] as const
@@ -250,8 +385,27 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
  * Longest wins so a detail route falls back to its list’s topic rather than
  * to nothing — `/orders/24` is still about orders.
  */
-export function helpFor(pathname: string): HelpTopic | null {
-  const matches = HELP_TOPICS.filter((topic) => pathname.startsWith(topic.path))
+export function helpFor(pathname: string, tab?: string | null): HelpTopic | null {
+  /*
+   * A screen whose tabs are genuinely different subjects gets a topic each,
+   * keyed on the `?tab=` the screen already puts in the URL. Settings is the
+   * case that needed it: system configuration and the reason-code table share
+   * a route and have nothing else in common, so one help entry covering both
+   * would be two unrelated explanations stapled together.
+   *
+   * Checked before the prefix match, and only when a topic actually declares
+   * a tab — every other screen is unaffected.
+   */
+  if (tab) {
+    const forTab = HELP_TOPICS.find(
+      (topic) => topic.tab === tab && pathname.startsWith(topic.path),
+    )
+    if (forTab) return forTab
+  }
+
+  const matches = HELP_TOPICS.filter(
+    (topic) => topic.tab === undefined && pathname.startsWith(topic.path),
+  )
   if (matches.length === 0) return null
 
   return matches.reduce((best, topic) =>

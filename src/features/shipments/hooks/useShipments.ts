@@ -109,10 +109,24 @@ export function useUnpickOrder() {
 }
 
 /** Schools with orders picked and waiting. */
+/**
+ * Schools with orders picked and waiting, at one warehouse.
+ *
+ * `enabled` matters here. A van leaves from *a* warehouse, so the endpoint
+ * refuses an all-locations caller who has not named one — with a 400, not a
+ * 403. Fired regardless, that 400 came back as no data, and the panel drew
+ * its empty state: **"No van is ready to load"**, which is a different claim
+ * from "you have not said which warehouse". A lead on All warehouses was
+ * being told there was nothing to despatch while three vans waited.
+ *
+ * Warehouse staff are pinned to their own site and always have one, so this
+ * only ever holds the query for a role that genuinely has a choice to make.
+ */
 export function useDespatchQueue(warehouseId: number | null) {
   return useQuery({
     queryKey: ['shipments', 'despatch-queue', warehouseId],
     queryFn: () => shipmentsApi.despatchQueue(warehouseId),
+    enabled: warehouseId !== null,
   })
 }
 

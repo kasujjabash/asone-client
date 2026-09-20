@@ -11,18 +11,28 @@
  * gate that already matches.
  */
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as adjustmentsApi from '@/api/adjustments'
 import { snackbar } from '@/components'
 import { toApiError } from '@/api/errors'
+import { LIST_PAGE_SIZE } from '@/api/pageSize'
 
 /** Every code, active and retired — an editor has to see what it may revive. */
 const KEY = ['reason-codes', 'all'] as const
 
-export function useAllReasonCodes() {
+/**
+ * Paged, like every other list in the app.
+ *
+ * Six codes today, so the controls stay hidden — but this is a table AsOne
+ * maintains, and "a handful" is an assumption about their data rather than a
+ * property of the screen. Retired codes accumulate and are never deleted, so
+ * it only grows.
+ */
+export function useAllReasonCodes(page: number) {
   return useQuery({
-    queryKey: KEY,
-    queryFn: () => adjustmentsApi.reasonCodes(),
+    queryKey: [...KEY, page],
+    queryFn: () => adjustmentsApi.reasonCodes({ page, page_size: LIST_PAGE_SIZE }),
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   })
 }

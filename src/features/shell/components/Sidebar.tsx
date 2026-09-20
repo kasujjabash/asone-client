@@ -17,11 +17,16 @@
  * five links**, three of those headings sitting above a single item.
  *
  * A heading that describes one thing is not a heading, it is a lid. So a
- * group left holding one visible item renders as a plain link in its place,
- * and the sections survive only where they are still sorting something. The
- * rule is on the count after filtering, not on the role — a sixth role added
- * tomorrow gets the right shape without a change here, and no list of role
- * names appears in this file.
+ * group left holding one visible item renders as a plain link in its place.
+ *
+ * And below a certain size the same is true of the whole sidebar: sorting six
+ * links into three sections is filing rather than navigation, and it puts a
+ * lid on most of what the person has. Under `FLAT_BELOW` destinations the
+ * sections are dropped entirely and every link is shown.
+ *
+ * Both rules key off the count after filtering, never the role — a sixth role
+ * added tomorrow gets the right shape without a change here, and no list of
+ * role names appears in this file.
  */
 
 import { NavLink } from 'react-router-dom'
@@ -40,8 +45,24 @@ interface SidebarProps {
   onSignOut: () => void
 }
 
+/*
+ * At or below this many destinations, the sidebar is a flat list.
+ *
+ * Nine, counted from the app rather than estimated: a school clerk has six,
+ * a warehouse clerk eight, Finance nine, and a lead seventeen. Only the last
+ * is a list that sections genuinely sort.
+ *
+ * It was seven, which put warehouse staff and Finance one and two links over
+ * the line — and because the groups are an accordion, being over the line
+ * meant a warehouse clerk landing on the dashboard could see **one** of their
+ * eight destinations and Finance two of nine. Sections that hide seven links
+ * to organise nine are not organising anything.
+ */
+const FLAT_BELOW = 9
+
 export function Sidebar({ user, onSignOut }: SidebarProps) {
   const groups = visibleNavigation(user)
+  const flat = groups.reduce((n, group) => n + group.items.length, 0) <= FLAT_BELOW
   const { isOpen, toggle } = useNavGroups()
 
   /*
@@ -70,11 +91,10 @@ export function Sidebar({ user, onSignOut }: SidebarProps) {
             One item left after filtering: draw it where the section would
             have been, keeping the order the sections already establish.
           */
-          if (group.items.length === 1) {
-            const item = group.items[0]
-            return (
+          if (flat || group.items.length === 1) {
+            return group.items.map((item) => (
               <NavLink
-                key={group.label}
+                key={item.path}
                 to={item.path}
                 className={({ isActive }) =>
                   `sidebar__link sidebar__link--solo${isActive ? ' sidebar__link--active' : ''}`
@@ -83,7 +103,7 @@ export function Sidebar({ user, onSignOut }: SidebarProps) {
                 <NavIcon name={item.icon} />
                 <span>{item.label}</span>
               </NavLink>
-            )
+            ))
           }
 
           const open = isOpen(group.label)
@@ -125,13 +145,36 @@ export function Sidebar({ user, onSignOut }: SidebarProps) {
         })}
       </div>
 
+      {/*
+        The card is the way to your own profile, for every role at every
+        moment — clicking your own name and face is where people already look
+        for it.
+
+        It is here because the nav entry alone was not enough. The groups are
+        an accordion, one open at a time, so a Finance user landing on the
+        dashboard saw two of their nine links and My Profile was inside a
+        collapsed section; a warehouse clerk saw one of eight. `FLAT_BELOW`
+        now covers both of those roles, but the accordion still exists for a
+        lead, and "where is my profile" should not depend on which section
+        happens to be open.
+
+        Sign-out stays its own button beside it — a link and a destructive
+        action must not share one hit area.
+      */}
       <div className="sidebar__user">
-        <Avatar initials={initials(user)} />
-        <span className="sidebar__user-text">
-          <b>{fullName(user)}</b>
-          {/* The server's wording, not ours. */}
-          <small>{user.role_display}</small>
-        </span>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) =>
+            `sidebar__user-link${isActive ? ' sidebar__user-link--active' : ''}`
+          }
+        >
+          <Avatar initials={initials(user)} />
+          <span className="sidebar__user-text">
+            <b>{fullName(user)}</b>
+            {/* The server's wording, not ours. */}
+            <small>{user.role_display}</small>
+          </span>
+        </NavLink>
         <button
           type="button"
           className="sidebar__signout"

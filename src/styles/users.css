@@ -471,3 +471,46 @@
 }
 
 .user-actions > * { width: 100%; }
+
+/* ---------------------------------------------------------------------------
+ * My Profile — a person's own record
+ * ------------------------------------------------------------------------ */
+
+/*
+ * My Profile reuses `.profile-hero`, `.profile-columns` and
+ * `.detail-list--profile` above wholesale, so it needs no layout of its own.
+ * What it needs is breathing room *inside* a panel: `.panel__body` is a flex
+ * column with no gap, because most panels hold one thing. These hold three —
+ * a detail list, a note about it, and an action — and `.detail-list` sets
+ * `margin: 0` on the assumption that a modal's gap will space it. Without
+ * this the note sat flush against the last row it was explaining.
+ */
+.profile-columns .panel__body {
+  gap: var(--space-4);
+}
+
+/*
+ * Save and Cancel side by side, primary last.
+ *
+ * `.user-actions` stacks full width because on the lead's screen it holds
+ * Reset password / Deactivate — separate decisions, each wanting its own
+ * line. A form's two buttons are one decision with two answers, and stacked
+ * full width they made Cancel exactly as loud as Save. Right-aligned, sized
+ * to their labels, the way every other form in the app ends.
+ */
+.user-actions--row {
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.user-actions--row > * { width: auto; }
+
+/* An anchor wearing the button's clothes — see MyProfileScreen for why it is
+   not a `<Button>`. `.btn` assumes a button's default box. */
+.user-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  text-decoration: none;
+}
