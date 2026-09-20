@@ -13,7 +13,7 @@
  */
 
 import { Link, Navigate, useNavigate } from 'react-router-dom'
-import { BrandMark, Button, LoadingScreen, ServerUnreachable } from '@/components'
+import { Button, LoadingScreen, ServerUnreachable } from '@/components'
 import { SplitAuthLayout } from '../components/SplitAuthLayout'
 import { useAuth } from '../hooks/useAuth'
 import { paths } from '@/routes/paths'
@@ -40,7 +40,6 @@ export function WelcomeScreen() {
     <SplitAuthLayout>
       <div className="welcome">
         <header className="signin__head">
-          <BrandMark width={80} label="AsOne" />
           <h1 className="signin__title">AsOne Logistics</h1>
           <p className="signin__subtitle">Inventory Management</p>
         </header>

@@ -12,10 +12,23 @@
 import { BrandMark } from './BrandMark'
 import { Spinner } from './Spinner'
 
+/*
+ * The mark at the size it was drawn: `BrandMark`'s own 158x70.
+ *
+ * It was 110, small enough that "MINISTRIES" under the wordmark did not
+ * resolve. Going the other way to 240 only traded one wrong size for
+ * another — blown past its geometry, it read as a splash screen rather than
+ * a wait. The designed width is the one number here that is not a guess.
+ *
+ * `BrandMark` draws the green asset (`asone-logo.png`); the white one is for
+ * the dark rail and would be invisible here, on `--canvas`.
+ */
+const MARK_WIDTH = 158
+
 export function LoadingScreen({ message = 'Loading…' }: { message?: string }) {
   return (
     <main className="loading-screen" aria-busy="true">
-      <BrandMark width={110} />
+      <BrandMark width={MARK_WIDTH} />
       <p className="loading-screen__message">
         <Spinner size={16} label={message} />
         {message}

@@ -8,7 +8,7 @@
  */
 
 import { Navigate } from 'react-router-dom'
-import { BrandMark, LoadingScreen, ServerUnreachable } from '@/components'
+import { LoadingScreen, ServerUnreachable } from '@/components'
 import { SignInForm } from '../components/SignInForm'
 import { SplitAuthLayout } from '../components/SplitAuthLayout'
 import { VerifyCodeCard } from '../components/VerifyCodeCard'
@@ -47,7 +47,6 @@ export function SignInScreen() {
   return (
     <SplitAuthLayout>
       <header className="signin__head">
-        <BrandMark width={80} label="AsOne" />
         <h1 className="signin__title">AsOne Logistics</h1>
         <p className="signin__subtitle">Inventory Management</p>
       </header>

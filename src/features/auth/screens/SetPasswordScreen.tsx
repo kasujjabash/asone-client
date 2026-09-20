@@ -50,7 +50,7 @@ import { useState, type FormEvent } from 'react'
 import { Navigate } from 'react-router-dom'
 import * as authApi from '@/api/auth'
 import { toApiError, type ApiError } from '@/api/errors'
-import { Alert, BrandMark, Button, LoadingScreen, PasswordField, ServerUnreachable } from '@/components'
+import { Alert, Button, LoadingScreen, PasswordField, ServerUnreachable } from '@/components'
 import { paths } from '@/routes/paths'
 import { SplitAuthLayout } from '../components/SplitAuthLayout'
 import { useAuth } from '../hooks/useAuth'
@@ -94,7 +94,6 @@ export function SetPasswordScreen() {
   return (
     <SplitAuthLayout>
       <header className="signin__head">
-        <BrandMark width={80} label="AsOne" />
         <h1 className="signin__title">Choose your password</h1>
         <p className="signin__subtitle">
           One step before you start. The password you were given is known to

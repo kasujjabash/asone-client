@@ -16,7 +16,8 @@ import { Button } from './Button'
 export function ServerUnreachable({ onRetry }: { onRetry: () => void }) {
   return (
     <main className="loading-screen">
-      <BrandMark width={110} />
+      {/* Matches LoadingScreen — the same full-page state, one step later. */}
+      <BrandMark width={158} />
 
       <div className="unreachable">
         <CloudOff size={28} aria-hidden className="unreachable__icon" />

@@ -12,7 +12,7 @@
  */
 
 import workshopImage from '@/assets/onboarding/workshop.png'
-import { BrandMark, PageDots } from '@/components'
+import { PageDots } from '@/components'
 import { BrandBackdrop } from './BrandBackdrop'
 import { useCarousel } from '../hooks/useCarousel'
 import { ONBOARDING_SLIDES } from '../slides'
@@ -31,8 +31,10 @@ export function OnboardingPanel() {
     <BrandBackdrop image={workshopImage}>
       <div className="onboarding">
         <div className="onboarding__stage">
+          {/* No mark over the deck. It sat on a photographic backdrop where
+              it half-disappeared into the image, and the panel is already
+              signed off in the footer below. */}
           <div className="onboarding__slide">
-            <BrandMark width={158} />
             <p className="onboarding__title">{slide.title}</p>
             <p className="onboarding__body">{slide.body}</p>
           </div>

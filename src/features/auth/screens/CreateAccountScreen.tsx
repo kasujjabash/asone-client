@@ -27,7 +27,7 @@ import { Navigate } from 'react-router-dom'
 import * as authApi from '@/api/auth'
 import { toApiError, type ApiError } from '@/api/errors'
 import type { RegistrationRequest } from '@/api/types'
-import { BrandMark, Button, LoadingScreen, ServerUnreachable } from '@/components'
+import { Button, LoadingScreen, ServerUnreachable } from '@/components'
 import { paths } from '@/routes/paths'
 import { CreateAccountForm } from '../components/CreateAccountForm'
 import { SplitAuthLayout } from '../components/SplitAuthLayout'
@@ -82,7 +82,6 @@ export function CreateAccountScreen() {
   return (
     <SplitAuthLayout>
       <header className="signin__head">
-        <BrandMark width={80} label="AsOne" />
         <h1 className="signin__title">Create Your Account</h1>
         <p className="signin__subtitle">Join the unified uniform management network</p>
       </header>
