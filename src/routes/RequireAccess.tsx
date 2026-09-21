@@ -10,9 +10,11 @@
  */
 
 import type { ReactNode } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { AccessDeniedScreen } from '@/features/shell/screens/AccessDeniedScreen'
 import { meetsRequirement } from '@/features/shell/visibleNavigation'
+import { pathOpenInThisPhase } from '@/domain/phase'
 import type { NavRequirement } from '@/features/shell/navigation'
 
 interface RequireAccessProps {
@@ -22,6 +24,14 @@ interface RequireAccessProps {
 
 export function RequireAccess({ requires, children }: RequireAccessProps) {
   const { user } = useAuth()
+  const { pathname } = useLocation()
+
+  // TEMPORARY: phase gate — see domain/phase.ts. Here as well as in the
+  // sidebar because hiding a menu entry while its URL still answers is
+  // theatre: testers paste addresses and follow links out of emails.
+  if (!pathOpenInThisPhase(pathname)) {
+    return <AccessDeniedScreen />
+  }
 
   // Same check the sidebar uses, so a destination is never visible and
   // unreachable, or hidden and reachable.

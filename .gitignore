@@ -35,7 +35,16 @@ docs/design/
 # Screenshot helper, written per-session for reviewing screens locally.
 capture-*.mjs
 public/assets
-# Local dev tooling and tokens — never commit
+# Local dev tooling and tokens — never commit.
+#
+# The leading dot matters and was missing: the helper writes `.tokens.json`,
+# `tokens.json` did not match it, and `git add -A` committed live JWTs for
+# every test account. Patterns here are matched literally, not by basename.
+.tokens.json
 tokens.json
 measure.mjs
 shot2.mjs
+
+# Playwright scratch scripts and screenshots, written per session.
+.*.mjs
+.*.png

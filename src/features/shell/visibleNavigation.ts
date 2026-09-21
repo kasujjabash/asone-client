@@ -8,6 +8,7 @@
  */
 
 import { can } from '@/domain/access'
+import { pathOpenInThisPhase } from '@/domain/phase'
 import type { CurrentUser } from '@/api/types'
 import { NAVIGATION, type NavGroup, type NavRequirement } from './navigation'
 
@@ -31,7 +32,13 @@ export function visibleNavigation(user: CurrentUser | null): NavGroup[] {
 
   return NAVIGATION.map((group) => ({
     ...group,
-    items: group.items.filter((item) => meetsRequirement(user, item.requires)),
+    items: group.items.filter(
+      (item) =>
+        meetsRequirement(user, item.requires) &&
+        // TEMPORARY: phase gate — see domain/phase.ts. Kept out of `requires`
+        // because that says *who* may see a screen and this says *when*.
+        pathOpenInThisPhase(item.path),
+    ),
   })).filter(
     // A section label with nothing under it is noise — drop the whole group.
     (group) => group.items.length > 0,

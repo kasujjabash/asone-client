@@ -395,7 +395,7 @@ span.line-note { display: block; }
 
 .despatch__title {
   margin: 0;
-  font-size: var(--text-h3);
+  font-size: var(--text-section-title);
   color: var(--accent-hover);
 }
 
@@ -498,7 +498,7 @@ span.line-note { display: block; }
 
 .table-card__title {
   margin: 0;
-  font-size: var(--text-h3);
+  font-size: var(--text-section-title);
   color: var(--text-primary);
 }
 

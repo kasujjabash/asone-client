@@ -1,12 +1,11 @@
 /**
  * A dashboard KPI tile — Figma 2001:802.
  *
- * Structurally different from the shared `StatCard` (design system §06), and
- * deliberately its own component rather than a restyle of it: here the icon
- * pairs with the *figure* and the category label sits underneath, where
- * StatCard pairs the icon with the label and leads with the figure. Forcing
- * one into the other with CSS ordering cannot regroup the icon, and would
- * break the moment either design moved.
+ * The only KPI tile in the app. The design system's §06 `StatCard` was a
+ * second one — icon paired with the label rather than the figure — but
+ * nothing ever rendered it, so it and its stylesheet section were deleted
+ * rather than left as a second card figure for somebody to pick up by
+ * mistake. Anything wanting a figure on a card uses this.
  *
  * `value` is a string. Every figure on this screen is either formatted money
  * or a formatted count, and neither should arrive as a raw number.

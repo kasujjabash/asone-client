@@ -258,7 +258,13 @@
   border-radius: var(--radius-md);
   background: none;
   font: inherit;
-  font-size: var(--text-h3);
+  /*
+   * `--text-small`, matching a KPI tile's caption. Tabs were `--text-h3` —
+   * the same size a section heading used to be — so a row of tabs competed
+   * with the headings on the screen below it. A tab is a control, not a
+   * heading; the active one is already marked by weight and its halo.
+   */
+  font-size: var(--text-small);
   font-weight: var(--weight-medium);
   color: var(--text-primary);
   cursor: pointer;
@@ -445,7 +451,7 @@
 
 .card-panel__title {
   margin: 0;
-  font-size: var(--text-h3);
+  font-size: var(--text-section-title);
   font-weight: var(--weight-bold);
   color: var(--text-primary);
 }

@@ -288,6 +288,24 @@
   --text-overline: calc(11px * var(--text-scale));  /* uppercase eyebrows */
   --text-micro: calc(10px * var(--text-scale));     /* tags and badges */
 
+  /*
+   * The card/panel section heading — "Needs Attention", "Recent Activity",
+   * "Kit Details", "Order Picking Backlog".
+   *
+   * A role, not a step: it names what the text *is* so the size can move in
+   * one place. It has to exist because **six** classes draw this one heading
+   * across five stylesheets — `.panel__title`, `.card-panel__title`,
+   * `.table-card__title`, `.settings-section__title`, `.report-group__title`
+   * and `.despatch__title`. Three of those were byte-identical declarations.
+   * They were kept in step only by all happening to say `--text-h3`, so the
+   * first person to change one would have split the app in two without
+   * noticing. Changing this line now moves all six.
+   *
+   * Currently one step below `--text-h3`, on a designer's note that the
+   * headings sat a little loud against the content they introduce.
+   */
+  --text-section-title: var(--text-body);
+
   --leading-tight: 1.2;
   --leading-normal: 1.5;
   --leading-relaxed: 1.6;

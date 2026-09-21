@@ -147,7 +147,19 @@
 .kpi--alert .kpi__icon { color: var(--warning); }
 
 .kpi__value {
-  font-size: var(--text-h2);
+  /*
+   * The headline figure on every KPI tile in the app — `KpiCard` is used on
+   * the dashboards, picking, kits, schools, warehouses and reports, so this
+   * one declaration is every card number there is. It is the only one: the
+   * design system's §06 `.stat__value` was a second, larger card figure that
+   * nothing rendered, and it has been deleted.
+   *
+   * One step down from `--text-h2`, with the section headings and the promo
+   * title. The figure still leads its tile by a wide margin — 21.6px against
+   * a 15.6px caption — and the row of tiles no longer shouts over the
+   * panels underneath it.
+   */
+  font-size: var(--text-subhead);
   font-weight: var(--weight-bold);
   line-height: 1.1;
   color: var(--text-primary);
@@ -206,7 +218,7 @@
    * title losing to the text it introduces. The design has it clearly
    * larger, and every panel in the system reads flat until it is.
    */
-  font-size: var(--text-h3);
+  font-size: var(--text-section-title);
   font-weight: var(--weight-bold);
   color: var(--text-primary);
 }
@@ -493,7 +505,21 @@
   margin: 0;
   color: var(--text-on-dark);
   font-family: var(--font-promo);
-  font-size: var(--text-h2);
+  /*
+   * One step down from `--text-h2`, on the same designer note that took the
+   * section headings down: at 24px this was the largest text on the
+   * dashboard bar the KPI figures, for a card that is an offer rather than
+   * the page's subject.
+   *
+   * Its own step rather than `--text-section-title`: this is not a section
+   * heading. It sits on the accent fill in `--font-promo` and still needs to
+   * out-rank the panel titles beside it, so it keeps a size of its own.
+   *
+   * `white-space: nowrap` below is why the size matters more here than
+   * elsewhere — the title cannot wrap out of an overflow, it can only
+   * overrun. Smaller buys margin before that happens.
+   */
+  font-size: var(--text-subhead);
   font-weight: var(--weight-semibold);
   line-height: 1.2;
   white-space: nowrap;

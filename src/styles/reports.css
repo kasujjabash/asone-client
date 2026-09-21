@@ -453,7 +453,7 @@
 .report-group__title {
   flex: 1;
   margin: 0;
-  font-size: var(--text-h3);
+  font-size: var(--text-section-title);
   font-weight: var(--weight-bold);
   color: var(--text-primary);
 }
